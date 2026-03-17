@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 // ── API Key ───────────────────────────────────────────────────
-// Fill in your Anthropic API key here before using AI features.
-const ANTHROPIC_API_KEY = ""; // ← Paste your Anthropic API key here (never commit a real key)
+// Key is loaded from .env.local (local) or Netlify environment variables (live).
+// Never hardcode a real key here — it will be blocked by GitHub.
+const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
 
 /**
  * App main module
