@@ -1526,8 +1526,8 @@ Allowed rewards: ${allowedRewards}`;
   const quote = getRandomQuote();
   const mainTabs = [
     { id: "dashboard", label: "⟐ HQ" }, { id: "quests", label: "⚡ QUESTS" }, { id: "bosses", label: "☠ GOALS" },
-    { id: "market", label: "📈 MARKET" }, { id: "npcs", label: "★ NPCs" }, { id: "shop", label: "🪙 SHOP" },
-    { id: "skills", label: "◈ STATS" }, { id: "ai", label: "🤖 AI" }, { id: "debug", label: "⚙ SYS" },
+    { id: "ai", label: "🤖 AI" }, { id: "market", label: "📈 MARKET" }, { id: "npcs", label: "★ NPCs" },
+    { id: "shop", label: "🪙 SHOP" }, { id: "skills", label: "◈ STATS" }, { id: "debug", label: "⚙ SYS" },
   ];
   const approvedRewards = onboardingData?.allowedRewards || [];
   const allShopRewards = [
@@ -1803,7 +1803,6 @@ Allowed rewards: ${allowedRewards}`;
       {toast && (
         <div style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: "#0a0a0a", border: `1px solid ${toast.color}`, color: toast.color, fontFamily: "monospace", fontSize: 13, padding: "10px 20px", zIndex: 99999, letterSpacing: 2, animation: "fadeIn 0.2s ease", whiteSpace: "nowrap", pointerEvents: "none" }}>{toast.msg}</div>
       )}
-      <button onClick={() => setShowSettings(true)} style={{ position: "fixed", top: 12, right: 12, background: "transparent", border: "1px solid #333", color: "#999", fontFamily: "monospace", fontSize: 13, padding: "6px 10px", cursor: "pointer", zIndex: 8000, letterSpacing: 1 }}>⚙</button>
       {showAddTask && <AddTaskModal onAdd={addTask} onClose={() => setShowAddTask(false)} />}
       {showAddBoss && <AddBossModal onAdd={addBoss} onClose={() => setShowAddBoss(false)} />}
       {showAddNPC && <AddNPCModal onAdd={addNPC} onClose={() => setShowAddNPC(false)} />}
