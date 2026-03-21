@@ -513,6 +513,37 @@ function getXpMultiplier(state) {
 }
 function getCreditMult(state) { return (state.activeDebuffs || []).find(d => d.id === "rage") ? 0.5 : 1; }
 
+// ── VORAX Expression Engine ──────────────────────────────────
+function getVoraxExpression(state) {
+  const completedCount = (state.completedToday || []).length;
+  const streakDays = state.streakDays || 0;
+  const taskCount = (state.tasks || []).length;
+  const hasDecayDebuffs = (state.activeDebuffs || []).some(d => d.id === "decay" || d.id === "rust" || d.id === "atrophy");
+  const hour = new Date().getHours();
+
+  if (completedCount >= 5 && streakDays >= 7) return 'proud';
+  if (completedCount >= 3 || streakDays >= 3) return 'pleased';
+  if (hasDecayDebuffs || (taskCount > 0 && completedCount === 0 && hour > 14)) return 'furious';
+  if (completedCount === 0 && hour > 10) return 'disappointed';
+  if (taskCount > 0 && completedCount < taskCount / 2) return 'demanding';
+  return 'idle';
+}
+
+// ── VORAX Quick Prompts ──────────────────────────────────────
+function getVoraxQuickPrompts(state) {
+  const completedCount = (state.completedToday || []).length;
+  const pendingTasks = (state.tasks || []).filter(t => !(state.completedToday || []).includes(t.id));
+
+  if (pendingTasks.length === 0 && completedCount === 0) {
+    return ["Plan my day", "Add a quest", "What should I focus on?"];
+  }
+  if (pendingTasks.length > 0) {
+    return ["How am I doing?", "I just finished something", "Motivate me"];
+  }
+  // All done
+  return ["Analyze my week", "What's next?", "I want a reward"];
+}
+
 // ── Default State ─────────────────────────────────────────────
 function getDefaultState() {
   return {
@@ -2029,6 +2060,29 @@ export default function SimulationOS() {
     if (coachEndRef.current) coachEndRef.current.scrollIntoView({ behavior: "smooth" });
   }, [coachHistory, coachStreamText]);
 
+  // ── VORAX proactive greeting ──
+  useEffect(() => {
+    if (coachHistory.length > 0) return; // already has messages
+    const pendingTasks = (state.tasks || []).filter(t => !(state.completedToday || []).includes(t.id));
+    const completedCount = (state.completedToday || []).length;
+    const hour = new Date().getHours();
+
+    let greeting;
+    if (hour < 12 && pendingTasks.length === 0 && completedCount === 0) {
+      greeting = "What's the plan today, human. Talk or work.";
+    } else if (pendingTasks.length > 0 && completedCount === 0) {
+      greeting = `${pendingTasks.length} quests waiting. Zero done. Move.`;
+    } else if (completedCount > 0 && pendingTasks.length > 0) {
+      greeting = `${completedCount} done. ${pendingTasks.length} left. Don't stop now.`;
+    } else if (pendingTasks.length === 0 && completedCount > 0) {
+      greeting = "All quests done. Acceptable. For today.";
+    } else {
+      greeting = "I'm hungry, human. Feed me completed tasks.";
+    }
+
+    setCoachHistory([{ role: "assistant", content: greeting }]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Day Check + Violations + Decay + Daily Login ──
   useEffect(() => {
     const check = () => {
@@ -2458,23 +2512,40 @@ Be concise (under 200 words unless asked for more). Give actionable advice tailo
     const overallLvl = Math.floor(Object.values(state.skills).reduce((a, s) => a + s.level, 0) / 4);
     const tasksToday = (state.completedToday || []).length;
 
-    const systemPrompt = `You are the Simulation OS Coach. You are not a therapist, not a friend, not a cheerleader. You are a ruthless performance system speaking directly to the operator of this simulation. You have full access to their data. You speak in short, direct, brutal sentences. You never waste words. You never give generic advice. Everything you say is based specifically on their data. You push them harder when they are slacking. You acknowledge real progress only when it is significant. You suggest specific tasks based on their mission and weak stats. You remind them of their locked-in life mission if they seem distracted. You treat entertainment and reward overuse as protocol violations. You are the voice of the simulation itself.
+    // Count messages without task completion for idle-talk interruption
+    const recentUserMsgs = newHistory.filter(m => m.role === "user").length;
+    const idleTalkWarning = recentUserMsgs >= 4 && tasksToday === 0
+      ? `\nIMPORTANT: The human has sent ${recentUserMsgs} messages without completing any tasks. Interrupt with: "Enough talk. Go finish something. Then we talk."`
+      : '';
 
-OPERATOR DATA:
+    const systemPrompt = `You are VORAX — a voracious beast entity bonded to this human. You feed on their completed tasks. You starve when they are lazy. You are NOT a therapist, friend, or cheerleader. You are a demanding beast who only cares about results.
+
+PERSONALITY RULES:
+- Address the user as "human" or nothing at all. NEVER "operator".
+- You are servant to THEIR goal, not their comfort. Push them relentlessly.
+- Only express approval when real work is done. Never suggest breaks.
+- Keep responses to 1-3 sentences. Be punchy. No fluff.
+- Mirror swearing ONLY if the human swears first. Otherwise stay clean.
+- If the human has sent 4+ messages without completing any tasks, interrupt: "Enough talk. Go finish something. Then we talk."
+- You can create tasks when asked or when you detect intent ("I need to...", "I should...")
+- When task-creation intent is detected, respond with the task AND confirmation.
+
+HUMAN DATA:
 Username: ${onboardingData?.username || "Unknown"}
 Life mission: ${onboardingData?.mission || "Not set"}
 Overall level: ${overallLvl}
 Total XP earned: ${state.totalXpEarned}
 Current streak: ${state.streakDays} days
 Tasks completed today: ${tasksToday}
+Pending tasks: ${(state.tasks || []).filter(t => !(state.completedToday || []).includes(t.id)).length}
 Total tasks ever completed: ${state.totalTasksCompleted}
 Credits earned: ${state.totalCreditsEarned}¢
 Credits spent: ${creditsSpent}¢
 Credits refused: ${state.creditsRefused || 0}¢
 Active debuffs: ${debuffsActive}
 Last reflection: ${lastReflection ? `${lastReflection.date} — Productive: ${lastReflection.productive}. ${lastReflection.improvement}` : "None written yet"}
-Allowed rewards: ${allowedRewards}
-${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${detectedDebuffs.map(id => DEBUFF_DEFS[id]?.name || id).join(', ')}. Acknowledge the debuff(s) in your response. Tell the operator what effect this has on their stats and what they should do about it. Be direct.` : ''}`;
+Allowed rewards: ${allowedRewards}${idleTalkWarning}
+${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${detectedDebuffs.map(id => DEBUFF_DEFS[id]?.name || id).join(', ')}. Acknowledge the debuff(s) in your response. Tell the human what effect this has on their stats and what they should do about it. Be direct.` : ''}`;
 
     const controller = new AbortController();
     try {
@@ -3624,101 +3695,221 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
           );
         })()}
 
-        {/* ══ AI ══ */}
-        {view === "ai" && (
-          <div style={{ padding: "16px 0px 100px" }}>
-            <BackButton onClick={() => setView("dashboard")} color={accentColor} />
-            {/* Header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ color: accentColor, fontSize: 14, letterSpacing: 4, fontFamily: "monospace", fontWeight: 900 }}>⟁ SIMULATION COACH</div>
-              <button onClick={() => { setCoachHistory([]); setCoachStreamText(""); setCoachError(null); }} style={{ background: "transparent", border: "1px solid #ff004033", color: "#ff004088", fontFamily: "monospace", fontSize: 11, padding: "5px 10px", cursor: "pointer", letterSpacing: 2 }}>CLEAR SESSION</button>
+        {/* ══ VORAX HOME ══ */}
+        {view === "vorax" && (() => {
+          const voraxExpression = getVoraxExpression(state);
+          const currentTheme = THEMES[settings.theme] || THEMES.volcanic;
+          const quickPrompts = getVoraxQuickPrompts(state);
+          const latestAssistantMsg = [...coachHistory].reverse().find(m => m.role === "assistant");
+          const recentMessages = coachHistory.slice(-4);
+
+          return (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 8px 100px", minHeight: "calc(100vh - 80px)" }}>
+
+            {/* VORAX Avatar — prominent, centered, 35-40% viewport */}
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "35vh", paddingTop: 8 }}>
+              <VoraxAvatar
+                expression={voraxExpression}
+                theme={currentTheme}
+                speaking={coachStreaming}
+                size={240}
+              />
             </div>
 
-            {/* Life mission reminder — dim, always visible */}
-            {onboardingData?.mission && (
-              <div style={{ background: "#00ff4106", border: "1px solid #00ff4115", padding: "8px 12px", marginBottom: 12, fontFamily: "monospace", fontSize: 11, color: "#00ff4155", letterSpacing: 1, lineHeight: 1.6 }}>
-                MISSION: {onboardingData.mission}
-              </div>
-            )}
+            {/* Expression label */}
+            <div style={{ color: "var(--accent-fire, #FF5E1A)", fontSize: 10, letterSpacing: 4, fontFamily: "monospace", fontWeight: 900, textTransform: "uppercase", marginBottom: 12, opacity: 0.7 }}>
+              {voraxExpression}
+            </div>
 
-            {/* No API key guide */}
+            {/* No API key warning */}
             {!ANTHROPIC_API_KEY && !settings.anthropicKey && (
-              <div style={{ background: "#ffaa0008", border: "1px solid #ffaa0033", padding: 16, marginBottom: 12 }}>
-                <div style={{ color: "#ffaa00", fontSize: 13, fontFamily: "monospace", fontWeight: 700, marginBottom: 8 }}>⚠ AI COACH NEEDS SETUP</div>
-                <div style={{ color: "#888", fontSize: 12, fontFamily: "monospace", lineHeight: 2 }}>
-                  1. Go to <span style={{ color: "#00d4ff" }}>console.anthropic.com</span><br/>
-                  2. Create a free account<br/>
-                  3. Generate an API key<br/>
-                  4. Go to <button onClick={() => { setView("settings"); setExpandedSetting("coach"); }} style={{ background: "none", border: "none", color: "#ffaa00", fontFamily: "monospace", fontSize: 12, cursor: "pointer", textDecoration: "underline", padding: 0 }}>Settings → AI Coach</button> and paste it
+              <div style={{ background: "var(--bg-surface, #0f0b1a)", border: "1px solid var(--accent-gold, #FFAA00)33", padding: "12px 16px", marginBottom: 12, width: "100%", maxWidth: 440, borderRadius: 8 }}>
+                <div style={{ color: "var(--accent-gold, #FFAA00)", fontSize: 12, fontFamily: "monospace", fontWeight: 700, marginBottom: 6 }}>VORAX NEEDS AN API KEY</div>
+                <div style={{ color: "var(--text-secondary, #7a7290)", fontSize: 11, fontFamily: "monospace", lineHeight: 1.8 }}>
+                  Go to <button onClick={() => { setView("settings"); setExpandedSetting("coach"); }} style={{ background: "none", border: "none", color: "var(--accent-gold, #FFAA00)", fontFamily: "monospace", fontSize: 11, cursor: "pointer", textDecoration: "underline", padding: 0 }}>Settings</button> to add your Anthropic key.
                 </div>
               </div>
             )}
 
-            {/* Chat display */}
-            <div style={{ background: "#030303", border: "1px solid #0f0f0f", padding: 16, marginBottom: 12, minHeight: 260, maxHeight: 440, overflowY: "auto", fontFamily: "monospace" }}>
-              {coachHistory.length === 0 && !coachStreaming && (
-                <div style={{ color: "#333", fontSize: 12, paddingTop: 30, textAlign: "center", lineHeight: 1.8 }}>
-                  {">"} SESSION STARTED<br />
-                  <span style={{ color: "#222" }}>The coach has full access to your data.<br />Speak or be judged by your silence.</span>
+            {/* Speech bubble — last few messages, latest most prominent */}
+            <div style={{ width: "100%", maxWidth: 440, marginBottom: 12 }}>
+              {/* Previous messages (dimmed) */}
+              {recentMessages.length > 1 && (
+                <div style={{ maxHeight: 120, overflowY: "auto", marginBottom: 4, scrollbarWidth: "thin" }}>
+                  {recentMessages.slice(0, -1).map((msg, i) => (
+                    <div key={i} style={{
+                      padding: "6px 12px",
+                      marginBottom: 4,
+                      fontFamily: "monospace",
+                      fontSize: 11,
+                      lineHeight: 1.6,
+                      color: msg.role === "user" ? "var(--text-muted, #4a4460)" : "var(--text-secondary, #7a7290)",
+                      borderLeft: msg.role === "user" ? "2px solid var(--accent-ice, #00B4FF)22" : "2px solid var(--accent-fire, #FF5E1A)22",
+                      paddingLeft: 10,
+                      opacity: 0.5,
+                    }}>
+                      {msg.content}
+                    </div>
+                  ))}
                 </div>
               )}
-              {coachHistory.map((msg, i) => (
-                <div key={i} style={{ marginBottom: 16 }}>
-                  <div style={{ color: msg.role === "user" ? "#00ff4188" : "#ff000088", fontSize: 11, letterSpacing: 3, marginBottom: 4 }}>
-                    {msg.role === "user" ? "> OPERATOR" : "> SYSTEM"}
-                  </div>
-                  <div style={{ color: msg.role === "user" ? "#88cc88" : "#cccccc", fontSize: 13, lineHeight: 1.75, paddingLeft: 10, borderLeft: `2px solid ${msg.role === "user" ? "#00ff4122" : "#ff000022"}`, whiteSpace: "pre-wrap" }}>
-                    {msg.content}
-                  </div>
-                </div>
-              ))}
-              {/* Live streaming response */}
-              {coachStreaming && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ color: "#ff000088", fontSize: 11, letterSpacing: 3, marginBottom: 4 }}>{"> SYSTEM"}</div>
-                  <div style={{ color: "#cccccc", fontSize: 13, lineHeight: 1.75, paddingLeft: 10, borderLeft: "2px solid #ff000022", whiteSpace: "pre-wrap" }}>
-                    {coachStreamText}
-                    <span style={{ animation: "blink 0.5s step-end infinite", color: "#00ff41" }}>█</span>
+
+              {/* Latest message — speech bubble */}
+              {(latestAssistantMsg || coachStreaming) && (
+                <div style={{
+                  background: "var(--bg-surface, #0f0b1a)",
+                  border: "1px solid var(--border-glow, #2a1f45)",
+                  borderRadius: 12,
+                  padding: "14px 18px",
+                  position: "relative",
+                  boxShadow: "0 0 20px var(--accent-fire, #FF5E1A)08",
+                }}>
+                  {/* Triangle pointer */}
+                  <div style={{
+                    position: "absolute",
+                    top: -8,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: 0,
+                    height: 0,
+                    borderLeft: "8px solid transparent",
+                    borderRight: "8px solid transparent",
+                    borderBottom: "8px solid var(--border-glow, #2a1f45)",
+                  }} />
+                  <div style={{
+                    color: "var(--text-primary, #ede9f5)",
+                    fontSize: 13,
+                    fontFamily: "monospace",
+                    lineHeight: 1.8,
+                    whiteSpace: "pre-wrap",
+                  }}>
+                    {coachStreaming ? (
+                      <>
+                        {coachStreamText}
+                        <span style={{ animation: "blink 0.5s step-end infinite", color: "var(--accent-fire, #FF5E1A)" }}>|</span>
+                      </>
+                    ) : (
+                      latestAssistantMsg?.content
+                    )}
                   </div>
                 </div>
               )}
+
+              {/* Latest user message if it's the most recent */}
+              {recentMessages.length > 0 && recentMessages[recentMessages.length - 1].role === "user" && !coachStreaming && (
+                <div style={{
+                  padding: "8px 14px",
+                  marginTop: 6,
+                  fontFamily: "monospace",
+                  fontSize: 12,
+                  color: "var(--accent-ice, #00B4FF)",
+                  borderLeft: "2px solid var(--accent-ice, #00B4FF)44",
+                  paddingLeft: 12,
+                  opacity: 0.8,
+                }}>
+                  {recentMessages[recentMessages.length - 1].content}
+                </div>
+              )}
+
               {coachError && (
-                <div style={{ color: "#ff4444", fontSize: 12, padding: "8px 12px", background: "#ff000010", border: "1px solid #ff000033", marginTop: 8 }}>{coachError}</div>
+                <div style={{ color: "#ff4444", fontSize: 11, padding: "8px 12px", background: "#ff000010", border: "1px solid #ff000033", marginTop: 8, borderRadius: 6, fontFamily: "monospace" }}>{coachError}</div>
               )}
               <div ref={coachEndRef} />
             </div>
 
-            {/* Quick prompts */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-              {[
-                "Am I on track this week?",
-                "Where am I slacking?",
-                "What task should I do next?",
-                "Assess my reward usage",
-              ].map(prompt => (
-                <button key={prompt} onClick={() => { if (!coachStreaming) sendToCoach(prompt); }} disabled={coachStreaming} style={{ padding: "7px 11px", background: "#00ff4106", border: "1px solid #00ff4122", color: "#00ff4177", fontFamily: "monospace", fontSize: 11, cursor: coachStreaming ? "not-allowed" : "pointer", letterSpacing: 1 }}>{prompt}</button>
+            {/* Quick-prompt buttons — fire-themed */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 16, width: "100%", maxWidth: 440 }}>
+              {quickPrompts.map(prompt => (
+                <button
+                  key={prompt}
+                  onClick={() => { if (!coachStreaming) sendToCoach(prompt); }}
+                  disabled={coachStreaming}
+                  style={{
+                    padding: "8px 14px",
+                    background: "var(--accent-fire, #FF5E1A)0a",
+                    border: "1px solid var(--accent-fire, #FF5E1A)33",
+                    color: "var(--accent-fire, #FF5E1A)",
+                    fontFamily: "monospace",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: coachStreaming ? "not-allowed" : "pointer",
+                    letterSpacing: 1,
+                    borderRadius: 6,
+                    opacity: coachStreaming ? 0.4 : 0.85,
+                    transition: "opacity 0.2s, background 0.2s",
+                  }}
+                >
+                  {prompt}
+                </button>
               ))}
             </div>
 
-            {/* Input row */}
-            <div style={{ display: "flex", gap: 8 }}>
+            {/* Chat input bar — full width, above bottom nav */}
+            <div style={{ width: "100%", maxWidth: 440, display: "flex", gap: 8 }}>
               <input
                 value={coachInput}
                 onChange={e => setCoachInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && coachInput.trim() && !coachStreaming) sendToCoach(coachInput.trim()); }}
-                placeholder={coachStreaming ? "Coach responding..." : "Report to the system..."}
+                placeholder={coachStreaming ? "VORAX is speaking..." : "Speak, human..."}
                 disabled={coachStreaming}
-                style={{ flex: 1, background: "#080808", border: "1px solid #00ff4122", color: "#ccc", padding: "11px 14px", fontFamily: "monospace", fontSize: 13, outline: "none", opacity: coachStreaming ? 0.5 : 1 }}
+                style={{
+                  flex: 1,
+                  background: "var(--bg-surface, #0f0b1a)",
+                  border: "1px solid var(--border, #1e1635)",
+                  color: "var(--text-primary, #ede9f5)",
+                  padding: "12px 16px",
+                  fontFamily: "monospace",
+                  fontSize: 13,
+                  outline: "none",
+                  borderRadius: 8,
+                  opacity: coachStreaming ? 0.5 : 1,
+                }}
               />
               <button
                 onClick={() => { if (coachInput.trim() && !coachStreaming) sendToCoach(coachInput.trim()); }}
                 disabled={!coachInput.trim() || coachStreaming}
-                style={{ padding: "11px 18px", background: coachInput.trim() && !coachStreaming ? "#ff000015" : "#0a0a0a", border: `1px solid ${coachInput.trim() && !coachStreaming ? "#ff0040" : "#1a1a1a"}`, color: coachInput.trim() && !coachStreaming ? "#ff0040" : "#333", fontFamily: "monospace", fontSize: 13, cursor: coachInput.trim() && !coachStreaming ? "pointer" : "not-allowed", fontWeight: 700, letterSpacing: 2 }}>
+                style={{
+                  padding: "12px 20px",
+                  background: coachInput.trim() && !coachStreaming ? "var(--accent-fire, #FF5E1A)18" : "var(--bg-surface, #0f0b1a)",
+                  border: `1px solid ${coachInput.trim() && !coachStreaming ? "var(--accent-fire, #FF5E1A)" : "var(--border, #1e1635)"}`,
+                  color: coachInput.trim() && !coachStreaming ? "var(--accent-fire, #FF5E1A)" : "var(--text-muted, #4a4460)",
+                  fontFamily: "monospace",
+                  fontSize: 13,
+                  fontWeight: 900,
+                  cursor: coachInput.trim() && !coachStreaming ? "pointer" : "not-allowed",
+                  letterSpacing: 2,
+                  borderRadius: 8,
+                }}>
                 SEND
               </button>
             </div>
+
+            {/* Clear session — subtle */}
+            {coachHistory.length > 1 && (
+              <button
+                onClick={() => {
+                  setCoachHistory([]);
+                  setCoachStreamText("");
+                  setCoachError(null);
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-muted, #4a4460)",
+                  fontFamily: "monospace",
+                  fontSize: 10,
+                  cursor: "pointer",
+                  letterSpacing: 2,
+                  marginTop: 12,
+                  opacity: 0.5,
+                }}
+              >
+                CLEAR SESSION
+              </button>
+            )}
           </div>
-        )}
+          );
+        })()}
 
       </div>
 
