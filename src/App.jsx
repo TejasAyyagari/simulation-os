@@ -671,27 +671,27 @@ function Spinner({ color = "#00ff41", text = "Loading..." }) {
 // ── Daily Login Modal ─────────────────────────────────────────
 function DailyLoginModal({ loginStreak, onClaim }) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9600, padding: 16 }}>
-      <div style={{ textAlign: "center", maxWidth: 400 }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9600, padding: 16 }}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.5)", textAlign: "center" }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🔥</div>
-        <div style={{ color: "#ffaa00", fontFamily: "monospace", fontSize: 16, fontWeight: 900, letterSpacing: 4, marginBottom: 8 }}>DAILY LOGIN</div>
-        <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 28, fontWeight: 900, marginBottom: 8 }}>DAY {loginStreak + 1}</div>
-        <div style={{ color: "#888", fontFamily: "monospace", fontSize: 13, marginBottom: 24, lineHeight: 1.8 }}>
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>DAILY LOGIN</div>
+        <div style={{ color: "#ede9f5", fontFamily: "'JetBrains Mono', monospace", fontSize: 28, fontWeight: 900, marginBottom: 8 }}>DAY {loginStreak + 1}</div>
+        <div style={{ color: "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 13, marginBottom: 24, lineHeight: 1.8 }}>
           You showed up. That alone puts you ahead of 90% of people.<br/>
-          {loginStreak >= 3 && <span style={{ color: "#ffaa00" }}>🔥 {loginStreak}-day streak — don't break it.</span>}
-          {loginStreak >= 7 && <span style={{ color: "#ff00ff" }}><br/>LEGENDARY STREAK. Keep going.</span>}
+          {loginStreak >= 3 && <span style={{ color: "#FFAA00" }}>🔥 {loginStreak}-day streak — don't break it.</span>}
+          {loginStreak >= 7 && <span style={{ color: "#A855F7" }}><br/>LEGENDARY STREAK. Keep going.</span>}
         </div>
         <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 24 }}>
-          <div style={{ background: "#00ff4112", border: "1px solid #00ff4133", padding: "12px 20px" }}>
-            <div style={{ color: "#00ff41", fontFamily: "monospace", fontSize: 20, fontWeight: 900 }}>+{DAILY_LOGIN_BONUS.xp}</div>
-            <div style={{ color: "#00ff4188", fontFamily: "monospace", fontSize: 11 }}>XP</div>
+          <div style={{ background: "#FF5E1A12", border: "1px solid #FF5E1A33", padding: "12px 20px", borderRadius: 8 }}>
+            <div style={{ color: "#FF5E1A", fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 900 }}>+{DAILY_LOGIN_BONUS.xp}</div>
+            <div style={{ color: "#FF5E1A88", fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>XP</div>
           </div>
-          <div style={{ background: "#ffaa0012", border: "1px solid #ffaa0033", padding: "12px 20px" }}>
-            <div style={{ color: "#ffaa00", fontFamily: "monospace", fontSize: 20, fontWeight: 900 }}>+{DAILY_LOGIN_BONUS.credits}</div>
-            <div style={{ color: "#ffaa0088", fontFamily: "monospace", fontSize: 11 }}>CREDITS</div>
+          <div style={{ background: "#FFAA0012", border: "1px solid #FFAA0033", padding: "12px 20px", borderRadius: 8 }}>
+            <div style={{ color: "#FFAA00", fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 900 }}>+{DAILY_LOGIN_BONUS.credits}</div>
+            <div style={{ color: "#FFAA0088", fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>CREDITS</div>
           </div>
         </div>
-        <button onClick={onClaim} style={{ background: "#00ff4112", border: "1px solid #00ff41", color: "#00ff41", fontFamily: "monospace", fontSize: 14, fontWeight: 900, padding: "14px 40px", cursor: "pointer", letterSpacing: 4, animation: "pulse 1.5s infinite" }}>CLAIM & BEGIN</button>
+        <button onClick={onClaim} style={{ background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", border: "none", color: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 24px", cursor: "pointer", letterSpacing: 4, borderRadius: 8, animation: "pulse 1.5s infinite" }}>CLAIM & BEGIN</button>
       </div>
     </div>
   );
@@ -702,19 +702,19 @@ function MorningPlanModal({ onSubmit, onSkip }) {
   const [tasks, setTasks] = useState(["", "", ""]);
   const filled = tasks.filter(t => t.trim()).length;
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9550, padding: 16 }}>
-      <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
-        <div style={{ color: "#00ff41", fontFamily: "monospace", fontSize: 14, fontWeight: 900, letterSpacing: 4, marginBottom: 8 }}>☀ MORNING PLANNING</div>
-        <div style={{ color: "#888", fontFamily: "monospace", fontSize: 13, marginBottom: 20, lineHeight: 1.8 }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9550, padding: 16 }}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.5)", textAlign: "center" }}>
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>MORNING PLANNING</div>
+        <div style={{ color: "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 13, marginBottom: 20, lineHeight: 1.8 }}>
           Winners plan their day. What are your 3 priorities today?
         </div>
         {tasks.map((t, i) => (
-          <input key={i} value={t} onChange={e => { const n = [...tasks]; n[i] = e.target.value; setTasks(n); }} placeholder={`Priority ${i + 1}...`} style={{ width: "100%", background: "#0a0a0a", border: "1px solid #00ff4122", color: "#eee", padding: "12px 14px", fontFamily: "monospace", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }} />
+          <input key={i} value={t} onChange={e => { const n = [...tasks]; n[i] = e.target.value; setTasks(n); }} placeholder={`Priority ${i + 1}...`} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, marginBottom: 8, boxSizing: "border-box", borderRadius: 8 }} />
         ))}
-        <button onClick={() => setTasks([...tasks, ""])} style={{ background: "none", border: "1px solid #222", color: "#555", fontFamily: "monospace", fontSize: 12, padding: "4px 12px", cursor: "pointer", marginBottom: 16 }}>+ MORE</button>
+        <button onClick={() => setTasks([...tasks, ""])} style={{ background: "transparent", border: "1px solid #1e1635", color: "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 12, padding: "4px 12px", cursor: "pointer", marginBottom: 16, borderRadius: 8 }}>+ MORE</button>
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => { if (filled > 0) onSubmit(tasks.filter(t => t.trim())); }} disabled={filled === 0} style={{ flex: 1, padding: 14, background: filled > 0 ? "#00ff4112" : "#0a0a0a", border: `1px solid ${filled > 0 ? "#00ff41" : "#222"}`, color: filled > 0 ? "#00ff41" : "#333", fontFamily: "monospace", fontSize: 13, fontWeight: 900, cursor: filled > 0 ? "pointer" : "not-allowed", letterSpacing: 3 }}>LOCK IN PLAN</button>
-          <button onClick={onSkip} style={{ padding: "14px 20px", background: "transparent", border: "1px solid #333", color: "#555", fontFamily: "monospace", fontSize: 12, cursor: "pointer" }}>SKIP</button>
+          <button onClick={() => { if (filled > 0) onSubmit(tasks.filter(t => t.trim())); }} disabled={filled === 0} style={{ flex: 1, padding: "12px 24px", background: filled > 0 ? "linear-gradient(135deg, #FF5E1A, #FF3D00)" : "#0f0b1a", border: filled > 0 ? "none" : "1px solid #1e1635", color: filled > 0 ? "#fff" : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, cursor: filled > 0 ? "pointer" : "not-allowed", letterSpacing: 3, borderRadius: 8 }}>LOCK IN PLAN</button>
+          <button onClick={onSkip} style={{ padding: "12px 20px", background: "transparent", border: "1px solid #1e1635", color: "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 12, cursor: "pointer", borderRadius: 8 }}>SKIP</button>
         </div>
       </div>
     </div>
@@ -724,26 +724,26 @@ function MorningPlanModal({ onSubmit, onSkip }) {
 // ── Absence Report Modal ──────────────────────────────────────
 function AbsenceReportModal({ daysGone, xpLost, streakLost, potentialXpMissed, onDismiss }) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9650, padding: 16 }}>
-      <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9650, padding: 16 }}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.5)", textAlign: "center" }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>💀</div>
-        <div style={{ color: "#ff0040", fontFamily: "monospace", fontSize: 16, fontWeight: 900, letterSpacing: 4, marginBottom: 8 }}>YOU WERE GONE</div>
-        <div style={{ color: "#ff4466", fontFamily: "monospace", fontSize: 28, fontWeight: 900, marginBottom: 20 }}>{daysGone} DAYS</div>
+        <div style={{ color: "#FF3D00", fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>YOU WERE GONE</div>
+        <div style={{ color: "#FF5E1A", fontFamily: "'JetBrains Mono', monospace", fontSize: 28, fontWeight: 900, marginBottom: 20 }}>{daysGone} DAYS</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
-          <div style={{ background: "#ff004010", border: "1px solid #ff004033", padding: 14 }}>
-            <div style={{ color: "#ff0040", fontSize: 20, fontWeight: 900, fontFamily: "monospace" }}>-{xpLost}</div>
-            <div style={{ color: "#ff004088", fontSize: 11, fontFamily: "monospace" }}>XP DECAYED</div>
+          <div style={{ background: "#FF3D0010", border: "1px solid #FF3D0033", padding: 14, borderRadius: 8 }}>
+            <div style={{ color: "#FF3D00", fontSize: 20, fontWeight: 900, fontFamily: "'JetBrains Mono', monospace" }}>-{xpLost}</div>
+            <div style={{ color: "#FF3D0088", fontSize: 11, fontFamily: "'Inter', sans-serif" }}>XP DECAYED</div>
           </div>
-          <div style={{ background: "#ff004010", border: "1px solid #ff004033", padding: 14 }}>
-            <div style={{ color: "#ff0040", fontSize: 20, fontWeight: 900, fontFamily: "monospace" }}>~{potentialXpMissed}</div>
-            <div style={{ color: "#ff004088", fontSize: 11, fontFamily: "monospace" }}>POTENTIAL XP MISSED</div>
+          <div style={{ background: "#FF3D0010", border: "1px solid #FF3D0033", padding: 14, borderRadius: 8 }}>
+            <div style={{ color: "#FF3D00", fontSize: 20, fontWeight: 900, fontFamily: "'JetBrains Mono', monospace" }}>~{potentialXpMissed}</div>
+            <div style={{ color: "#FF3D0088", fontSize: 11, fontFamily: "'Inter', sans-serif" }}>POTENTIAL XP MISSED</div>
           </div>
         </div>
-        {streakLost && <div style={{ color: "#ff0040", fontFamily: "monospace", fontSize: 13, marginBottom: 16, padding: "8px 16px", background: "#ff004010", border: "1px solid #ff004033" }}>🔥 STREAK BROKEN — Reset to 0</div>}
-        <div style={{ color: "#888", fontFamily: "monospace", fontSize: 12, marginBottom: 20, lineHeight: 1.8 }}>
-          Every day you don't show up, your skills decay and your competitors gain ground. The simulation doesn't pause.
+        {streakLost && <div style={{ color: "#FF3D00", fontFamily: "'Inter', sans-serif", fontSize: 13, marginBottom: 16, padding: "8px 16px", background: "#FF3D0010", border: "1px solid #FF3D0033", borderRadius: 8 }}>🔥 STREAK BROKEN — Reset to 0</div>}
+        <div style={{ color: "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 12, marginBottom: 20, lineHeight: 1.8 }}>
+          Every day you don't show up, your skills decay and your competitors gain ground. VORAX doesn't pause.
         </div>
-        <button onClick={onDismiss} style={{ background: "#ff004012", border: "1px solid #ff0040", color: "#ff0040", fontFamily: "monospace", fontSize: 14, fontWeight: 900, padding: "14px 40px", cursor: "pointer", letterSpacing: 3 }}>I'M BACK. LET'S GO.</button>
+        <button onClick={onDismiss} style={{ background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", border: "none", color: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 24px", cursor: "pointer", letterSpacing: 3, borderRadius: 8 }}>I'M BACK. LET'S GO.</button>
       </div>
     </div>
   );
@@ -1444,30 +1444,30 @@ function AddTaskModal({ onAdd, onClose }) {
 
   const detectedDef = SKILL_DEFS[skill];
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000 }} onClick={onClose}>
-      <div style={{ background: "#0a0a0a", border: "1px solid #00ff4133", padding: 24, maxWidth: 400, width: "90%" }} onClick={e => e.stopPropagation()}>
-        <div style={{ color: "#00ff41", fontFamily: "monospace", fontSize: 12, letterSpacing: 4, marginBottom: 16 }}>+ NEW QUEST</div>
-        <input value={text} onChange={e => setText(e.target.value)} placeholder="What do you need to do..." style={{ width: "100%", background: "#111", border: "1px solid #00ff4122", color: "#00ff41", fontFamily: "monospace", fontSize: 14, padding: "12px 14px", marginBottom: 12, outline: "none", boxSizing: "border-box" }} autoFocus onKeyDown={e => { if (e.key === "Enter") submit(); }} />
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000 }} onClick={onClose}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }} onClick={e => e.stopPropagation()}>
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 16 }}>+ NEW QUEST</div>
+        <input value={text} onChange={e => setText(e.target.value)} placeholder="What do you need to do..." style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 14, padding: "12px 14px", marginBottom: 12, outline: "none", boxSizing: "border-box", borderRadius: 8 }} autoFocus onKeyDown={e => { if (e.key === "Enter") submit(); }} />
         {/* Read-only AI classification status — no buttons */}
         <div style={{ height: 20, marginBottom: 14 }}>
           {aiClassifying && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#00ff4166", fontSize: 11, fontFamily: "monospace" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#FF5E1A66", fontSize: 11, fontFamily: "'Inter', sans-serif" }}>
               <span style={{ animation: "blink 0.6s step-end infinite" }}>█</span>
               <span>AI classifying...</span>
             </div>
           )}
           {!aiClassifying && aiLabel && detectedDef && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, color: detectedDef.color, fontSize: 11, fontFamily: "monospace", opacity: 0.85 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, color: detectedDef.color, fontSize: 11, fontFamily: "'Inter', sans-serif", opacity: 0.85 }}>
               <span>{detectedDef.icon}</span>
               <span>{aiLabel === "wealth" ? "WEALTH → INTELLIGENCE" : detectedDef.name}</span>
-              <span style={{ color: "#444", marginLeft: 4 }}>— auto-classified</span>
+              <span style={{ color: "#4a4460", marginLeft: 4 }}>— auto-classified</span>
             </div>
           )}
           {!aiClassifying && !aiLabel && text.trim().length >= 4 && (
-            <div style={{ color: "#444", fontSize: 11, fontFamily: "monospace" }}>waiting to classify...</div>
+            <div style={{ color: "#4a4460", fontSize: 11, fontFamily: "'Inter', sans-serif" }}>waiting to classify...</div>
           )}
         </div>
-        <button onClick={submit} disabled={!text.trim()} style={{ width: "100%", background: text.trim() ? "#00ff4112" : "#0a0a0a", border: `1px solid ${text.trim() ? "#00ff41" : "#222"}`, color: text.trim() ? "#00ff41" : "#666", fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: text.trim() ? "pointer" : "not-allowed", letterSpacing: 3, fontWeight: 700 }}>REGISTER QUEST</button>
+        <button onClick={submit} disabled={!text.trim()} style={{ width: "100%", background: text.trim() ? "linear-gradient(135deg, #FF5E1A, #FF3D00)" : "#0f0b1a", border: text.trim() ? "none" : "1px solid #1e1635", color: text.trim() ? "#fff" : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 14, padding: "12px 24px", cursor: text.trim() ? "pointer" : "not-allowed", letterSpacing: 3, fontWeight: 600, borderRadius: 8 }}>REGISTER QUEST</button>
       </div>
     </div>
   );
@@ -1477,22 +1477,22 @@ function AddTaskModal({ onAdd, onClose }) {
 function RatingModal({ task, onRate }) {
   const labels = ["Trivial", "Very Easy", "Easy", "Moderate", "Challenging", "Hard", "Brutal"];
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9500, padding: 16 }}>
-      <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
-        <div style={{ color: "#00ff4199", fontSize: 12, letterSpacing: 3, marginBottom: 8, fontFamily: "monospace" }}>QUEST COMPLETE</div>
-        <div style={{ color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "monospace", marginBottom: 24, letterSpacing: 1 }}>{task.text}</div>
-        <div style={{ color: "#888", fontSize: 12, fontFamily: "monospace", marginBottom: 20 }}>How difficult was this?</div>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9500, padding: 16 }}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)", textAlign: "center" }}>
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>QUEST COMPLETE</div>
+        <div style={{ color: "#ede9f5", fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif", marginBottom: 24, letterSpacing: 1 }}>{task.text}</div>
+        <div style={{ color: "#7a7290", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 20 }}>How difficult was this?</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {[1,2,3,4,5,6,7].map(n => {
             const pct = n / 7;
-            const color = pct < 0.3 ? "#00ff41" : pct < 0.6 ? "#ffaa00" : "#ff0040";
+            const color = pct < 0.3 ? "#7CFF3F" : pct < 0.6 ? "#FFAA00" : "#FF3D00";
             return (
-              <button key={n} onClick={() => onRate(n)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: `${color}08`, border: `1px solid ${color}33`, cursor: "pointer", transition: "all 0.15s" }}>
-                <span style={{ color, fontSize: 20, fontWeight: 900, fontFamily: "monospace", width: 28, textAlign: "center" }}>{n}</span>
-                <span style={{ color: "#888", fontSize: 13, fontFamily: "monospace" }}>{labels[n-1]}</span>
+              <button key={n} onClick={() => onRate(n)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: `${color}08`, border: `1px solid ${color}33`, cursor: "pointer", transition: "all 0.15s", borderRadius: 8 }}>
+                <span style={{ color, fontSize: 20, fontWeight: 900, fontFamily: "'JetBrains Mono', monospace", width: 28, textAlign: "center" }}>{n}</span>
+                <span style={{ color: "#7a7290", fontSize: 13, fontFamily: "'Inter', sans-serif" }}>{labels[n-1]}</span>
                 <div style={{ flex: 1 }} />
                 <div style={{ display: "flex", gap: 2 }}>
-                  {Array.from({length: n}, (_, i) => <div key={i} style={{ width: 6, height: 16, background: color, opacity: 0.3 + (i / n) * 0.7 }} />)}
+                  {Array.from({length: n}, (_, i) => <div key={i} style={{ width: 6, height: 16, background: color, opacity: 0.3 + (i / n) * 0.7, borderRadius: 2 }} />)}
                 </div>
               </button>
             );
@@ -1507,13 +1507,13 @@ function RatingModal({ task, onRate }) {
 function RewardReflectionModal({ reward, onSubmit }) {
   const [text, setText] = useState("");
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9500, padding: 16 }}>
-      <div style={{ maxWidth: 450, width: "100%", textAlign: "center" }}>
-        <div style={{ color: "#ffaa00bb", fontSize: 12, letterSpacing: 3, marginBottom: 8, fontFamily: "monospace" }}>REFLECTION REQUIRED</div>
-        <div style={{ color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "monospace", marginBottom: 8 }}>You used a reward: {reward.name}</div>
-        <div style={{ color: "#888", fontSize: 13, fontFamily: "monospace", marginBottom: 20, lineHeight: 1.8 }}>What did you learn or gain from this? How does it benefit your goals?</div>
-        <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Be honest with yourself..." rows={4} style={{ width: "100%", background: "#0a0a0a", border: "1px solid #ffaa0033", color: "#eee", padding: 14, fontFamily: "monospace", fontSize: 12, resize: "vertical", lineHeight: 1.8, boxSizing: "border-box" }} />
-        <button onClick={() => { if (text.trim()) onSubmit(text.trim()); }} disabled={!text.trim()} style={{ marginTop: 16, width: "100%", background: text.trim() ? "#ffaa0012" : "#0a0a0a", border: `1px solid ${text.trim() ? "#ffaa00" : "#222"}`, color: text.trim() ? "#ffaa00" : "#333", fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: text.trim() ? "pointer" : "not-allowed", letterSpacing: 3, fontWeight: 700 }}>SUBMIT REFLECTION</button>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9500, padding: 16 }}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.5)", textAlign: "center" }}>
+        <div style={{ color: "#FFAA00", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>REFLECTION REQUIRED</div>
+        <div style={{ color: "#ede9f5", fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>You used a reward: {reward.name}</div>
+        <div style={{ color: "#7a7290", fontSize: 13, fontFamily: "'Inter', sans-serif", marginBottom: 20, lineHeight: 1.8 }}>What did you learn or gain from this? How does it benefit your goals?</div>
+        <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Be honest with yourself..." rows={4} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: 14, fontFamily: "'Inter', sans-serif", fontSize: 14, resize: "vertical", lineHeight: 1.8, boxSizing: "border-box", borderRadius: 8 }} />
+        <button onClick={() => { if (text.trim()) onSubmit(text.trim()); }} disabled={!text.trim()} style={{ marginTop: 16, width: "100%", background: text.trim() ? "linear-gradient(135deg, #FF5E1A, #FF3D00)" : "#0f0b1a", border: text.trim() ? "none" : "1px solid #1e1635", color: text.trim() ? "#fff" : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 14, padding: "12px 24px", cursor: text.trim() ? "pointer" : "not-allowed", letterSpacing: 3, fontWeight: 600, borderRadius: 8 }}>SUBMIT REFLECTION</button>
       </div>
     </div>
   );
@@ -1524,19 +1524,19 @@ function EndOfDayModal({ onSubmit }) {
   const [productive, setProductive] = useState(null);
   const [improve, setImprove] = useState("");
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9500, padding: 16 }}>
-      <div style={{ maxWidth: 480, width: "100%", textAlign: "center" }}>
-        <div style={{ color: "#00ff41", fontSize: 14, fontWeight: 900, letterSpacing: 3, marginBottom: 8, fontFamily: "monospace" }}>ALL TASKS COMPLETE</div>
-        <div style={{ color: "#888", fontSize: 13, fontFamily: "monospace", marginBottom: 24, lineHeight: 1.8 }}>Time to be honest with yourself.</div>
-        <div style={{ color: "#fff", fontSize: 12, fontFamily: "monospace", marginBottom: 12 }}>Were you productive today?</div>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9500, padding: 16 }}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)", textAlign: "center" }}>
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>ALL TASKS COMPLETE</div>
+        <div style={{ color: "#7a7290", fontSize: 13, fontFamily: "'Inter', sans-serif", marginBottom: 24, lineHeight: 1.8 }}>Time to be honest with yourself.</div>
+        <div style={{ color: "#ede9f5", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 12 }}>Were you productive today?</div>
         <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 24 }}>
-          {[{v: "yes", l: "YES", c: "#00ff41"}, {v: "somewhat", l: "SOMEWHAT", c: "#ffaa00"}, {v: "no", l: "NO", c: "#ff0040"}].map(o => (
-            <button key={o.v} onClick={() => setProductive(o.v)} style={{ padding: "10px 20px", background: productive === o.v ? `${o.c}15` : "transparent", border: `1px solid ${productive === o.v ? o.c : "#333"}`, color: productive === o.v ? o.c : "#555", fontFamily: "monospace", fontSize: 13, cursor: "pointer", letterSpacing: 2 }}>{o.l}</button>
+          {[{v: "yes", l: "YES", c: "#7CFF3F"}, {v: "somewhat", l: "SOMEWHAT", c: "#FFAA00"}, {v: "no", l: "NO", c: "#FF3D00"}].map(o => (
+            <button key={o.v} onClick={() => setProductive(o.v)} style={{ padding: "10px 20px", background: productive === o.v ? `${o.c}15` : "transparent", border: `1px solid ${productive === o.v ? o.c : "#1e1635"}`, color: productive === o.v ? o.c : "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 13, cursor: "pointer", letterSpacing: 2, borderRadius: 8 }}>{o.l}</button>
           ))}
         </div>
-        <div style={{ color: "#fff", fontSize: 12, fontFamily: "monospace", marginBottom: 8, lineHeight: 1.8 }}>How can you improve? Be brutally honest — there is always something you can do better.</div>
-        <textarea value={improve} onChange={e => setImprove(e.target.value)} placeholder="I can improve by..." rows={4} style={{ width: "100%", background: "#0a0a0a", border: "1px solid #00ff4133", color: "#eee", padding: 14, fontFamily: "monospace", fontSize: 12, resize: "vertical", lineHeight: 1.8, boxSizing: "border-box" }} />
-        <button onClick={() => { if (productive && improve.trim()) onSubmit({ productive, improvement: improve.trim(), date: new Date().toDateString() }); }} disabled={!productive || !improve.trim()} style={{ marginTop: 16, width: "100%", background: productive && improve.trim() ? "#00ff4112" : "#0a0a0a", border: `1px solid ${productive && improve.trim() ? "#00ff41" : "#222"}`, color: productive && improve.trim() ? "#00ff41" : "#333", fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: productive && improve.trim() ? "pointer" : "not-allowed", letterSpacing: 3, fontWeight: 700 }}>LOCK IN REFLECTION</button>
+        <div style={{ color: "#ede9f5", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8, lineHeight: 1.8 }}>How can you improve? Be brutally honest — there is always something you can do better.</div>
+        <textarea value={improve} onChange={e => setImprove(e.target.value)} placeholder="I can improve by..." rows={4} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: 14, fontFamily: "'Inter', sans-serif", fontSize: 14, resize: "vertical", lineHeight: 1.8, boxSizing: "border-box", borderRadius: 8 }} />
+        <button onClick={() => { if (productive && improve.trim()) onSubmit({ productive, improvement: improve.trim(), date: new Date().toDateString() }); }} disabled={!productive || !improve.trim()} style={{ marginTop: 16, width: "100%", background: productive && improve.trim() ? "linear-gradient(135deg, #FF5E1A, #FF3D00)" : "#0f0b1a", border: productive && improve.trim() ? "none" : "1px solid #1e1635", color: productive && improve.trim() ? "#fff" : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 14, padding: "12px 24px", cursor: productive && improve.trim() ? "pointer" : "not-allowed", letterSpacing: 3, fontWeight: 600, borderRadius: 8 }}>LOCK IN REFLECTION</button>
       </div>
     </div>
   );
@@ -1545,33 +1545,33 @@ function EndOfDayModal({ onSubmit }) {
 function AddBossModal({ onAdd, onClose }) {
   const [name, setName] = useState(""); const [subs, setSubs] = useState([{text:"",date:""},{text:"",date:""},{text:"",date:""}]); const [deadlineDate, setDeadlineDate] = useState(""); const [skill, setSkill] = useState("intelligence");
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000 }} onClick={onClose}>
-      <div style={{ background: "#0a0a0a", border: "1px solid #ff004044", padding: 24, maxWidth: 440, width: "92%", maxHeight: "85vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
-        <div style={{ color: "#ff0040", fontFamily: "monospace", fontSize: 12, letterSpacing: 4, marginBottom: 16 }}>☠ NEW LONG-TERM GOAL</div>
-        <input value={name} onChange={e => setName(e.target.value)} placeholder="Goal name (e.g. Launch My Startup)" style={{ width: "100%", background: "#111", border: "1px solid #ff004033", color: "#ff0040", fontFamily: "monospace", fontSize: 13, padding: "10px 12px", marginBottom: 12, outline: "none", boxSizing: "border-box" }} autoFocus />
-        <div style={{ color: "#999", fontFamily: "monospace", fontSize: 12, letterSpacing: 2, marginBottom: 4 }}>SKILL CATEGORY</div>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000 }} onClick={onClose}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }} onClick={e => e.stopPropagation()}>
+        <div style={{ color: "#FF3D00", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 16 }}>NEW LONG-TERM GOAL</div>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="Goal name (e.g. Launch My Startup)" style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 14, padding: "12px 14px", marginBottom: 12, outline: "none", boxSizing: "border-box", borderRadius: 8 }} autoFocus />
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>SKILL CATEGORY</div>
         <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
           {Object.entries(SKILL_DEFS).map(([k, v]) => (
-            <button key={k} onClick={() => setSkill(k)} style={{ flex: 1, minWidth: 60, background: skill === k ? `${v.color}15` : "transparent", border: `1px solid ${skill === k ? v.color : "#222"}`, color: skill === k ? v.color : "#444", fontFamily: "monospace", fontSize: 12, padding: "6px 2px", cursor: "pointer" }}>{v.icon} {v.name.slice(0,3)}</button>
+            <button key={k} onClick={() => setSkill(k)} style={{ flex: 1, minWidth: 60, background: skill === k ? `${v.color}15` : "transparent", border: `1px solid ${skill === k ? v.color : "#1e1635"}`, color: skill === k ? v.color : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 12, padding: "6px 2px", cursor: "pointer", borderRadius: 8 }}>{v.icon} {v.name.slice(0,3)}</button>
           ))}
         </div>
-        <div style={{ color: "#999", fontFamily: "monospace", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>MILESTONES — set a date for each (added to quests on that day)</div>
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>MILESTONES</div>
         {subs.map((st, i) => (
           <div key={i} style={{ display: "flex", gap: 6, marginBottom: 6 }}>
-            <input value={st.text} onChange={e => { const n = [...subs]; n[i] = {...n[i], text: e.target.value}; setSubs(n); }} placeholder={`Milestone ${i+1}...`} style={{ flex: 1, background: "#111", border: "1px solid #ffffff0a", color: "#ccc", fontFamily: "monospace", fontSize: 13, padding: "8px 10px", outline: "none", boxSizing: "border-box" }} />
-            <input type="date" value={st.date} onChange={e => { const n = [...subs]; n[i] = {...n[i], date: e.target.value}; setSubs(n); }} style={{ width: 130, background: "#111", border: "1px solid #ff004022", color: "#ff004088", fontFamily: "monospace", fontSize: 13, padding: "6px 6px", outline: "none", boxSizing: "border-box", colorScheme: "dark" }} />
+            <input value={st.text} onChange={e => { const n = [...subs]; n[i] = {...n[i], text: e.target.value}; setSubs(n); }} placeholder={`Milestone ${i+1}...`} style={{ flex: 1, background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 14, padding: "12px 14px", outline: "none", boxSizing: "border-box", borderRadius: 8 }} />
+            <input type="date" value={st.date} onChange={e => { const n = [...subs]; n[i] = {...n[i], date: e.target.value}; setSubs(n); }} style={{ width: 130, background: "#0f0b1a", border: "1px solid #1e1635", color: "#FF5E1A88", fontFamily: "'JetBrains Mono', monospace", fontSize: 13, padding: "6px 6px", outline: "none", boxSizing: "border-box", colorScheme: "dark", borderRadius: 8 }} />
           </div>
         ))}
-        <button onClick={() => setSubs([...subs, {text:"",date:""}])} style={{ background: "none", border: "1px solid #222", color: "#888", fontFamily: "monospace", fontSize: 12, padding: "4px 10px", cursor: "pointer", marginBottom: 12 }}>+ ADD MILESTONE</button>
-        <div style={{ color: "#999", fontFamily: "monospace", fontSize: 12, letterSpacing: 2, marginBottom: 6 }}>OVERALL DEADLINE</div>
-        <input type="date" value={deadlineDate} onChange={e => setDeadlineDate(e.target.value)} style={{ width: "100%", background: "#111", border: "1px solid #ff004033", color: "#ff0040", fontFamily: "monospace", fontSize: 12, padding: "8px 10px", marginBottom: 14, outline: "none", boxSizing: "border-box", colorScheme: "dark" }} />
+        <button onClick={() => setSubs([...subs, {text:"",date:""}])} style={{ background: "transparent", border: "1px solid #1e1635", color: "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 12, padding: "4px 10px", cursor: "pointer", marginBottom: 12, borderRadius: 8 }}>+ ADD MILESTONE</button>
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>OVERALL DEADLINE</div>
+        <input type="date" value={deadlineDate} onChange={e => setDeadlineDate(e.target.value)} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#FF5E1A", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, padding: "12px 14px", marginBottom: 14, outline: "none", boxSizing: "border-box", colorScheme: "dark", borderRadius: 8 }} />
         <button onClick={() => {
           if (!name.trim()) return; const vs = subs.filter(s => s.text.trim()); if (!vs.length) return;
           const dmg = Math.ceil(100 / vs.length);
           const dl = deadlineDate ? new Date(deadlineDate + "T23:59:59").getTime() : Date.now() + 90 * 86400000;
           onAdd({ id: `boss_${Date.now()}`, name: name.trim(), skill, maxHp: 100, hp: 100, phase: 1, createdAt: Date.now(), deadline: dl, subtasks: vs.map((s,i) => ({ id: `bs_${Date.now()}_${i}`, text: s.text.trim(), done: false, dmg, scheduledDate: s.date || null })), reward: 100 + vs.length * 25 });
           AudioEngine.play("boss");
-        }} style={{ width: "100%", background: "#ff004012", border: "1px solid #ff0040", color: "#ff0040", fontFamily: "monospace", fontSize: 12, padding: "10px", cursor: "pointer", letterSpacing: 3, fontWeight: 700 }}>SET GOAL</button>
+        }} style={{ width: "100%", background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", border: "none", color: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 14, padding: "12px 24px", cursor: "pointer", letterSpacing: 3, fontWeight: 600, borderRadius: 8 }}>SET GOAL</button>
       </div>
     </div>
   );
@@ -1580,14 +1580,14 @@ function AddBossModal({ onAdd, onClose }) {
 function AddNPCModal({ onAdd, onClose }) {
   const [name, setName] = useState(""); const [cat, setCat] = useState("ally");
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000 }} onClick={onClose}>
-      <div style={{ background: "#0a0a0a", border: "1px solid #00d4ff33", padding: 24, maxWidth: 380, width: "90%" }} onClick={e => e.stopPropagation()}>
-        <div style={{ color: "#00d4ff", fontFamily: "monospace", fontSize: 12, letterSpacing: 4, marginBottom: 16 }}>★ ADD NPC</div>
-        <input value={name} onChange={e => setName(e.target.value)} placeholder="NPC name..." style={{ width: "100%", background: "#111", border: "1px solid #00d4ff22", color: "#00d4ff", fontFamily: "monospace", fontSize: 13, padding: "10px 12px", marginBottom: 12, outline: "none", boxSizing: "border-box" }} autoFocus />
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000 }} onClick={onClose}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }} onClick={e => e.stopPropagation()}>
+        <div style={{ color: "#00B4FF", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 16 }}>ADD NPC</div>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="NPC name..." style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 14, padding: "12px 14px", marginBottom: 12, outline: "none", boxSizing: "border-box", borderRadius: 8 }} autoFocus />
         <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-          {["ally","rival","mentor"].map(c => <button key={c} onClick={() => setCat(c)} style={{ flex: 1, background: cat === c ? "#00d4ff10" : "transparent", border: `1px solid ${cat === c ? "#00d4ff" : "#222"}`, color: cat === c ? "#00d4ff" : "#444", fontFamily: "monospace", fontSize: 12, padding: "6px 2px", cursor: "pointer", textTransform: "uppercase" }}>{c}</button>)}
+          {["ally","rival","mentor"].map(c => <button key={c} onClick={() => setCat(c)} style={{ flex: 1, background: cat === c ? "#00B4FF10" : "transparent", border: `1px solid ${cat === c ? "#00B4FF" : "#1e1635"}`, color: cat === c ? "#00B4FF" : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 12, padding: "6px 2px", cursor: "pointer", textTransform: "uppercase", borderRadius: 8 }}>{c}</button>)}
         </div>
-        <button onClick={() => { if (name.trim()) { onAdd({ id: `npc_${Date.now()}`, name: name.trim(), category: cat, relationshipXp: 0, maxXp: 100, lastInteraction: new Date().toDateString(), decayWarning: false }); AudioEngine.play("xp"); } }} style={{ width: "100%", background: "#00d4ff12", border: "1px solid #00d4ff", color: "#00d4ff", fontFamily: "monospace", fontSize: 12, padding: "10px", cursor: "pointer", letterSpacing: 3, fontWeight: 700 }}>ADD NPC</button>
+        <button onClick={() => { if (name.trim()) { onAdd({ id: `npc_${Date.now()}`, name: name.trim(), category: cat, relationshipXp: 0, maxXp: 100, lastInteraction: new Date().toDateString(), decayWarning: false }); AudioEngine.play("xp"); } }} style={{ width: "100%", background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", border: "none", color: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 14, padding: "12px 24px", cursor: "pointer", letterSpacing: 3, fontWeight: 600, borderRadius: 8 }}>ADD NPC</button>
       </div>
     </div>
   );
@@ -1595,12 +1595,12 @@ function AddNPCModal({ onAdd, onClose }) {
 
 function LevelUpOverlay({ skill, newLevel, onClose }) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9800 }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9800 }} onClick={onClose}>
       <div style={{ textAlign: "center" }}>
-        <div style={{ color: SKILL_DEFS[skill]?.color || "#00ff41", fontSize: 48, animation: "pulse 0.5s infinite" }}>{SKILL_DEFS[skill]?.icon || "◈"}</div>
-        <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 20, fontWeight: 900, letterSpacing: 4, marginTop: 16 }}>LEVEL UP</div>
-        <div style={{ color: SKILL_DEFS[skill]?.color || "#00ff41", fontFamily: "monospace", fontSize: 14, letterSpacing: 3, marginTop: 8 }}>{SKILL_DEFS[skill]?.name} → LV.{newLevel}</div>
-        <div style={{ color: "#888", fontFamily: "monospace", fontSize: 13, marginTop: 16 }}>tap to continue</div>
+        <div style={{ color: SKILL_DEFS[skill]?.color || "#FF5E1A", fontSize: 48, animation: "pulse 0.5s infinite" }}>{SKILL_DEFS[skill]?.icon || "◈"}</div>
+        <div style={{ color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 20, fontWeight: 900, letterSpacing: 4, marginTop: 16 }}>LEVEL UP</div>
+        <div style={{ color: SKILL_DEFS[skill]?.color || "#FF5E1A", fontFamily: "'JetBrains Mono', monospace", fontSize: 14, letterSpacing: 3, marginTop: 8 }}>{SKILL_DEFS[skill]?.name} → LV.{newLevel}</div>
+        <div style={{ color: "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 13, marginTop: 16 }}>tap to continue</div>
       </div>
     </div>
   );
@@ -1657,37 +1657,37 @@ function AddRewardModal({ onAdd, onClose, lifeMission, avgDailyCredits, anthropi
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflowY: "auto" }}>
-      <div style={{ background: "#0a0a0a", border: "1px solid #ffaa0033", padding: 24, maxWidth: 420, width: "100%" }}>
-        <div style={{ color: "#ffaa00", fontSize: 13, letterSpacing: 3, marginBottom: 16, fontFamily: "monospace" }}>+ ADD CUSTOM REWARD</div>
-        <input placeholder="Reward name..." value={name} onChange={e => setName(e.target.value)} style={{ width: "100%", background: "#111", border: "1px solid #222", color: "#eee", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }} />
-        <input placeholder="Short description (optional)..." value={desc} onChange={e => setDesc(e.target.value)} style={{ width: "100%", background: "#111", border: "1px solid #222", color: "#eee", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 12, boxSizing: "border-box" }} />
-        <div style={{ color: "#999", fontSize: 12, fontFamily: "monospace", letterSpacing: 2, marginBottom: 8 }}>CATEGORY</div>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflowY: "auto" }}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+        <div style={{ color: "#FFAA00", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 16 }}>+ ADD CUSTOM REWARD</div>
+        <input placeholder="Reward name..." value={name} onChange={e => setName(e.target.value)} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, marginBottom: 8, boxSizing: "border-box", borderRadius: 8 }} />
+        <input placeholder="Short description (optional)..." value={desc} onChange={e => setDesc(e.target.value)} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, marginBottom: 12, boxSizing: "border-box", borderRadius: 8 }} />
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>CATEGORY</div>
         <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
           {["UPGRADE", "ENTERTAINMENT", "OTHER"].map(c => (
-            <button key={c} onClick={() => { setCat(c); setJustification(""); }} style={{ flex: 1, padding: "10px 4px", background: cat === c ? (c === "ENTERTAINMENT" ? "#ff004015" : c === "UPGRADE" ? "#00ff4115" : "#ffffff10") : "transparent", border: `1px solid ${cat === c ? (c === "ENTERTAINMENT" ? "#ff0040" : c === "UPGRADE" ? "#00ff41" : "#888") : "#333"}`, color: cat === c ? (c === "ENTERTAINMENT" ? "#ff0040" : c === "UPGRADE" ? "#00ff41" : "#aaa") : "#666", fontFamily: "monospace", fontSize: 12, cursor: "pointer", letterSpacing: 1 }}>{c}</button>
+            <button key={c} onClick={() => { setCat(c); setJustification(""); }} style={{ flex: 1, padding: "10px 4px", background: cat === c ? (c === "ENTERTAINMENT" ? "#FF3D0015" : c === "UPGRADE" ? "#7CFF3F15" : "#ffffff10") : "transparent", border: `1px solid ${cat === c ? (c === "ENTERTAINMENT" ? "#FF3D00" : c === "UPGRADE" ? "#7CFF3F" : "#7a7290") : "#1e1635"}`, color: cat === c ? (c === "ENTERTAINMENT" ? "#FF3D00" : c === "UPGRADE" ? "#7CFF3F" : "#ede9f5") : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 12, cursor: "pointer", letterSpacing: 1, borderRadius: 8 }}>{c}</button>
           ))}
         </div>
         {isEntertainment && (
-          <div style={{ background: "#ffaa0008", border: "1px solid #ffaa0044", padding: 14, marginBottom: 12 }}>
-            <div style={{ color: "#ffaa00", fontSize: 12, fontFamily: "monospace", marginBottom: 8, letterSpacing: 1 }}>⚠ ENTERTAINMENT REQUIRES JUSTIFICATION</div>
-            {lifeMission && <div style={{ color: "#ffaa0099", fontSize: 12, fontFamily: "monospace", marginBottom: 8, lineHeight: 1.6 }}>Your mission: "{lifeMission.slice(0, 80)}{lifeMission.length > 80 ? '...' : ''}"</div>}
-            <div style={{ color: "#999", fontSize: 12, fontFamily: "monospace", marginBottom: 8, lineHeight: 1.6 }}>How does this reward support your life mission — or does it give you real rest that makes you more effective? Be specific.</div>
-            <textarea placeholder="My justification..." value={justification} onChange={e => setJustification(e.target.value)} rows={3} style={{ width: "100%", background: "#111", border: `1px solid ${justification.trim().length >= 10 ? "#ffaa0066" : "#333"}`, color: "#eee", padding: 10, fontFamily: "monospace", fontSize: 12, resize: "vertical", lineHeight: 1.8, boxSizing: "border-box" }} />
-            <div style={{ color: justification.trim().length >= 10 ? "#00ff4188" : "#666", fontSize: 12, fontFamily: "monospace", marginTop: 4 }}>{justification.trim().length}/10 min characters</div>
+          <div style={{ background: "#FFAA0008", border: "1px solid #FFAA0044", padding: 14, marginBottom: 12, borderRadius: 8 }}>
+            <div style={{ color: "#FFAA00", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8, letterSpacing: 1 }}>ENTERTAINMENT REQUIRES JUSTIFICATION</div>
+            {lifeMission && <div style={{ color: "#FFAA0099", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8, lineHeight: 1.6 }}>Your mission: "{lifeMission.slice(0, 80)}{lifeMission.length > 80 ? '...' : ''}"</div>}
+            <div style={{ color: "#7a7290", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8, lineHeight: 1.6 }}>How does this reward support your life mission — or does it give you real rest that makes you more effective? Be specific.</div>
+            <textarea placeholder="My justification..." value={justification} onChange={e => setJustification(e.target.value)} rows={3} style={{ width: "100%", background: "#0f0b1a", border: `1px solid ${justification.trim().length >= 10 ? "#FFAA0066" : "#1e1635"}`, color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, resize: "vertical", lineHeight: 1.8, boxSizing: "border-box", borderRadius: 8 }} />
+            <div style={{ color: justification.trim().length >= 10 ? "#7CFF3F88" : "#4a4460", fontSize: 12, fontFamily: "'Inter', sans-serif", marginTop: 4 }}>{justification.trim().length}/10 min characters</div>
           </div>
         )}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-          <span style={{ color: "#ffaa00", fontFamily: "monospace", fontSize: 13 }}>COST:</span>
-          <input type="number" min={5} max={2000} step={5} value={cost} onChange={e => setCost(Math.max(5, parseInt(e.target.value) || 5))} style={{ width: 90, background: "#111", border: "1px solid #222", color: "#ffaa00", padding: 10, fontFamily: "monospace", fontSize: 14, fontWeight: 900, textAlign: "center" }} />
-          <span style={{ color: "#ffaa00", fontFamily: "monospace", fontSize: 14, fontWeight: 900 }}>¢</span>
-          <button onClick={handleAiPrice} disabled={!name.trim() || aiPricing} style={{ background: aiPricing ? "#ffaa0008" : "#ffaa0012", border: `1px solid ${name.trim() && !aiPricing ? "#ffaa00" : "#333"}`, color: name.trim() && !aiPricing ? "#ffaa00" : "#555", fontFamily: "monospace", fontSize: 11, padding: "8px 12px", cursor: name.trim() && !aiPricing ? "pointer" : "not-allowed", letterSpacing: 1, fontWeight: 700, whiteSpace: "nowrap" }}>{aiPricing ? "..." : "⚡ AI PRICE"}</button>
+          <span style={{ color: "#FFAA00", fontFamily: "'Inter', sans-serif", fontSize: 13 }}>COST:</span>
+          <input type="number" min={5} max={2000} step={5} value={cost} onChange={e => setCost(Math.max(5, parseInt(e.target.value) || 5))} style={{ width: 90, background: "#0f0b1a", border: "1px solid #1e1635", color: "#FFAA00", padding: "12px 14px", fontFamily: "'JetBrains Mono', monospace", fontSize: 14, fontWeight: 900, textAlign: "center", borderRadius: 8 }} />
+          <span style={{ color: "#FFAA00", fontFamily: "'JetBrains Mono', monospace", fontSize: 14, fontWeight: 900 }}>¢</span>
+          <button onClick={handleAiPrice} disabled={!name.trim() || aiPricing} style={{ background: aiPricing ? "#FFAA0008" : "#FFAA0012", border: `1px solid ${name.trim() && !aiPricing ? "#FFAA00" : "#1e1635"}`, color: name.trim() && !aiPricing ? "#FFAA00" : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 11, padding: "8px 12px", cursor: name.trim() && !aiPricing ? "pointer" : "not-allowed", letterSpacing: 1, fontWeight: 700, whiteSpace: "nowrap", borderRadius: 8 }}>{aiPricing ? "..." : "AI PRICE"}</button>
         </div>
-        <div style={{ color: "#666", fontSize: 11, fontFamily: "monospace", marginBottom: 8 }}>min 5 — max 2000</div>
-        {aiReason && <div style={{ color: "#ffaa0088", fontSize: 11, fontFamily: "monospace", marginBottom: 12, padding: "6px 10px", background: "#ffaa0008", border: "1px solid #ffaa0022" }}>⚡ {aiReason}</div>}
+        <div style={{ color: "#4a4460", fontSize: 11, fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>min 5 — max 2000</div>
+        {aiReason && <div style={{ color: "#FFAA0088", fontSize: 11, fontFamily: "'Inter', sans-serif", marginBottom: 12, padding: "6px 10px", background: "#FFAA0008", border: "1px solid #FFAA0022", borderRadius: 8 }}>{aiReason}</div>}
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => { if (canSubmit) onAdd({ id: `cr_${Date.now()}`, name: name.trim(), desc: desc.trim(), category: cat, cost: Math.min(2000, Math.max(5, cost)), icon: cat === "ENTERTAINMENT" ? "▶" : "◈", isCustom: true, justification: justification.trim() || undefined }); }} disabled={!canSubmit} style={{ flex: 1, padding: 12, background: canSubmit ? "#ffaa0012" : "#0a0a0a", border: `1px solid ${canSubmit ? "#ffaa00" : "#222"}`, color: canSubmit ? "#ffaa00" : "#444", fontFamily: "monospace", fontWeight: 700, cursor: canSubmit ? "pointer" : "not-allowed", letterSpacing: 2, fontSize: 13 }}>ADD REWARD</button>
-          <button onClick={onClose} style={{ padding: "12px 20px", background: "transparent", border: "1px solid #333", color: "#999", fontFamily: "monospace", cursor: "pointer", fontSize: 13 }}>CANCEL</button>
+          <button onClick={() => { if (canSubmit) onAdd({ id: `cr_${Date.now()}`, name: name.trim(), desc: desc.trim(), category: cat, cost: Math.min(2000, Math.max(5, cost)), icon: cat === "ENTERTAINMENT" ? "▶" : "◈", isCustom: true, justification: justification.trim() || undefined }); }} disabled={!canSubmit} style={{ flex: 1, padding: "12px 24px", background: canSubmit ? "linear-gradient(135deg, #FF5E1A, #FF3D00)" : "#0f0b1a", border: canSubmit ? "none" : "1px solid #1e1635", color: canSubmit ? "#fff" : "#4a4460", fontFamily: "'Inter', sans-serif", fontWeight: 600, cursor: canSubmit ? "pointer" : "not-allowed", letterSpacing: 2, fontSize: 14, borderRadius: 8 }}>ADD REWARD</button>
+          <button onClick={onClose} style={{ padding: "12px 20px", background: "transparent", border: "1px solid #1e1635", color: "#7a7290", fontFamily: "'Inter', sans-serif", cursor: "pointer", fontSize: 13, borderRadius: 8 }}>CANCEL</button>
         </div>
       </div>
     </div>
@@ -1708,24 +1708,24 @@ function QuickLogModal({ onLog, onClose }) {
   }, [text, userOverrode]);
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-      <div style={{ background: "#0a0a0a", border: "1px solid #00ff4133", padding: 24, maxWidth: 400, width: "100%" }}>
-        <div style={{ color: "#00ff41", fontSize: 12, letterSpacing: 3, marginBottom: 8, fontFamily: "monospace" }}>+ QUICK LOG</div>
-        <div style={{ color: "#999", fontSize: 12, marginBottom: 14, fontFamily: "monospace" }}>Log a task you already completed. You'll rate difficulty after.</div>
-        <input placeholder="What did you do..." value={text} onChange={e => setText(e.target.value)} style={{ width: "100%", background: "#111", border: "1px solid #222", color: "#eee", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 12, boxSizing: "border-box" }} />
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>+ QUICK LOG</div>
+        <div style={{ color: "#7a7290", fontSize: 12, marginBottom: 14, fontFamily: "'Inter', sans-serif" }}>Log a task you already completed. You'll rate difficulty after.</div>
+        <input placeholder="What did you do..." value={text} onChange={e => setText(e.target.value)} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, marginBottom: 12, boxSizing: "border-box", borderRadius: 8 }} />
         <div style={{ display: "flex", gap: 6, marginBottom: 4 }}>
           {Object.entries(SKILL_DEFS).map(([k, v]) => (
-            <button key={k} onClick={() => { setSkill(k); setUserOverrode(true); setAutoDetected(null); }} style={{ flex: 1, background: skill === k ? `${v.color}20` : "transparent", border: `1px solid ${skill === k ? v.color : "#222"}`, color: skill === k ? v.color : "#888", fontFamily: "monospace", fontSize: 12, padding: "10px 2px", cursor: "pointer" }}>{v.icon} {v.name.slice(0,3)}</button>
+            <button key={k} onClick={() => { setSkill(k); setUserOverrode(true); setAutoDetected(null); }} style={{ flex: 1, background: skill === k ? `${v.color}20` : "transparent", border: `1px solid ${skill === k ? v.color : "#1e1635"}`, color: skill === k ? v.color : "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 12, padding: "10px 2px", cursor: "pointer", borderRadius: 8 }}>{v.icon} {v.name.slice(0,3)}</button>
           ))}
         </div>
         {autoDetected && !userOverrode && (
-          <div style={{ color: SKILL_DEFS[autoDetected]?.color || "#00ff41", fontSize: 12, fontFamily: "monospace", marginBottom: 8, opacity: 0.7 }}>◈ Auto: {SKILL_DEFS[autoDetected]?.name}</div>
+          <div style={{ color: SKILL_DEFS[autoDetected]?.color || "#FF5E1A", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8, opacity: 0.7 }}>Auto: {SKILL_DEFS[autoDetected]?.name}</div>
         )}
-        {!autoDetected && <div style={{ color: "#999", fontSize: 12, fontFamily: "monospace", marginBottom: 8 }}>{SKILL_DEFS[skill]?.icon} {SKILL_DEFS[skill]?.desc}</div>}
+        {!autoDetected && <div style={{ color: "#7a7290", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>{SKILL_DEFS[skill]?.icon} {SKILL_DEFS[skill]?.desc}</div>}
         <div style={{ height: 8 }} />
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => { if (text.trim()) onLog({ text: text.trim(), skill }); }} disabled={!text.trim()} style={{ flex: 1, padding: 12, background: text.trim() ? "#00ff4112" : "#0a0a0a", border: `1px solid ${text.trim() ? "#00ff41" : "#222"}`, color: text.trim() ? "#00ff41" : "#666", fontFamily: "monospace", fontWeight: 700, cursor: text.trim() ? "pointer" : "not-allowed", letterSpacing: 2, fontSize: 13}}>LOG TASK</button>
-          <button onClick={onClose} style={{ padding: "12px 20px", background: "transparent", border: "1px solid #333", color: "#999", fontFamily: "monospace", cursor: "pointer", fontSize: 13}}>CANCEL</button>
+          <button onClick={() => { if (text.trim()) onLog({ text: text.trim(), skill }); }} disabled={!text.trim()} style={{ flex: 1, padding: "12px 24px", background: text.trim() ? "linear-gradient(135deg, #FF5E1A, #FF3D00)" : "#0f0b1a", border: text.trim() ? "none" : "1px solid #1e1635", color: text.trim() ? "#fff" : "#4a4460", fontFamily: "'Inter', sans-serif", fontWeight: 600, cursor: text.trim() ? "pointer" : "not-allowed", letterSpacing: 2, fontSize: 14, borderRadius: 8}}>LOG TASK</button>
+          <button onClick={onClose} style={{ padding: "12px 20px", background: "transparent", border: "1px solid #1e1635", color: "#7a7290", fontFamily: "'Inter', sans-serif", cursor: "pointer", fontSize: 13, borderRadius: 8}}>CANCEL</button>
         </div>
       </div>
     </div>
@@ -1740,38 +1740,38 @@ function SettingsModal({ settings, onSave, onClose }) {
   const [showKey, setShowKey] = useState(false);
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 9800, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-      <div style={{ background: "#0a0a0a", border: "1px solid #33333388", padding: 24, maxWidth: 440, width: "100%", maxHeight: "90vh", overflowY: "auto" }}>
-        <div style={{ color: "#fff", fontSize: 14, letterSpacing: 3, marginBottom: 4, fontFamily: "monospace", fontWeight: 900 }}>⚙ SETTINGS</div>
-        <div style={{ color: "#999", fontSize: 12, fontFamily: "monospace", marginBottom: 24, lineHeight: 1.6 }}>Your data lives only on this device/browser. Nothing is sent to any server except AI messages you initiate.</div>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", zIndex: 9800, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+        <div style={{ color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>Settings</div>
+        <div style={{ color: "#7a7290", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 24, lineHeight: 1.6 }}>Your data lives only on this device/browser. Nothing is sent to any server except AI messages you initiate.</div>
 
-        <div style={{ color: "#00ff41", fontSize: 12, letterSpacing: 3, marginBottom: 8, fontFamily: "monospace" }}>AI COACH — ANTHROPIC API KEY</div>
-        <div style={{ color: "#888", fontSize: 12, fontFamily: "monospace", marginBottom: 8, lineHeight: 1.7 }}>Get a free key at console.anthropic.com. Stored only on this device.</div>
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>AI COACH — ANTHROPIC API KEY</div>
+        <div style={{ color: "#7a7290", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8, lineHeight: 1.7 }}>Get a free key at console.anthropic.com. Stored only on this device.</div>
         <div style={{ display: "flex", gap: 6, marginBottom: 4 }}>
-          <input type={showKey ? "text" : "password"} value={key} onChange={e => setKey(e.target.value)} placeholder="sk-ant-..." style={{ flex: 1, background: "#111", border: `1px solid ${key ? "#00ff4133" : "#222"}`, color: "#00ff41", padding: 12, fontFamily: "monospace", fontSize: 13, boxSizing: "border-box" }} />
-          <button onClick={() => setShowKey(p => !p)} style={{ padding: "12px 14px", background: "transparent", border: "1px solid #222", color: "#888", fontFamily: "monospace", fontSize: 13, cursor: "pointer" }}>{showKey ? "HIDE" : "SHOW"}</button>
+          <input type={showKey ? "text" : "password"} value={key} onChange={e => setKey(e.target.value)} placeholder="sk-ant-..." style={{ flex: 1, background: "#0f0b1a", border: `1px solid ${key ? "#FF5E1A33" : "#1e1635"}`, color: "#ede9f5", padding: "12px 14px", fontFamily: "'JetBrains Mono', monospace", fontSize: 13, boxSizing: "border-box", borderRadius: 8 }} />
+          <button onClick={() => setShowKey(p => !p)} style={{ padding: "12px 14px", background: "transparent", border: "1px solid #1e1635", color: "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 13, cursor: "pointer", borderRadius: 8 }}>{showKey ? "HIDE" : "SHOW"}</button>
         </div>
-        <div style={{ color: "#999", fontSize: 12, fontFamily: "monospace", marginBottom: 20, lineHeight: 1.6 }}>⚠ Key is stored in browser localStorage. Do not share screenshots of this screen.</div>
+        <div style={{ color: "#7a7290", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 20, lineHeight: 1.6 }}>Key is stored in browser localStorage. Do not share screenshots of this screen.</div>
 
-        <div style={{ color: "#ffaa00", fontSize: 12, letterSpacing: 3, marginBottom: 8, fontFamily: "monospace" }}>DAILY REFLECTION REMINDER</div>
+        <div style={{ color: "#FFAA00", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>DAILY REFLECTION REMINDER</div>
         <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 20 }}>
-          <span style={{ color: "#888", fontSize: 13, fontFamily: "monospace" }}>Notify at:</span>
-          <input type="time" value={notifTime} onChange={e => setNotifTime(e.target.value)} style={{ background: "#111", border: "1px solid #ffaa0033", color: "#ffaa00", padding: 10, fontFamily: "monospace", fontSize: 13, colorScheme: "dark" }} />
+          <span style={{ color: "#7a7290", fontSize: 13, fontFamily: "'Inter', sans-serif" }}>Notify at:</span>
+          <input type="time" value={notifTime} onChange={e => setNotifTime(e.target.value)} style={{ background: "#0f0b1a", border: "1px solid #1e1635", color: "#FFAA00", padding: "12px 14px", fontFamily: "'JetBrains Mono', monospace", fontSize: 13, colorScheme: "dark", borderRadius: 8 }} />
         </div>
 
-        <div style={{ color: "#ff0040", fontSize: 12, letterSpacing: 3, marginBottom: 8, fontFamily: "monospace" }}>NOTIFICATION DISPLAY NAME</div>
-        <input value={notifName} onChange={e => setNotifName(e.target.value)} placeholder="Coach" style={{ width: "100%", background: "#111", border: "1px solid #ff004033", color: "#ff0040", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 20, boxSizing: "border-box" }} />
+        <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>NOTIFICATION DISPLAY NAME</div>
+        <input value={notifName} onChange={e => setNotifName(e.target.value)} placeholder="Coach" style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, marginBottom: 20, boxSizing: "border-box", borderRadius: 8 }} />
 
-        <div style={{ color: "#00d4ff", fontSize: 12, letterSpacing: 3, marginBottom: 8, fontFamily: "monospace" }}>COACH PERSONALITY</div>
+        <div style={{ color: "#00B4FF", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>COACH PERSONALITY</div>
         <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
           {[["direct","DIRECT"],["gentle","GENTLE"],["drill","DRILL SGT"]].map(([v,l]) => (
-            <button key={v} onClick={() => setPersonality(v)} style={{ flex: 1, padding: "10px 4px", background: personality === v ? "#00d4ff12" : "transparent", border: `1px solid ${personality === v ? "#00d4ff" : "#222"}`, color: personality === v ? "#00d4ff" : "#666", fontFamily: "monospace", fontSize: 12, cursor: "pointer" }}>{l}</button>
+            <button key={v} onClick={() => setPersonality(v)} style={{ flex: 1, padding: "10px 4px", background: personality === v ? "#00B4FF12" : "transparent", border: `1px solid ${personality === v ? "#00B4FF" : "#1e1635"}`, color: personality === v ? "#00B4FF" : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 12, cursor: "pointer", borderRadius: 8 }}>{l}</button>
           ))}
         </div>
 
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => { onSave({ anthropicKey: key, notificationTime: notifTime, notificationName: notifName || "Coach", coachPersonality: personality }); onClose(); }} style={{ flex: 1, padding: 12, background: "#ffffff08", border: "1px solid #444", color: "#fff", fontFamily: "monospace", fontWeight: 700, cursor: "pointer", letterSpacing: 2, fontSize: 13 }}>SAVE SETTINGS</button>
-          <button onClick={onClose} style={{ padding: "12px 20px", background: "transparent", border: "1px solid #333", color: "#888", fontFamily: "monospace", cursor: "pointer", fontSize: 13 }}>CANCEL</button>
+          <button onClick={() => { onSave({ anthropicKey: key, notificationTime: notifTime, notificationName: notifName || "Coach", coachPersonality: personality }); onClose(); }} style={{ flex: 1, padding: "12px 24px", background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", border: "none", color: "#fff", fontFamily: "'Inter', sans-serif", fontWeight: 600, cursor: "pointer", letterSpacing: 2, fontSize: 14, borderRadius: 8 }}>SAVE SETTINGS</button>
+          <button onClick={onClose} style={{ padding: "12px 20px", background: "transparent", border: "1px solid #1e1635", color: "#7a7290", fontFamily: "'Inter', sans-serif", cursor: "pointer", fontSize: 13, borderRadius: 8 }}>CANCEL</button>
         </div>
       </div>
     </div>
@@ -2720,8 +2720,8 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
   ];
   const rewardGroups = {};
   allShopRewards.forEach(r => { const cat = r.category || "OTHER"; if (!rewardGroups[cat]) rewardGroups[cat] = []; rewardGroups[cat].push(r); });
-  const obFull = { position: "fixed", inset: 0, background: "#000", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, overflowY: "auto" };
-  const obBtn = (active) => ({ background: active ? "#00ff4112" : "#0a0a0a", border: `1px solid ${active ? "#00ff41" : "#222"}`, color: active ? "#00ff41" : "#333", padding: "16px 32px", fontFamily: "monospace", fontSize: 13, fontWeight: 900, cursor: active ? "pointer" : "not-allowed", letterSpacing: 3 });
+  const obFull = { position: "fixed", inset: 0, background: "#080510", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, overflowY: "auto" };
+  const obBtn = (active) => ({ background: active ? "linear-gradient(135deg, #FF5E1A, #FF3D00)" : "#0f0b1a", border: `1px solid ${active ? "#FF5E1A" : "#1e1635"}`, color: active ? "#fff" : "#4a4460", padding: "16px 32px", fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 700, cursor: active ? "pointer" : "not-allowed", letterSpacing: 3, borderRadius: 8 });
 
   // ════════════════════════════════════════════════
   // DEEP ONBOARDING (7 SCREENS)
@@ -2733,18 +2733,18 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         <div style={obFull}>
           <style>{globalStyles}</style>
           <div style={{ maxWidth: 500, width: "100%", textAlign: "center" }}>
-            <div style={{ color: "#00ff41", fontSize: 18, fontWeight: 900, letterSpacing: 6, marginBottom: 8, fontFamily: "monospace" }}>⟐ SIMULATION OS ⟐</div>
-            <div style={{ color: "#00ff4188", fontSize: 12, letterSpacing: 4, marginBottom: 40, fontFamily: "monospace" }}>v5.0</div>
-            <div style={{ color: "#fff", fontSize: 22, fontWeight: 900, letterSpacing: 4, marginBottom: 24, fontFamily: "monospace" }}>THIS IS NOT FOR EVERYONE.</div>
-            <div style={{ color: "#888", fontSize: 12, lineHeight: 1.9, fontFamily: "monospace", textAlign: "left", padding: "0 12px", marginBottom: 32 }}>
+            <div style={{ background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 32, fontWeight: 900, letterSpacing: 6, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>VORAX</div>
+            <div style={{ color: "#FFAA00", fontSize: 12, letterSpacing: 4, marginBottom: 40, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>DEVOUR YOUR GOALS</div>
+            <div style={{ color: "#ede9f5", fontSize: 22, fontWeight: 900, letterSpacing: 4, marginBottom: 24, fontFamily: "'Inter', sans-serif" }}>THIS IS NOT FOR EVERYONE.</div>
+            <div style={{ color: "#7a7290", fontSize: 13, lineHeight: 1.9, fontFamily: "'Inter', sans-serif", textAlign: "left", padding: "0 12px", marginBottom: 32 }}>
               This app works on one condition only. You never cheat. You never reward yourself without paying credits. You never reduce your tasks to make life easier. If you are the type of person who bends rules when no one is watching, close this app now. It will not work for you.
             </div>
-            <div style={{ background: "#00ff4108", border: "1px solid #00ff4122", padding: 24, marginBottom: 40, textAlign: "left" }}>
-              <div style={{ color: "#a8ffb8", fontSize: 13, lineHeight: 2, fontFamily: "monospace", fontWeight: 700 }}>ONE RULE ABOVE ALL RULES:</div>
-              <div style={{ color: "#7ddf8d", fontSize: 13, lineHeight: 2, fontFamily: "monospace", marginTop: 8 }}>
+            <div style={{ background: "#FF5E1A08", border: "1px solid #FF5E1A22", padding: 24, marginBottom: 40, textAlign: "left", borderRadius: 12 }}>
+              <div style={{ color: "#FF5E1A", fontSize: 12, lineHeight: 2, fontFamily: "'Inter', sans-serif", fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" }}>ONE RULE ABOVE ALL RULES:</div>
+              <div style={{ color: "#ede9f5", fontSize: 13, lineHeight: 2, fontFamily: "'Inter', sans-serif", marginTop: 8, opacity: 0.85 }}>
                 You are allowed to change the rules of your game only to make them harder. Never easier. The moment you lower the difficulty, reduce your tasks, or bend the rules for comfort — you have already lost.
               </div>
-              <div style={{ color: "#7ddf8d", fontSize: 13, lineHeight: 2, fontFamily: "monospace", marginTop: 12 }}>
+              <div style={{ color: "#ede9f5", fontSize: 13, lineHeight: 2, fontFamily: "'Inter', sans-serif", marginTop: 12, opacity: 0.85 }}>
                 This is not an app. This is a protocol. Follow it completely and it is mathematically impossible for you to not get everything you want. Cheat it and you will stay exactly where you are.
               </div>
             </div>
@@ -2760,9 +2760,9 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         <div style={obFull}>
           <style>{globalStyles}</style>
           <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
-            <div style={{ color: "#00ff41", fontSize: 14, fontWeight: 900, letterSpacing: 4, marginBottom: 32, fontFamily: "monospace" }}>⟐ IDENTITY ⟐</div>
-            <div style={{ color: "#888", fontSize: 13, marginBottom: 16, fontFamily: "monospace" }}>What should the system call you?</div>
-            <input placeholder="Username..." value={obUsername} onChange={e => setObUsername(e.target.value)} style={{ width: "100%", background: "#0a0a0a", border: "1px solid #00ff4133", color: "#00ff41", padding: 14, fontFamily: "monospace", fontSize: 16, textAlign: "center", letterSpacing: 2, marginBottom: 32 }} />
+            <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 32 }}>IDENTITY</div>
+            <div style={{ color: "#7a7290", fontSize: 13, marginBottom: 16, fontFamily: "'Inter', sans-serif" }}>What should VORAX call you, human?</div>
+            <input placeholder="Username..." value={obUsername} onChange={e => setObUsername(e.target.value)} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: 14, fontFamily: "'Inter', sans-serif", fontSize: 16, textAlign: "center", letterSpacing: 2, marginBottom: 32, borderRadius: 8 }} />
             <button onClick={() => { if (obUsername.trim()) { AudioEngine.play("click"); setObStep(2); } }} style={obBtn(!!obUsername.trim())}>CONTINUE</button>
           </div>
         </div>
@@ -2775,11 +2775,11 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         <div style={obFull}>
           <style>{globalStyles}</style>
           <div style={{ maxWidth: 500, width: "100%", textAlign: "center" }}>
-            <div style={{ color: "#fff", fontSize: 18, fontWeight: 900, letterSpacing: 2, marginBottom: 16, fontFamily: "monospace", lineHeight: 1.8 }}>What do you want out of your life. What is your life's mission.</div>
-            <div style={{ color: "#ff0040", fontSize: 13, lineHeight: 1.8, fontFamily: "monospace", marginBottom: 20, padding: "0 8px" }}>
+            <div style={{ color: "#ede9f5", fontSize: 18, fontWeight: 700, letterSpacing: 1, marginBottom: 16, fontFamily: "'Inter', sans-serif", lineHeight: 1.8 }}>What do you want out of your life. What is your life's mission.</div>
+            <div style={{ color: "#FF3D00", fontSize: 13, lineHeight: 1.8, fontFamily: "'Inter', sans-serif", marginBottom: 20, padding: "0 8px" }}>
               WARNING: Once you submit this answer you are locked in forever. You cannot change it. This is your mission. You either want it or you do not. Think right now. The time is now. There is no later.
             </div>
-            <textarea placeholder="My life's mission is..." value={obMission} onChange={e => setObMission(e.target.value)} rows={5} style={{ width: "100%", background: "#0a0a0a", border: "1px solid #00ff4133", color: "#eee", padding: 14, fontFamily: "monospace", fontSize: 12, resize: "vertical", lineHeight: 1.8 }} />
+            <textarea placeholder="My life's mission is..." value={obMission} onChange={e => setObMission(e.target.value)} rows={5} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: 14, fontFamily: "'Inter', sans-serif", fontSize: 14, resize: "vertical", lineHeight: 1.8, borderRadius: 8 }} />
             <button onClick={() => { if (obMission.trim()) { AudioEngine.play("click"); setObStep(3); } }} style={{ ...obBtn(!!obMission.trim()), marginTop: 24 }}>THIS IS MY MISSION. LOCK IT IN.</button>
           </div>
         </div>
@@ -2792,23 +2792,23 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         <div style={obFull}>
           <style>{globalStyles}</style>
           <div style={{ maxWidth: 500, width: "100%", textAlign: "center" }}>
-            <div style={{ color: "#fff", fontSize: 14, fontWeight: 900, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>ENTERTAINMENT INTAKE</div>
-            <div style={{ color: "#888", fontSize: 13, lineHeight: 1.8, fontFamily: "monospace", marginBottom: 24 }}>
+            <div style={{ color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>ENTERTAINMENT INTAKE</div>
+            <div style={{ color: "#7a7290", fontSize: 13, lineHeight: 1.8, fontFamily: "'Inter', sans-serif", marginBottom: 24 }}>
               List every single thing you do for fun or entertainment on a normal day. Be honest. No one is watching.
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-              <input placeholder="Activity..." value={obCurrentItem} onChange={e => setObCurrentItem(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && obCurrentItem.trim()) { setObItems(p => [...p, obCurrentItem.trim()]); setObCurrentItem(""); } }} style={{ flex: 1, background: "#0a0a0a", border: "1px solid #00ff4133", color: "#eee", padding: 10, fontFamily: "monospace", fontSize: 12 }} />
-              <button onClick={() => { if (obCurrentItem.trim()) { setObItems(p => [...p, obCurrentItem.trim()]); setObCurrentItem(""); } }} style={{ background: "#00ff4112", border: "1px solid #00ff41", color: "#00ff41", fontFamily: "monospace", fontSize: 13, padding: "8px 16px", cursor: "pointer" }}>+ ADD</button>
+              <input placeholder="Activity..." value={obCurrentItem} onChange={e => setObCurrentItem(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && obCurrentItem.trim()) { setObItems(p => [...p, obCurrentItem.trim()]); setObCurrentItem(""); } }} style={{ flex: 1, background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, borderRadius: 8 }} />
+              <button onClick={() => { if (obCurrentItem.trim()) { setObItems(p => [...p, obCurrentItem.trim()]); setObCurrentItem(""); } }} style={{ background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", border: "none", color: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, padding: "8px 16px", cursor: "pointer", borderRadius: 8 }}>+ ADD</button>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 24, justifyContent: "center" }}>
               {obItems.map((item, i) => (
-                <div key={i} style={{ background: "#111", border: "1px solid #333", padding: "6px 12px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ color: "#ccc", fontFamily: "monospace", fontSize: 13}}>{item}</span>
-                  <button onClick={() => setObItems(p => p.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "#ff4466", cursor: "pointer", fontSize: 12 }}>×</button>
+                <div key={i} style={{ background: "#0f0b1a", border: "1px solid #1e1635", padding: "6px 12px", display: "flex", alignItems: "center", gap: 8, borderRadius: 8 }}>
+                  <span style={{ color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 13}}>{item}</span>
+                  <button onClick={() => setObItems(p => p.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "#FF3D00", cursor: "pointer", fontSize: 12 }}>×</button>
                 </div>
               ))}
             </div>
-            {obItems.length < 3 && <div style={{ color: "#ff004088", fontSize: 12, fontFamily: "monospace", marginBottom: 16 }}>Add at least {3 - obItems.length} more item{3 - obItems.length !== 1 ? "s" : ""}</div>}
+            {obItems.length < 3 && <div style={{ color: "#FF3D0088", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 16 }}>Add at least {3 - obItems.length} more item{3 - obItems.length !== 1 ? "s" : ""}</div>}
             <button onClick={() => { if (obItems.length >= 3) { AudioEngine.play("click"); setObStep(4); } }} style={obBtn(obItems.length >= 3)}>THIS IS MY HONEST LIST. CONTINUE.</button>
           </div>
         </div>
@@ -2825,19 +2825,19 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         <div style={{ ...obFull, alignItems: "flex-start", paddingTop: 40 }}>
           <style>{globalStyles}</style>
           <div style={{ maxWidth: 600, width: "100%", textAlign: "center" }}>
-            <div style={{ color: "#fff", fontSize: 16, fontWeight: 900, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>SORT YOUR ACTIVITIES</div>
-            <div style={{ color: "#999", fontSize: 13, lineHeight: 1.8, fontFamily: "monospace", marginBottom: 12 }}>Tap a button on each item to place it into the right column. Be honest.</div>
-            <div style={{ background: "#ffaa0008", border: "1px solid #ffaa0033", padding: 12, marginBottom: 20, color: "#ffaa00", fontSize: 13, fontFamily: "monospace", lineHeight: 1.7 }}>⚠ Your allowed list is permanent. To add new entertainment in the future, you must go through this classification process again — so choose carefully.</div>
+            <div style={{ color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>SORT YOUR ACTIVITIES</div>
+            <div style={{ color: "#7a7290", fontSize: 13, lineHeight: 1.8, fontFamily: "'Inter', sans-serif", marginBottom: 12 }}>Tap a button on each item to place it into the right column. Be honest.</div>
+            <div style={{ background: "#FFAA0008", border: "1px solid #FFAA0033", padding: 12, marginBottom: 20, color: "#FFAA00", fontSize: 13, fontFamily: "'Inter', sans-serif", lineHeight: 1.7, borderRadius: 8 }}>Your allowed list is permanent. To add new entertainment in the future, you must go through this classification process again — so choose carefully.</div>
             {/* Unclassified items */}
             {unclassified.length > 0 && (
               <div style={{ marginBottom: 24 }}>
-                <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 12 }}>TAP TO SORT ({unclassified.length} remaining)</div>
+                <div style={{ color: "#7a7290", fontSize: 12, letterSpacing: 2, marginBottom: 12, fontFamily: "'Inter', sans-serif" }}>TAP TO SORT ({unclassified.length} remaining)</div>
                 {unclassified.map(item => (
-                  <div key={item} style={{ background: "#0a0a0a", border: "1px solid #333", padding: "12px", marginBottom: 8, animation: "fadeIn 0.3s ease" }}>
-                    <div style={{ color: "#ccc", fontFamily: "monospace", fontSize: 14, marginBottom: 10, textAlign: "left" }}>{item}</div>
+                  <div key={item} style={{ background: "#0f0b1a", border: "1px solid #1e1635", padding: "12px", marginBottom: 8, animation: "fadeIn 0.3s ease", borderRadius: 8 }}>
+                    <div style={{ color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 14, marginBottom: 10, textAlign: "left" }}>{item}</div>
                     <div style={{ display: "flex", gap: 8 }}>
-                      <button onClick={() => setObClassifications(p => ({ ...p, [item]: "upgrade" }))} style={{ flex: 1, background: "#00ff4110", border: "2px solid #00ff4166", color: "#00ff41", fontFamily: "monospace", fontSize: 13, padding: "12px 8px", cursor: "pointer", letterSpacing: 1, fontWeight: 700 }}>↑ UPGRADE</button>
-                      <button onClick={() => setObClassifications(p => ({ ...p, [item]: "entertainment" }))} style={{ flex: 1, background: "#ff004010", border: "2px solid #ff004066", color: "#ff0040", fontFamily: "monospace", fontSize: 13, padding: "12px 8px", cursor: "pointer", letterSpacing: 1, fontWeight: 700 }}>▶ ENTERTAINMENT</button>
+                      <button onClick={() => setObClassifications(p => ({ ...p, [item]: "upgrade" }))} style={{ flex: 1, background: "#7CFF3F10", border: "2px solid #7CFF3F66", color: "#7CFF3F", fontFamily: "'Inter', sans-serif", fontSize: 13, padding: "12px 8px", cursor: "pointer", letterSpacing: 1, fontWeight: 700, borderRadius: 8 }}>UPGRADE</button>
+                      <button onClick={() => setObClassifications(p => ({ ...p, [item]: "entertainment" }))} style={{ flex: 1, background: "#FF3D0010", border: "2px solid #FF3D0066", color: "#FF3D00", fontFamily: "'Inter', sans-serif", fontSize: 13, padding: "12px 8px", cursor: "pointer", letterSpacing: 1, fontWeight: 700, borderRadius: 8 }}>ENTERTAINMENT</button>
                     </div>
                   </div>
                 ))}
@@ -2846,26 +2846,26 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
             {/* Two columns */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
               <div>
-                <div style={{ color: "#00ff41", fontSize: 13, letterSpacing: 3, marginBottom: 4, fontFamily: "monospace" }}>UPGRADES</div>
-                <div style={{ color: "#00ff4199", fontSize: 12, marginBottom: 8, fontFamily: "monospace" }}>Makes you better at your goals.</div>
+                <div style={{ color: "#7CFF3F", fontSize: 12, letterSpacing: 2, marginBottom: 4, fontFamily: "'Inter', sans-serif", fontWeight: 600, textTransform: "uppercase" }}>UPGRADES</div>
+                <div style={{ color: "#7CFF3F99", fontSize: 12, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>Makes you better at your goals.</div>
                 {upgrades.map(item => (
-                  <div key={item} style={{ background: "#00ff4108", border: "1px solid #00ff4122", padding: "8px 10px", marginBottom: 3, display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ color: "#7ddf8d", fontFamily: "monospace", fontSize: 13, flex: 1, textAlign: "left" }}>{item}</span>
-                    <button onClick={() => setObClassifications(p => { const n = { ...p }; delete n[item]; return n; })} style={{ background: "none", border: "none", color: "#00ff4188", cursor: "pointer", fontSize: 13}}>↩</button>
+                  <div key={item} style={{ background: "#7CFF3F08", border: "1px solid #7CFF3F22", padding: "8px 10px", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, borderRadius: 8 }}>
+                    <span style={{ color: "#7CFF3F", fontFamily: "'Inter', sans-serif", fontSize: 13, flex: 1, textAlign: "left" }}>{item}</span>
+                    <button onClick={() => setObClassifications(p => { const n = { ...p }; delete n[item]; return n; })} style={{ background: "none", border: "none", color: "#7CFF3F88", cursor: "pointer", fontSize: 13}}>↩</button>
                   </div>
                 ))}
-                {upgrades.length === 0 && <div style={{ color: "#111", fontSize: 12, padding: 10, fontFamily: "monospace" }}>—</div>}
+                {upgrades.length === 0 && <div style={{ color: "#1e1635", fontSize: 12, padding: 10, fontFamily: "'Inter', sans-serif" }}>—</div>}
               </div>
               <div>
-                <div style={{ color: "#ff0040", fontSize: 13, letterSpacing: 3, marginBottom: 4, fontFamily: "monospace" }}>ENTERTAINMENT</div>
-                <div style={{ color: "#ff4466", fontSize: 12, marginBottom: 8, fontFamily: "monospace" }}>Does this serve your mission — or distract from it?</div>
+                <div style={{ color: "#FF3D00", fontSize: 12, letterSpacing: 2, marginBottom: 4, fontFamily: "'Inter', sans-serif", fontWeight: 600, textTransform: "uppercase" }}>ENTERTAINMENT</div>
+                <div style={{ color: "#FF5E1A99", fontSize: 12, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>Does this serve your mission — or distract from it?</div>
                 {entertainment.map(item => (
-                  <div key={item} style={{ background: "#ff004008", border: "1px solid #ff004022", padding: "8px 10px", marginBottom: 3, display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ color: "#ff6666", fontFamily: "monospace", fontSize: 13, flex: 1, textAlign: "left" }}>{item}</span>
-                    <button onClick={() => setObClassifications(p => { const n = { ...p }; delete n[item]; return n; })} style={{ background: "none", border: "none", color: "#ff004088", cursor: "pointer", fontSize: 13}}>↩</button>
+                  <div key={item} style={{ background: "#FF3D0008", border: "1px solid #FF3D0022", padding: "8px 10px", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, borderRadius: 8 }}>
+                    <span style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 13, flex: 1, textAlign: "left" }}>{item}</span>
+                    <button onClick={() => setObClassifications(p => { const n = { ...p }; delete n[item]; return n; })} style={{ background: "none", border: "none", color: "#FF3D0088", cursor: "pointer", fontSize: 13}}>↩</button>
                   </div>
                 ))}
-                {entertainment.length === 0 && <div style={{ color: "#111", fontSize: 12, padding: 10, fontFamily: "monospace" }}>—</div>}
+                {entertainment.length === 0 && <div style={{ color: "#1e1635", fontSize: 12, padding: 10, fontFamily: "'Inter', sans-serif" }}>—</div>}
               </div>
             </div>
             <button onClick={() => { if (allDone) { AudioEngine.play("click"); setObStep(5); setObJustifyIdx(0); setObCurrentJustify(""); } }} style={obBtn(allDone)}>CLASSIFIED. CONTINUE.</button>
@@ -2884,11 +2884,11 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         <div style={obFull}>
           <style>{globalStyles}</style>
           <div style={{ maxWidth: 500, width: "100%", textAlign: "center" }}>
-            <div style={{ color: "#999", fontSize: 12, letterSpacing: 3, marginBottom: 16, fontFamily: "monospace" }}>{obJustifyIdx + 1} / {obItems.length}</div>
-            <div style={{ color: "#fff", fontSize: 18, fontWeight: 900, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>{currentItem}</div>
-            <div style={{ color: classification === "upgrade" ? "#00ff41" : "#ff0040", fontSize: 13, letterSpacing: 3, marginBottom: 24, fontFamily: "monospace" }}>CLASSIFIED AS: {classification === "upgrade" ? "UPGRADE" : "ENTERTAINMENT"}</div>
-            <div style={{ color: "#888", fontSize: 13, marginBottom: 16, fontFamily: "monospace" }}>Why did you classify this as {classification === "upgrade" ? "an upgrade" : "entertainment"}? Be specific.</div>
-            <textarea placeholder="My reason..." value={obCurrentJustify} onChange={e => setObCurrentJustify(e.target.value)} rows={3} style={{ width: "100%", background: "#0a0a0a", border: "1px solid #333", color: "#eee", padding: 12, fontFamily: "monospace", fontSize: 12, resize: "vertical", lineHeight: 1.8 }} />
+            <div style={{ color: "#7a7290", fontSize: 12, letterSpacing: 3, marginBottom: 16, fontFamily: "'JetBrains Mono', monospace" }}>{obJustifyIdx + 1} / {obItems.length}</div>
+            <div style={{ color: "#ede9f5", fontSize: 18, fontWeight: 700, letterSpacing: 1, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>{currentItem}</div>
+            <div style={{ color: classification === "upgrade" ? "#7CFF3F" : "#FF3D00", fontSize: 12, letterSpacing: 2, marginBottom: 24, fontFamily: "'Inter', sans-serif", fontWeight: 600, textTransform: "uppercase" }}>CLASSIFIED AS: {classification === "upgrade" ? "UPGRADE" : "ENTERTAINMENT"}</div>
+            <div style={{ color: "#7a7290", fontSize: 13, marginBottom: 16, fontFamily: "'Inter', sans-serif" }}>Why did you classify this as {classification === "upgrade" ? "an upgrade" : "entertainment"}? Be specific.</div>
+            <textarea placeholder="My reason..." value={obCurrentJustify} onChange={e => setObCurrentJustify(e.target.value)} rows={3} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, resize: "vertical", lineHeight: 1.8, borderRadius: 8 }} />
             <button onClick={() => {
               if (!hasText) return;
               const newJ = { ...obJustifications, [currentItem]: obCurrentJustify.trim() };
@@ -2896,7 +2896,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
               setObCurrentJustify("");
               if (isLast) { AudioEngine.play("click"); setObStep(6); }
               else { setObJustifyIdx(p => p + 1); }
-            }} style={{ ...obBtn(hasText), marginTop: 20 }}>{isLast ? "DONE. CONTINUE." : "NEXT →"}</button>
+            }} style={{ ...obBtn(hasText), marginTop: 20 }}>{isLast ? "DONE. CONTINUE." : "NEXT"}</button>
           </div>
         </div>
       );
@@ -2908,26 +2908,26 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         <div style={{ ...obFull, alignItems: "flex-start", paddingTop: 40 }}>
           <style>{globalStyles}</style>
           <div style={{ maxWidth: 500, width: "100%", textAlign: "center" }}>
-            <div style={{ color: "#fff", fontSize: 14, fontWeight: 900, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>FINAL ALLOWED LIST</div>
-            <div style={{ color: "#888", fontSize: 13, lineHeight: 1.8, fontFamily: "monospace", marginBottom: 24 }}>
+            <div style={{ color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>FINAL ALLOWED LIST</div>
+            <div style={{ color: "#7a7290", fontSize: 13, lineHeight: 1.8, fontFamily: "'Inter', sans-serif", marginBottom: 24 }}>
               From everything you listed, select only the rewards you are allowing yourself from now until you reach your goal. These are the only things you are permitted to spend credits on. Choose carefully.
             </div>
             {obItems.map(item => {
               const selected = obAllowed.has(item);
               const cls = obClassifications[item];
               return (
-                <button key={item} onClick={() => { setObAllowed(p => { const n = new Set(p); if (n.has(item)) n.delete(item); else n.add(item); return n; }); }} style={{ display: "block", width: "100%", background: selected ? (cls === "upgrade" ? "#00ff4112" : "#ff004012") : "#0a0a0a", border: `1px solid ${selected ? (cls === "upgrade" ? "#00ff41" : "#ff0040") : "#222"}`, padding: "12px 16px", marginBottom: 6, cursor: "pointer", textAlign: "left" }}>
+                <button key={item} onClick={() => { setObAllowed(p => { const n = new Set(p); if (n.has(item)) n.delete(item); else n.add(item); return n; }); }} style={{ display: "block", width: "100%", background: selected ? (cls === "upgrade" ? "#7CFF3F12" : "#FF3D0012") : "#0f0b1a", border: `1px solid ${selected ? (cls === "upgrade" ? "#7CFF3F" : "#FF3D00") : "#1e1635"}`, padding: "12px 16px", marginBottom: 6, cursor: "pointer", textAlign: "left", borderRadius: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ width: 18, height: 18, border: `2px solid ${selected ? "#00ff41" : "#333"}`, background: selected ? "#00ff4122" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#00ff41", flexShrink: 0 }}>{selected ? "✓" : ""}</span>
+                    <span style={{ width: 18, height: 18, border: `2px solid ${selected ? "#FF5E1A" : "#1e1635"}`, background: selected ? "#FF5E1A22" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#FF5E1A", flexShrink: 0, borderRadius: 4 }}>{selected ? "✓" : ""}</span>
                     <div>
-                      <div style={{ color: selected ? "#fff" : "#666", fontFamily: "monospace", fontSize: 12 }}>{item}</div>
-                      <div style={{ color: cls === "upgrade" ? "#00ff4166" : "#ff004066", fontFamily: "monospace", fontSize: 12, letterSpacing: 2 }}>{cls === "upgrade" ? "UPGRADE" : "ENTERTAINMENT"}</div>
+                      <div style={{ color: selected ? "#ede9f5" : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 12 }}>{item}</div>
+                      <div style={{ color: cls === "upgrade" ? "#7CFF3F66" : "#FF3D0066", fontFamily: "'Inter', sans-serif", fontSize: 12, letterSpacing: 2 }}>{cls === "upgrade" ? "UPGRADE" : "ENTERTAINMENT"}</div>
                     </div>
                   </div>
                 </button>
               );
             })}
-            {obAllowed.size === 0 && <div style={{ color: "#ff004088", fontSize: 12, fontFamily: "monospace", marginTop: 8 }}>Select at least one reward</div>}
+            {obAllowed.size === 0 && <div style={{ color: "#FF3D0088", fontSize: 12, fontFamily: "'Inter', sans-serif", marginTop: 8 }}>Select at least one reward</div>}
             <button onClick={() => {
               if (obAllowed.size === 0) return;
               const data = {
@@ -2957,9 +2957,9 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
   // ════ BOOT: INIT ════
   if (bootSequence && !systemReady) {
     return (
-      <div style={{ background: "#000", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ background: "#080510", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <style>{globalStyles}</style>
-        <button onClick={() => { AudioEngine.getCtx().resume(); AudioEngine.play("click"); setSystemReady(true); }} style={{ background: "transparent", border: "1px solid #00ff41", color: "#00ff41", padding: "20px 40px", fontFamily: "monospace", fontSize: 16, cursor: "pointer", letterSpacing: 4, boxShadow: "0 0 20px #00ff4133", animation: "pulse 1.5s infinite" }}>▶ BEGIN TRAINING</button>
+        <button onClick={() => { AudioEngine.getCtx().resume(); AudioEngine.play("click"); setSystemReady(true); }} style={{ background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", border: "none", color: "#fff", padding: "20px 40px", fontFamily: "'Inter', sans-serif", fontSize: 16, fontWeight: 600, cursor: "pointer", letterSpacing: 4, boxShadow: "0 0 20px #FF5E1A33", animation: "pulse 1.5s infinite", borderRadius: 8 }}>BEGIN TRAINING</button>
       </div>
     );
   }
@@ -2967,13 +2967,13 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
   // ════ BOOT: TERMINAL ════
   if (bootSequence) {
     return (
-      <div style={{ background: "#000", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ background: "#080510", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <style>{globalStyles}</style>
         <div style={{ maxWidth: 500, width: "100%" }}>
           {bootLines.slice(0, bootLine + 1).map((line, i) => (
-            <div key={i} style={{ color: i === bootLines.length - 1 ? "#00ff41" : i === 0 ? "#fff" : "#00ff4188", fontFamily: "'Courier New', monospace", fontSize: i === 0 ? 16 : i === bootLines.length - 1 ? 14 : 13, fontWeight: i === 0 || i === bootLines.length - 1 ? 700 : 400, letterSpacing: i === bootLines.length - 1 ? 3 : 1, marginBottom: 5 }}>{i < bootLines.length - 1 && i > 0 && line ? "► " : ""}{line}</div>
+            <div key={i} style={{ color: i === bootLines.length - 1 ? "#FF5E1A" : i === 0 ? "#ede9f5" : "#FF5E1A88", fontFamily: "'JetBrains Mono', monospace", fontSize: i === 0 ? 16 : i === bootLines.length - 1 ? 14 : 13, fontWeight: i === 0 || i === bootLines.length - 1 ? 700 : 400, letterSpacing: i === bootLines.length - 1 ? 3 : 1, marginBottom: 5 }}>{i < bootLines.length - 1 && i > 0 && line ? "► " : ""}{line}</div>
           ))}
-          <div style={{ width: 8, height: 14, background: "#00ff41", marginTop: 8, animation: "blink 0.7s step-end infinite" }} />
+          <div style={{ width: 8, height: 14, background: "#FF5E1A", marginTop: 8, animation: "blink 0.7s step-end infinite" }} />
         </div>
       </div>
     );
@@ -3001,21 +3001,23 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
       {showMorningPlan && !state.morningPlanDone && <MorningPlanModal onSubmit={submitMorningPlan} onSkip={() => { setShowMorningPlan(false); setState(p => ({ ...p, morningPlanDone: true })); }} />}
       {showAbsenceReport && absenceData && <AbsenceReportModal daysGone={absenceData.daysGone} xpLost={absenceData.xpLost} streakLost={absenceData.streakLost} potentialXpMissed={absenceData.potentialXpMissed} onDismiss={() => setShowAbsenceReport(false)} />}
       {showYesterdayReminder && state.yesterdayReflection && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", zIndex: 9500 }}>
-          <div style={{ color: "#ffaa00bb", fontSize: 12, letterSpacing: 3, marginBottom: 8, fontFamily: "monospace" }}>YESTERDAY'S COMMITMENT</div>
-          <div style={{ color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "monospace", marginBottom: 8 }}>You said you would improve by:</div>
-          <div style={{ background: "#ffaa0008", border: "1px solid #ffaa0022", padding: 20, maxWidth: 420, marginBottom: 8 }}>
-            <div style={{ color: "#ffaa00", fontSize: 13, fontFamily: "monospace", lineHeight: 1.8 }}>"{state.yesterdayReflection.improvement}"</div>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", zIndex: 9500 }}>
+          <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+            <div style={{ color: "#FFAA00", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>YESTERDAY'S COMMITMENT</div>
+            <div style={{ color: "#ede9f5", fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>You said you would improve by:</div>
+            <div style={{ background: "#FFAA0008", border: "1px solid #FFAA0022", padding: 20, marginBottom: 8, borderRadius: 8 }}>
+              <div style={{ color: "#FFAA00", fontSize: 13, fontFamily: "'Inter', sans-serif", lineHeight: 1.8 }}>"{state.yesterdayReflection.improvement}"</div>
+            </div>
+            <div style={{ color: "#7a7290", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 24 }}>Productive: {state.yesterdayReflection.productive?.toUpperCase()}</div>
+            <button onClick={() => { setShowYesterdayReminder(false); setState(p => ({ ...p, yesterdayReflection: null })); }} style={{ background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", border: "none", color: "#fff", padding: "12px 24px", fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer", letterSpacing: 3, borderRadius: 8 }}>I REMEMBER. LET'S GO.</button>
           </div>
-          <div style={{ color: "#999", fontSize: 12, fontFamily: "monospace", marginBottom: 24 }}>Productive: {state.yesterdayReflection.productive?.toUpperCase()}</div>
-          <button onClick={() => { setShowYesterdayReminder(false); setState(p => ({ ...p, yesterdayReflection: null })); }} style={{ background: "#ffaa0012", border: "1px solid #ffaa00", color: "#ffaa00", padding: "14px 32px", fontFamily: "monospace", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 3 }}>I REMEMBER. LET'S GO.</button>
         </div>
       )}
 
       {/* ── Reflection Banner (non-blocking) ── */}
       {reflectionBannerVisible && !showEndOfDay && (
-        <div onClick={() => { setReflectionBannerVisible(false); setShowEndOfDay(true); }} style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "#00ff4120", border: "1px solid #00ff41", padding: "12px 24px", zIndex: 7000, cursor: "pointer", whiteSpace: "nowrap", animation: "fadeSlide 0.4s ease" }}>
-          <span style={{ color: "#00ff41", fontFamily: "monospace", fontSize: 13, letterSpacing: 2 }}>✓ All tasks complete — tap to reflect</span>
+        <div onClick={() => { setReflectionBannerVisible(false); setShowEndOfDay(true); }} style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "#FF5E1A20", border: "1px solid #FF5E1A", padding: "12px 24px", zIndex: 7000, cursor: "pointer", whiteSpace: "nowrap", animation: "fadeSlide 0.4s ease", borderRadius: 8 }}>
+          <span style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 13, letterSpacing: 2 }}>All tasks complete — tap to reflect</span>
         </div>
       )}
 
