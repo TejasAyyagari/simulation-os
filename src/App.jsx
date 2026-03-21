@@ -3111,46 +3111,68 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
 
         {/* ══ QUESTS (touch-friendly reorder) ══ */}
         {view === "quests" && (
-          <div>
-            <BackButton onClick={() => setView("dashboard")} color={accentColor} />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ color: accentColor, fontSize: 14, letterSpacing: 4, fontWeight: 900 }}>⚡ ACTIVE QUESTS</div>
-              <button onClick={() => setShowAddTask(true)} style={{ background: "#00ff4112", border: "1px solid #00ff41", color: "#00ff41", fontFamily: "monospace", fontSize: 13, padding: "8px 16px", cursor: "pointer", letterSpacing: 2 }}>+ NEW</button>
+          <div style={{ animation: "pageTransition 0.2s ease" }}>
+            {/* Header */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div style={{ color: "var(--text-primary)", fontSize: 20, fontWeight: 700, letterSpacing: 2, fontFamily: "var(--font-body)" }}>QUESTS</div>
+                <button onClick={() => setShowAddTask(true)} style={{ background: "var(--accent-fire)", border: "none", color: "#fff", fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600, padding: "8px 18px", cursor: "pointer", borderRadius: 6, minHeight: 44, display: "flex", alignItems: "center", gap: 6 }}>+ NEW</button>
+              </div>
+              <div style={{ color: "var(--text-secondary)", fontSize: 13, fontFamily: "var(--font-body)" }}>{activeTasks.length} active · {doneTasks.length} done today</div>
             </div>
-            {activeTasks.length === 0 && state.completedToday.length > 0 && <div style={{ color: accentColor, fontSize: 13, textAlign: "center", padding: 40, fontFamily: "monospace" }}>🎯 ALL TASKS COMPLETE</div>}
+
+            {/* Empty states */}
+            {activeTasks.length === 0 && state.completedToday.length > 0 && (
+              <div style={{ textAlign: "center", padding: 40, color: "var(--accent-toxic)", fontSize: 14, fontFamily: "var(--font-body)" }}>All quests complete. Nice work.</div>
+            )}
             {activeTasks.length === 0 && state.completedToday.length === 0 && (
-              <div style={{ textAlign: "center", padding: 40 }}>
-                <div style={{ color: "#555", fontSize: 36, marginBottom: 12 }}>⚡</div>
-                <div style={{ color: "#888", fontSize: 13, fontFamily: "monospace", marginBottom: 8 }}>No active quests yet.</div>
-                <div style={{ color: "#555", fontSize: 12, fontFamily: "monospace", marginBottom: 16 }}>Quests are daily tasks that earn XP and credits. Add your first one to start leveling up.</div>
-                <button onClick={() => setShowAddTask(true)} style={{ background: `${accentColor}12`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "monospace", fontSize: 13, padding: "10px 24px", cursor: "pointer", letterSpacing: 2 }}>+ ADD FIRST QUEST</button>
+              <div style={{ textAlign: "center", padding: 48 }}>
+                <div style={{ color: "var(--text-primary)", fontSize: 15, fontFamily: "var(--font-body)", fontWeight: 500, marginBottom: 8 }}>No quests active.</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 13, fontFamily: "var(--font-body)", marginBottom: 20 }}>Talk to VORAX to plan your day</div>
+                <button onClick={() => setShowAddTask(true)} style={{ background: "var(--accent-fire)", border: "none", color: "#fff", fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600, padding: "10px 24px", cursor: "pointer", borderRadius: 6, minHeight: 44 }}>+ ADD FIRST QUEST</button>
               </div>
             )}
-            {activeTasks.map((task, idx) => {
+
+            {/* Active task cards */}
+            {activeTasks.map((task) => {
               const isBossTask = !!task.bossId;
+              const skillColor = SKILL_DEFS[task.skill]?.color || "var(--accent-fire)";
               return (
-              <div key={task.id} style={{ background: isBossTask ? "#ff004006" : "#0a0a0a", border: `2px solid ${isBossTask ? "#ff004033" : SKILL_DEFS[task.skill]?.color + "22" || "#22222222"}`, padding: "14px", marginBottom: 8, display: "flex", alignItems: "center", gap: 10 }}>
-                {/* Large touch-friendly arrows */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <button onClick={() => moveTask(task.id, -1)} style={{ background: "#111", border: "1px solid #222", color: "#999", cursor: "pointer", fontSize: 16, padding: "8px 10px", lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>▲</button>
-                  <button onClick={() => moveTask(task.id, 1)} style={{ background: "#111", border: "1px solid #222", color: "#999", cursor: "pointer", fontSize: 16, padding: "8px 10px", lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>▼</button>
-                </div>
-                <button onClick={() => initiateComplete(task)} style={{ width: 36, height: 36, background: "transparent", border: `2px solid ${SKILL_DEFS[task.skill]?.color || "#00ff41"}44`, color: SKILL_DEFS[task.skill]?.color || "#00ff41", cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: 4 }}>○</button>
+              <div key={task.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderLeft: `3px solid ${skillColor}`, borderRadius: 8, padding: "14px 16px", marginBottom: 8, display: "flex", alignItems: "center", gap: 12, transition: "filter 0.15s", cursor: "default" }}
+                onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.1)"}
+                onMouseLeave={e => e.currentTarget.style.filter = "brightness(1)"}
+              >
+                <button onClick={() => initiateComplete(task)} style={{ width: 44, height: 44, background: "transparent", border: `2px solid ${skillColor}55`, color: skillColor, cursor: "pointer", fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "50%", transition: "all 0.15s" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = skillColor + "20"; e.currentTarget.style.boxShadow = `0 0 12px ${skillColor}33`; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.boxShadow = "none"; }}
+                >○</button>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ color: "#ccc", fontSize: 12, marginBottom: 3 }}>
-                    {isBossTask && <span style={{ color: "#ff0040", fontSize: 12, marginRight: 6, border: "1px solid #ff004044", padding: "1px 4px", letterSpacing: 1 }}>GOAL</span>}
+                  <div style={{ color: "var(--text-primary)", fontSize: 14, fontWeight: 500, fontFamily: "var(--font-body)", marginBottom: 4, lineHeight: 1.4 }}>
+                    {isBossTask && <span style={{ color: "var(--accent-fire)", fontSize: 11, fontWeight: 700, marginRight: 6, background: "var(--accent-fire)15", border: "1px solid var(--accent-fire)33", padding: "2px 6px", borderRadius: 4, letterSpacing: 1, verticalAlign: "middle" }}>GOAL</span>}
                     {task.text}
                   </div>
-                  <div style={{ color: "#888", fontSize: 12}}>{SKILL_DEFS[task.skill]?.icon || "◈"} {SKILL_DEFS[task.skill]?.name || task.skill}{isBossTask ? ` · ${task.bossName}` : ""}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ color: skillColor, fontSize: 11, fontWeight: 600, fontFamily: "var(--font-body)", background: skillColor + "15", padding: "2px 8px", borderRadius: 10, letterSpacing: 0.5 }}>{SKILL_DEFS[task.skill]?.icon || "◈"} {SKILL_DEFS[task.skill]?.name || task.skill}</span>
+                    {isBossTask && <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-body)" }}>{task.bossName}</span>}
+                  </div>
                 </div>
-                {!isBossTask && <button onClick={() => removeTask(task.id)} style={{ minWidth: 44, minHeight: 44, background: "#ff000015", border: "1px solid #ff000044", color: "#ff4444", cursor: "pointer", fontSize: 18, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>}
+                {!isBossTask && <button onClick={() => removeTask(task.id)} style={{ minWidth: 44, minHeight: 44, background: "transparent", border: "1px solid var(--border)", color: "var(--text-muted)", cursor: "pointer", fontSize: 18, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#ff444466"; e.currentTarget.style.color = "#ff4444"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-muted)"; }}
+                >×</button>}
               </div>
             );})}
+
+            {/* Completed tasks */}
             {doneTasks.length > 0 && (
-              <div style={{ marginTop: 20 }}>
-                <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>COMPLETED TODAY ({doneTasks.length})</div>
+              <div style={{ marginTop: 24 }}>
+                <div style={{ height: 1, background: "var(--border)", marginBottom: 16 }} />
+                <div style={{ color: "var(--text-secondary)", fontSize: 12, letterSpacing: 2, marginBottom: 10, fontFamily: "var(--font-body)", fontWeight: 600 }}>COMPLETED ({doneTasks.length})</div>
                 {doneTasks.map(t => (
-                  <div key={t.id} style={{ padding: "6px 14px", marginBottom: 3, color: "#1a1a1a", fontSize: 13, textDecoration: "line-through" }}>{t.text}</div>
+                  <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", marginBottom: 4, opacity: 0.5, borderRadius: 8 }}>
+                    <span style={{ color: "var(--accent-toxic)", fontSize: 16, flexShrink: 0 }}>✓</span>
+                    <span style={{ color: "var(--text-primary)", fontSize: 13, fontFamily: "var(--font-body)", textDecoration: "line-through" }}>{t.text}</span>
+                  </div>
                 ))}
               </div>
             )}
@@ -3159,66 +3181,84 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
 
         {/* ══ GOALS (Boss Fights) ══ */}
         {view === "bosses" && (
-          <div>
-            <BackButton onClick={() => setView("dashboard")} color="#ff0040" />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ color: "#ff0040", fontSize: 14, letterSpacing: 4, fontWeight: 900 }}>☠ LONG-TERM GOALS</div>
-              <button onClick={() => setShowAddBoss(true)} style={{ background: "#ff004012", border: "1px solid #ff0040", color: "#ff0040", fontFamily: "monospace", fontSize: 13, padding: "8px 16px", cursor: "pointer", letterSpacing: 2 }}>+ NEW GOAL</button>
+          <div style={{ animation: "pageTransition 0.2s ease" }}>
+            {/* Header */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div style={{ color: "var(--text-primary)", fontSize: 20, fontWeight: 700, letterSpacing: 2, fontFamily: "var(--font-body)" }}>GOALS</div>
+                <button onClick={() => setShowAddBoss(true)} style={{ background: "var(--accent-fire)", border: "none", color: "#fff", fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600, padding: "8px 18px", cursor: "pointer", borderRadius: 6, minHeight: 44, display: "flex", alignItems: "center", gap: 6 }}>+ NEW GOAL</button>
+              </div>
+              <div style={{ color: "var(--text-secondary)", fontSize: 13, fontFamily: "var(--font-body)" }}>{activeBosses.length} active · {defeatedBosses.length} defeated</div>
             </div>
+
+            {/* Empty state */}
             {activeBosses.length === 0 && (
-              <div style={{ textAlign: "center", padding: 40 }}>
-                <div style={{ color: "#555", fontSize: 36, marginBottom: 12 }}>☠</div>
-                <div style={{ color: "#888", fontSize: 13, fontFamily: "monospace", marginBottom: 8 }}>No active goals.</div>
-                <div style={{ color: "#555", fontSize: 12, fontFamily: "monospace", marginBottom: 16 }}>Goals are long-term objectives with milestones. Set one to give your daily tasks a bigger purpose.</div>
-                <button onClick={() => setShowAddBoss(true)} style={{ background: "#ff004012", border: "1px solid #ff0040", color: "#ff0040", fontFamily: "monospace", fontSize: 13, padding: "10px 24px", cursor: "pointer", letterSpacing: 2 }}>+ SET FIRST GOAL</button>
+              <div style={{ textAlign: "center", padding: 48 }}>
+                <div style={{ color: "var(--text-primary)", fontSize: 15, fontFamily: "var(--font-body)", fontWeight: 500, marginBottom: 8 }}>No active goals.</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 13, fontFamily: "var(--font-body)", marginBottom: 20 }}>Set a long-term goal to fight</div>
+                <button onClick={() => setShowAddBoss(true)} style={{ background: "var(--accent-fire)", border: "none", color: "#fff", fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600, padding: "10px 24px", cursor: "pointer", borderRadius: 6, minHeight: 44 }}>+ SET FIRST GOAL</button>
               </div>
             )}
+
+            {/* Active goal cards */}
             {activeBosses.map(boss => {
               const hpPct = (boss.hp / boss.maxHp) * 100;
+              const progressPct = 100 - hpPct;
               const daysLeft = Math.max(0, Math.ceil((boss.deadline - Date.now()) / 86400000));
               const dlDate = new Date(boss.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+              const deadlineColor = daysLeft < 3 ? "var(--accent-ember)" : daysLeft <= 7 ? "var(--accent-gold)" : "var(--accent-toxic)";
               return (
-                <div key={boss.id} style={{ background: "#0a0000", border: "1px solid #ff004022", padding: 16, marginBottom: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ color: "#ff0040", fontSize: 13, fontWeight: 700, letterSpacing: 2 }}>{boss.name}</div>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      <span style={{ color: daysLeft < 3 ? "#ff0040" : "#555", fontSize: 12}}>{dlDate} · {daysLeft}d</span>
-                      <button onClick={() => removeBoss(boss.id)} style={{ background: "none", border: "none", color: "#331111", cursor: "pointer", fontSize: 12 }}>×</button>
+                <div key={boss.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 8, padding: 18, marginBottom: 12 }}>
+                  {/* Goal name & deadline */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+                    <div style={{ color: "var(--text-primary)", fontSize: 16, fontWeight: 700, fontFamily: "var(--font-body)", flex: 1 }}>{boss.name}</div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+                      <span style={{ color: deadlineColor, fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 600 }}>{dlDate} · {daysLeft}d</span>
+                      <button onClick={() => removeBoss(boss.id)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, minWidth: 44, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                     </div>
                   </div>
-                  <MatrixAgent boss={boss} isHit={bossHitId === boss.id} isDead={bossDeadId === boss.id} />
-                  <div style={{ margin: "12px 0 8px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                      <span style={{ color: "#ff0040", fontSize: 12, letterSpacing: 2 }}>PROGRESS</span>
-                      <span style={{ color: "#ff0040", fontSize: 13, fontWeight: 700 }}>{Math.round(100 - hpPct)}%</span>
+
+                  {/* Progress bar */}
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, alignItems: "baseline" }}>
+                      <span style={{ color: "var(--accent-fire)", fontSize: 13, fontFamily: "var(--font-mono)", fontWeight: 700 }}>{boss.hp} / {boss.maxHp} HP</span>
+                      <span style={{ color: "var(--text-secondary)", fontSize: 12, fontFamily: "var(--font-mono)" }}>{Math.round(progressPct)}%</span>
                     </div>
-                    <div style={{ height: 8, background: "#1a0000", border: "1px solid #ff004033", overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${100 - hpPct}%`, background: "#00ff41", transition: "width 0.5s ease" }} />
+                    <div style={{ height: 10, background: "var(--bg-deep)", borderRadius: 5, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${progressPct}%`, background: "linear-gradient(90deg, var(--accent-fire), var(--accent-gold))", borderRadius: 5, transition: "width 0.5s ease", boxShadow: progressPct > 0 ? "0 0 8px var(--accent-fire)44" : "none" }} />
                     </div>
-                    <div style={{ color: "#999", fontSize: 12, marginTop: 3 }}>REWARD: {boss.reward}¢ · {daysLeft}d left</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 12, fontFamily: "var(--font-body)", marginTop: 6 }}>Reward: {boss.reward}¢ · {daysLeft}d left</div>
                   </div>
+
+                  {/* Milestones checklist */}
                   {boss.subtasks.map(s => {
                     const today = new Date().toISOString().split("T")[0];
                     const isScheduled = s.scheduledDate && s.scheduledDate > today;
                     const dateLabel = s.scheduledDate ? new Date(s.scheduledDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "now";
                     return (
-                    <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderTop: "1px solid #110000" }}>
-                      <span style={{ width: 20, height: 20, background: s.done ? "#00ff4115" : "transparent", border: `1px solid ${s.done ? "#00ff4144" : isScheduled ? "#555" : "#ff004066"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: s.done ? "#00ff41" : "#ff004044", flexShrink: 0 }}>{s.done ? "✓" : "○"}</span>
-                      <span style={{ color: s.done ? "#333" : isScheduled ? "#555" : "#aa6666", fontSize: 13, textDecoration: s.done ? "line-through" : "none", flex: 1 }}>{s.text}</span>
-                      <span style={{ color: isScheduled ? "#ffaa0066" : s.done ? "#333" : "#555", fontSize: 12, flexShrink: 0 }}>{s.done ? "done" : isScheduled ? `📅 ${dateLabel}` : "in quests"}</span>
+                    <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: "1px solid var(--border)" }}>
+                      <span style={{ width: 22, height: 22, background: s.done ? "var(--accent-toxic)15" : "transparent", border: `2px solid ${s.done ? "var(--accent-toxic)" : isScheduled ? "var(--text-muted)" : "var(--accent-fire)55"}`, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: s.done ? "var(--accent-toxic)" : "var(--text-muted)", flexShrink: 0 }}>{s.done ? "✓" : ""}</span>
+                      <span style={{ color: s.done ? "var(--text-muted)" : isScheduled ? "var(--text-secondary)" : "var(--text-primary)", fontSize: 13, fontFamily: "var(--font-body)", textDecoration: s.done ? "line-through" : "none", flex: 1, opacity: s.done ? 0.5 : 1 }}>{s.text}</span>
+                      <span style={{ color: isScheduled ? "var(--accent-gold)" : s.done ? "var(--text-muted)" : "var(--text-secondary)", fontSize: 11, fontFamily: "var(--font-mono)", flexShrink: 0 }}>{s.done ? "done" : isScheduled ? `${dateLabel}` : "in quests"}</span>
                     </div>
                     );
                   })}
                 </div>
               );
             })}
+
+            {/* Defeated goals */}
             {defeatedBosses.length > 0 && (
-              <div style={{ marginTop: 20 }}>
-                <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>ACHIEVED ({defeatedBosses.length})</div>
+              <div style={{ marginTop: 24 }}>
+                <div style={{ height: 1, background: "var(--border)", marginBottom: 16 }} />
+                <div style={{ color: "var(--text-secondary)", fontSize: 12, letterSpacing: 2, marginBottom: 10, fontFamily: "var(--font-body)", fontWeight: 600 }}>DEFEATED ({defeatedBosses.length})</div>
                 {defeatedBosses.map(b => (
-                  <div key={b.id} style={{ padding: "6px 10px", color: "#1a1a1a", fontSize: 13, marginBottom: 3, display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ textDecoration: "line-through" }}>{b.name}</span>
-                    <button onClick={() => removeBoss(b.id)} style={{ background: "none", border: "none", color: "#1a1a1a", cursor: "pointer", fontSize: 13}}>×</button>
+                  <div key={b.id} style={{ padding: "12px 16px", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-surface)", border: "1px solid var(--accent-gold)33", borderRadius: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ color: "var(--accent-gold)", fontSize: 13, fontWeight: 700, fontFamily: "var(--font-mono)", letterSpacing: 1 }}>DEFEATED</span>
+                      <span style={{ color: "var(--text-secondary)", fontSize: 13, fontFamily: "var(--font-body)" }}>{b.name}</span>
+                    </div>
+                    <button onClick={() => removeBoss(b.id)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, minWidth: 44, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                   </div>
                 ))}
               </div>
@@ -3401,112 +3441,116 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
           </div>
         )}
 
-        {/* ══ STATS ══ */}
+        {/* ══ PROGRESS ══ */}
         {view === "skills" && (
-          <div>
-            <BackButton onClick={() => setView("dashboard")} color={accentColor} />
-            <div style={{ color: accentColor, fontSize: 14, letterSpacing: 4, marginBottom: 16, fontWeight: 900 }}>◈ OPERATOR STATS</div>
-            <div style={{ background: "#0a0a0a", border: `1px solid ${playerClass.color}33`, padding: 16, marginBottom: 16, textAlign: "center" }}>
-              <div style={{ color: playerClass.color, fontSize: 28 }}>{playerClass.icon}</div>
-              <div style={{ color: playerClass.color, fontSize: 14, fontWeight: 900, letterSpacing: 3, marginTop: 4 }}>{playerClass.name}</div>
-              <div style={{ color: "#999", fontSize: 12, marginTop: 4 }}>{playerClass.desc}</div>
-              {onboardingData?.username && <div style={{ color: "#00ff4188", fontSize: 13, marginTop: 8, letterSpacing: 2 }}>OPERATOR: {onboardingData.username}</div>}
-              {overallLevel >= 5 && <button onClick={prestige} style={{ marginTop: 12, background: "#ff00ff12", border: "1px solid #ff00ff", color: "#ff00ff", fontFamily: "monospace", fontSize: 13, padding: "8px 20px", cursor: "pointer", letterSpacing: 2 }}>⟐ PRESTIGE ⟐</button>}
+          <div style={{ animation: "pageTransition 0.2s ease" }}>
+            {/* Header */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ color: "var(--text-primary)", fontSize: 20, fontWeight: 700, letterSpacing: 2, fontFamily: "var(--font-body)" }}>PROGRESS</div>
+              <div style={{ color: "var(--text-secondary)", fontSize: 13, fontFamily: "var(--font-body)" }}>Overall Level {overallLevel}</div>
             </div>
-            {onboardingData?.mission && (
-              <div style={{ background: "#00ff4108", border: "1px solid #00ff4118", padding: 14, marginBottom: 16 }}>
-                <div style={{ color: "#00ff4199", fontSize: 12, letterSpacing: 3, marginBottom: 4 }}>LIFE MISSION (LOCKED)</div>
-                <div style={{ color: "#7ddf8d", fontSize: 13, lineHeight: 1.8 }}>{onboardingData.mission}</div>
-              </div>
-            )}
-            {(state.protocolViolations || []).length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ color: "#ff0040", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>⚠ PROTOCOL VIOLATIONS (PERMANENT)</div>
-                {(state.protocolViolations || []).map((v, i) => (
-                  <div key={i} style={{ background: "#ff004008", border: "1px solid #ff004033", padding: "10px 12px", marginBottom: 4, animation: "violationPulse 3s infinite" }}>
-                    <div style={{ color: "#ff0040", fontSize: 13, fontWeight: 900 }}>VIOLATED — {v.date}</div>
-                    <div style={{ color: "#ff004088", fontSize: 12, marginTop: 2 }}>{v.reason}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {/* ── Expandable Skill Tree ── */}
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#00ff4199", fontSize: 11, letterSpacing: 3, marginBottom: 10 }}>SKILL TREE — TAP TO EXPAND</div>
+
+            {/* 1. Class Card */}
+            <div style={{ background: "var(--bg-elevated)", borderRadius: 8, padding: 20, marginBottom: 16, textAlign: "center", border: "1px solid var(--border)" }}>
+              <div style={{ color: playerClass.color, fontSize: 32, marginBottom: 4 }}>{playerClass.icon}</div>
+              <div style={{ color: playerClass.color, fontSize: 16, fontWeight: 700, letterSpacing: 2, fontFamily: "var(--font-body)", marginBottom: 4 }}>{playerClass.name}</div>
+              <div style={{ color: "var(--text-secondary)", fontSize: 13, fontFamily: "var(--font-body)", marginBottom: 2 }}>{playerClass.desc}</div>
+              <div style={{ color: "var(--text-primary)", fontSize: 14, fontFamily: "var(--font-mono)", fontWeight: 700, marginTop: 8 }}>Level {overallLevel}</div>
+              {onboardingData?.username && <div style={{ color: "var(--text-muted)", fontSize: 12, fontFamily: "var(--font-body)", marginTop: 6 }}>{onboardingData.username}</div>}
+              {overallLevel >= 5 && <button onClick={prestige} style={{ marginTop: 12, background: "var(--accent-royal)15", border: "1px solid var(--accent-royal)", color: "var(--accent-royal)", fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600, padding: "8px 20px", cursor: "pointer", borderRadius: 6, letterSpacing: 1, minHeight: 44 }}>PRESTIGE</button>}
+            </div>
+
+            {/* 2. Skill Overview (4 bars) + Expandable Skill Tree */}
+            <div style={{ marginBottom: 20 }}>
               {Object.entries(SKILL_DEFS).map(([skillKey, skillDef]) => {
                 const mainSk = state.skills[skillKey] || { xp: 0, level: 1 };
                 const isExpanded = expandedSkill === skillKey;
                 const subDefs = SUB_SKILL_DEFS[skillKey] || [];
                 return (
                   <div key={skillKey} style={{ marginBottom: 6 }}>
-                    {/* Main skill row — clickable header */}
+                    {/* Main skill row — clickable */}
                     <div
                       onClick={() => setExpandedSkill(isExpanded ? null : skillKey)}
-                      style={{ background: isExpanded ? `${skillDef.color}12` : "#0a0a0a", border: `1px solid ${isExpanded ? skillDef.color + "55" : "#1a1a1a"}`, padding: "10px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "all 0.15s" }}
+                      style={{ background: isExpanded ? "var(--bg-elevated)" : "var(--bg-surface)", border: `1px solid ${isExpanded ? skillDef.color + "44" : "var(--border)"}`, borderRadius: isExpanded ? "8px 8px 0 0" : 8, padding: "12px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, transition: "all 0.15s", minHeight: 44 }}
                     >
-                      <span style={{ color: skillDef.color, fontSize: 16, minWidth: 20 }}>{skillDef.icon}</span>
-                      <span style={{ color: skillDef.color, fontSize: 13, fontWeight: 900, letterSpacing: 2, flex: 1 }}>{skillDef.name}</span>
-                      <span style={{ color: skillDef.color, fontSize: 12, letterSpacing: 1, minWidth: 40 }}>LV.{mainSk.level}</span>
-                      {/* Mini XP bar */}
-                      <div style={{ width: 80, height: 6, background: "#111", border: `1px solid ${skillDef.color}33`, position: "relative" }}>
-                        <div style={{ position: "absolute", top: 0, left: 0, height: "100%", width: `${mainSk.xp}%`, background: skillDef.color, boxShadow: `0 0 4px ${skillDef.color}` }} />
+                      <span style={{ color: skillDef.color, fontSize: 18, minWidth: 24, textAlign: "center" }}>{skillDef.icon}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                          <span style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-body)" }}>{skillDef.name}</span>
+                          <span style={{ color: skillDef.color, fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 700 }}>LV.{mainSk.level}</span>
+                        </div>
+                        <div style={{ width: "100%", height: 6, background: "var(--bg-deep)", borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${mainSk.xp}%`, background: skillDef.color, borderRadius: 3, transition: "width 0.3s ease", boxShadow: `0 0 6px ${skillDef.color}44` }} />
+                        </div>
                       </div>
-                      <span style={{ color: isExpanded ? skillDef.color : "#555", fontSize: 11, minWidth: 12 }}>{isExpanded ? "▾" : "▸"}</span>
+                      <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)", minWidth: 40, textAlign: "right" }}>{mainSk.xp}/100</span>
+                      <span style={{ color: isExpanded ? skillDef.color : "var(--text-muted)", fontSize: 11, minWidth: 12, transition: "transform 0.2s", transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)" }}>▾</span>
                     </div>
                     {/* Sub-skill rows — shown when expanded */}
-                    {isExpanded && (
-                      <div style={{ background: "#050505", border: `1px solid ${skillDef.color}22`, borderTop: "none", paddingTop: 4, paddingBottom: 4 }}>
+                    <div style={{ maxHeight: isExpanded ? 500 : 0, overflow: "hidden", transition: "max-height 0.3s ease" }}>
+                      <div style={{ background: "var(--bg-surface)", border: `1px solid ${skillDef.color}22`, borderTop: "none", borderRadius: "0 0 8px 8px", paddingTop: 4, paddingBottom: 4 }}>
                         {subDefs.map(sub => {
                           const ss = state.subSkills?.[skillKey]?.[sub.id] || { xp: 0, level: 1 };
                           return (
-                            <div key={sub.id} style={{ padding: "7px 12px 7px 32px", display: "flex", alignItems: "center", gap: 8, borderBottom: `1px solid ${sub.color}11` }}>
-                              <span style={{ color: sub.color, fontSize: 13, minWidth: 18 }}>{sub.icon}</span>
+                            <div key={sub.id} style={{ padding: "8px 14px 8px 36px", display: "flex", alignItems: "center", gap: 10 }}>
+                              <span style={{ color: sub.color, fontSize: 14, minWidth: 18, textAlign: "center" }}>{sub.icon}</span>
                               <div style={{ flex: 1 }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                                  <span style={{ color: sub.color, fontSize: 11, fontWeight: 900, letterSpacing: 1 }}>{sub.name}</span>
-                                  <span style={{ color: sub.color + "99", fontSize: 10 }}>LV.{ss.level}</span>
-                                  <span style={{ color: "#555", fontSize: 10, marginLeft: "auto" }}>{ss.xp}/100 XP</span>
+                                  <span style={{ color: "var(--text-primary)", fontSize: 12, fontWeight: 600, fontFamily: "var(--font-body)" }}>{sub.name}</span>
+                                  <span style={{ color: sub.color, fontSize: 11, fontFamily: "var(--font-mono)" }}>LV.{ss.level}</span>
+                                  <span style={{ color: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-mono)", marginLeft: "auto" }}>{ss.xp}/100</span>
                                 </div>
-                                <div style={{ width: "100%", height: 4, background: "#111", border: `1px solid ${sub.color}22` }}>
-                                  <div style={{ height: "100%", width: `${ss.xp}%`, background: sub.color, opacity: 0.85 }} />
+                                <div style={{ width: "100%", height: 4, background: "var(--bg-deep)", borderRadius: 2, overflow: "hidden" }}>
+                                  <div style={{ height: "100%", width: `${ss.xp}%`, background: sub.color, borderRadius: 2, opacity: 0.85, transition: "width 0.3s ease" }} />
                                 </div>
-                                <div style={{ color: "#444", fontSize: 10, marginTop: 2 }}>{sub.desc}</div>
+                                <div style={{ color: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-body)", marginTop: 3 }}>{sub.desc}</div>
                               </div>
                             </div>
                           );
                         })}
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               })}
             </div>
-            <div style={{ marginTop: 20 }}>
-              <div style={{ color: "#ff0040", fontSize: 12, letterSpacing: 2, marginBottom: 4 }}>ACTIVE DEBUFFS</div>
-              <div style={{ color: "#555", fontSize: 11, fontFamily: "monospace", marginBottom: 8 }}>Auto-detected from coach chat · tap × to remove</div>
-              {(state.activeDebuffs||[]).length === 0 && <div style={{ color: "#222", fontSize: 12, fontFamily: "monospace", padding: 8 }}>No active debuffs — clean status</div>}
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {(state.activeDebuffs||[]).map(d => {
-                  const def = DEBUFF_DEFS[d.id];
-                  if (!def) return null;
-                  return (
-                    <div key={d.id} style={{ background: `${def.color}15`, border: `1px solid ${def.color}44`, color: def.color, fontFamily: "monospace", fontSize: 12, padding: "6px 10px", display: "flex", alignItems: "center", gap: 6 }}>
-                      <span>{def.icon} {def.name}</span>
-                      <span style={{ color: `${def.color}88`, fontSize: 10 }}>{def.effect}</span>
-                      <button onClick={() => toggleDebuff(d.id)} style={{ background: "none", border: "none", color: def.color, cursor: "pointer", fontSize: 14, padding: "0 2px", opacity: 0.6 }}>×</button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              {[{l:"TOTAL TASKS",v:state.totalTasksCompleted,c:"#00ff41"},{l:"TOTAL CREDITS",v:state.totalCreditsEarned+"¢",c:"#ffaa00"},{l:"PRESTIGE",v:state.prestigeLevel,c:"#ff00ff"},{l:"XP MULT",v:"×"+xpMult.toFixed(2),c:"#00d4ff"}].map(s => (
-                <div key={s.l} style={{ background: "#0a0a0a", border: "1px solid #111", padding: 10, textAlign: "center" }}>
-                  <div style={{ color: "#999", fontSize: 12, letterSpacing: 1 }}>{s.l}</div>
-                  <div style={{ color: s.c, fontSize: 18, fontWeight: 900 }}>{s.v}</div>
+
+            {/* 3. Stats Grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+              {[
+                { l: "Total Tasks", v: state.totalTasksCompleted, c: "var(--accent-toxic)" },
+                { l: "Total XP", v: state.totalXpEarned || 0, c: "var(--accent-fire)" },
+                { l: "Streak", v: (state.streakDays || 0) + "d", c: "var(--accent-gold)" },
+                { l: "Credits", v: state.credits + "\u00A2", c: "var(--accent-gold)" },
+                { l: "Prestige", v: state.prestigeLevel, c: "var(--accent-royal)" },
+                { l: "Login Streak", v: (state.loginStreak || 0) + "d", c: "var(--accent-ice)" },
+              ].map(s => (
+                <div key={s.l} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 8, padding: "14px 10px", textAlign: "center" }}>
+                  <div style={{ color: s.c, fontSize: 22, fontWeight: 700, fontFamily: "var(--font-mono)", marginBottom: 4 }}>{s.v}</div>
+                  <div style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-body)", fontWeight: 500 }}>{s.l}</div>
                 </div>
               ))}
             </div>
+
+            {/* Active Debuffs */}
+            {(state.activeDebuffs||[]).length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ color: "var(--accent-ember)", fontSize: 12, letterSpacing: 2, fontWeight: 600, fontFamily: "var(--font-body)", marginBottom: 8 }}>ACTIVE DEBUFFS</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {(state.activeDebuffs||[]).map(d => {
+                    const def = DEBUFF_DEFS[d.id];
+                    if (!def) return null;
+                    return (
+                      <div key={d.id} style={{ background: "var(--bg-surface)", border: `1px solid ${def.color}44`, color: def.color, fontFamily: "var(--font-body)", fontSize: 12, padding: "6px 10px", borderRadius: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                        <span>{def.icon} {def.name}</span>
+                        <span style={{ color: "var(--text-muted)", fontSize: 10 }}>{def.effect}</span>
+                        <button onClick={() => toggleDebuff(d.id)} style={{ background: "none", border: "none", color: def.color, cursor: "pointer", fontSize: 14, padding: "0 2px", opacity: 0.6, minWidth: 24, minHeight: 24 }}>×</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
