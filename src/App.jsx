@@ -8,7 +8,7 @@ const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
 /**
  * App main module
  * ----------------
- * This file contains the full UI and game logic for Simulation OS.
+ * This file contains the full UI and game logic for VORAX.
  * Key responsibilities:
  * - UI components and visual helpers (particles, bars, agents)
  * - Game state management and defaults
@@ -27,8 +27,15 @@ const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
  */
 
 // ═══════════════════════════════════════════════════════════════
-// SIMULATION OS v5.0 — THE COMPLETE LIFE RPG
+// VORAX v5.0 — THE COMPLETE LIFE RPG
 // ═══════════════════════════════════════════════════════════════
+
+// ── Sound Packs ──────────────────────────────────────────────
+const SOUND_PACKS = {
+  FORGE: { id: 'forge', name: 'FORGE', desc: 'Metallic impacts & fire' },
+  DIGITAL: { id: 'digital', name: 'DIGITAL', desc: 'Electronic & synthetic' },
+  SILENCE: { id: 'silence', name: 'SILENCE', desc: 'No sounds' },
+};
 
 // ── Audio Engine ──────────────────────────────────────────────
 const AudioEngine = {
@@ -37,87 +44,115 @@ const AudioEngine = {
     if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
     return this.ctx;
   },
+  _getPack() {
+    const s = loadSettings();
+    const st = (s.soundType || "forge").toLowerCase();
+    if (st === "silence") return "silence";
+    if (st === "digital") return "digital";
+    return "forge";
+  },
   play(type) {
     try {
       const s = loadSettings();
       if (s.soundEnabled === false) return;
+      const pack = this._getPack();
+      if (pack === "silence") return;
       const ctx = this.getCtx();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
       const now = ctx.currentTime;
+      const isForge = pack === "forge";
       if (type === "hit") {
-        osc.type = "square"; osc.frequency.setValueAtTime(200, now);
-        osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
-        gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-        osc.start(now); osc.stop(now + 0.15);
+        osc.type = isForge ? "sawtooth" : "square";
+        osc.frequency.setValueAtTime(isForge ? 140 : 200, now);
+        osc.frequency.exponentialRampToValueAtTime(isForge ? 50 : 80, now + (isForge ? 0.22 : 0.15));
+        gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + (isForge ? 0.22 : 0.15));
+        osc.start(now); osc.stop(now + (isForge ? 0.22 : 0.15));
       } else if (type === "xp") {
-        osc.type = "sine"; osc.frequency.setValueAtTime(523, now);
-        osc.frequency.exponentialRampToValueAtTime(1047, now + 0.12);
-        gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-        osc.start(now); osc.stop(now + 0.2);
+        osc.type = isForge ? "sawtooth" : "sine";
+        osc.frequency.setValueAtTime(isForge ? 330 : 523, now);
+        osc.frequency.exponentialRampToValueAtTime(isForge ? 660 : 1047, now + (isForge ? 0.18 : 0.12));
+        gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + (isForge ? 0.25 : 0.2));
+        osc.start(now); osc.stop(now + (isForge ? 0.25 : 0.2));
       } else if (type === "levelup") {
-        [523, 659, 784, 1047].forEach((f, i) => {
+        const freqs = isForge ? [330, 440, 523, 660] : [523, 659, 784, 1047];
+        const wave = isForge ? "square" : "triangle";
+        const spacing = isForge ? 0.14 : 0.1;
+        const decay = isForge ? 0.28 : 0.2;
+        freqs.forEach((f, i) => {
           const o = ctx.createOscillator(); const g = ctx.createGain();
-          o.connect(g); g.connect(ctx.destination); o.type = "square";
-          o.frequency.setValueAtTime(f, now + i * 0.1);
-          g.gain.setValueAtTime(0.15, now + i * 0.1);
-          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
-          o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.2);
+          o.connect(g); g.connect(ctx.destination); o.type = wave;
+          o.frequency.setValueAtTime(f, now + i * spacing);
+          g.gain.setValueAtTime(0.15, now + i * spacing);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * spacing + decay);
+          o.start(now + i * spacing); o.stop(now + i * spacing + decay);
         });
       } else if (type === "loot") {
-        for (let i = 0; i < 12; i++) {
+        const count = isForge ? 8 : 12;
+        const wave = isForge ? "square" : "sawtooth";
+        for (let i = 0; i < count; i++) {
           const o = ctx.createOscillator(); const g = ctx.createGain();
-          o.connect(g); g.connect(ctx.destination); o.type = "sawtooth";
-          const f = 200 + Math.random() * 800;
-          o.frequency.setValueAtTime(f, now + i * 0.08);
-          g.gain.setValueAtTime(0.08, now + i * 0.08);
-          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.07);
-          o.start(now + i * 0.08); o.stop(now + i * 0.08 + 0.07);
+          o.connect(g); g.connect(ctx.destination); o.type = wave;
+          const f = isForge ? (120 + Math.random() * 400) : (200 + Math.random() * 800);
+          const step = isForge ? 0.1 : 0.08;
+          const dec = isForge ? 0.09 : 0.07;
+          o.frequency.setValueAtTime(f, now + i * step);
+          g.gain.setValueAtTime(0.08, now + i * step);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * step + dec);
+          o.start(now + i * step); o.stop(now + i * step + dec);
         }
       } else if (type === "critical") {
-        osc.type = "sawtooth"; osc.frequency.setValueAtTime(120, now);
-        osc.frequency.exponentialRampToValueAtTime(30, now + 1);
-        gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
-        osc.start(now); osc.stop(now + 1);
+        osc.type = "sawtooth"; osc.frequency.setValueAtTime(isForge ? 80 : 120, now);
+        osc.frequency.exponentialRampToValueAtTime(isForge ? 20 : 30, now + (isForge ? 1.3 : 1));
+        gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + (isForge ? 1.3 : 1));
+        osc.start(now); osc.stop(now + (isForge ? 1.3 : 1));
       } else if (type === "click") {
-        osc.type = "square"; osc.frequency.setValueAtTime(800, now);
-        gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
-        osc.start(now); osc.stop(now + 0.03);
+        osc.type = isForge ? "square" : "sine";
+        osc.frequency.setValueAtTime(isForge ? 500 : 800, now);
+        const dec = isForge ? 0.05 : 0.03;
+        gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + dec);
+        osc.start(now); osc.stop(now + dec);
       } else if (type === "boss") {
-        [150, 200, 150, 100].forEach((f, i) => {
+        const freqs = isForge ? [100, 140, 100, 70] : [150, 200, 150, 100];
+        const wave = isForge ? "sawtooth" : "square";
+        freqs.forEach((f, i) => {
           const o = ctx.createOscillator(); const g = ctx.createGain();
-          o.connect(g); g.connect(ctx.destination); o.type = "sawtooth";
+          o.connect(g); g.connect(ctx.destination); o.type = wave;
           o.frequency.setValueAtTime(f, now + i * 0.2);
           g.gain.setValueAtTime(0.25, now + i * 0.2);
-          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.2 + 0.18);
-          o.start(now + i * 0.2); o.stop(now + i * 0.2 + 0.18);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.2 + (isForge ? 0.25 : 0.18));
+          o.start(now + i * 0.2); o.stop(now + i * 0.2 + (isForge ? 0.25 : 0.18));
         });
       } else if (type === "coin") {
-        osc.type = "sine"; osc.frequency.setValueAtTime(1318, now);
-        osc.frequency.setValueAtTime(1568, now + 0.08);
+        osc.type = isForge ? "triangle" : "sine";
+        osc.frequency.setValueAtTime(isForge ? 880 : 1318, now);
+        osc.frequency.setValueAtTime(isForge ? 1100 : 1568, now + 0.08);
         gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
         osc.start(now); osc.stop(now + 0.2);
       } else if (type === "event") {
-        [440, 554, 659, 880].forEach((f, i) => {
+        const freqs = isForge ? [280, 350, 440, 560] : [440, 554, 659, 880];
+        const wave = isForge ? "sawtooth" : "triangle";
+        freqs.forEach((f, i) => {
           const o = ctx.createOscillator(); const g = ctx.createGain();
-          o.connect(g); g.connect(ctx.destination); o.type = "triangle";
+          o.connect(g); g.connect(ctx.destination); o.type = wave;
           o.frequency.setValueAtTime(f, now + i * 0.12);
           g.gain.setValueAtTime(0.12, now + i * 0.12);
           g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.15);
           o.start(now + i * 0.12); o.stop(now + i * 0.12 + 0.15);
         });
       } else if (type === "fear") {
-        osc.type = "square"; osc.frequency.setValueAtTime(80, now);
-        osc.frequency.exponentialRampToValueAtTime(400, now + 0.3);
-        gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-        osc.start(now); osc.stop(now + 0.4);
+        osc.type = isForge ? "sawtooth" : "square";
+        osc.frequency.setValueAtTime(isForge ? 50 : 80, now);
+        osc.frequency.exponentialRampToValueAtTime(isForge ? 280 : 400, now + (isForge ? 0.45 : 0.3));
+        gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + (isForge ? 0.55 : 0.4));
+        osc.start(now); osc.stop(now + (isForge ? 0.55 : 0.4));
       } else if (type === "splatter") {
         for (let i = 0; i < 5; i++) {
           const o = ctx.createOscillator(); const g = ctx.createGain();
-          o.connect(g); g.connect(ctx.destination); o.type = "sawtooth";
-          o.frequency.setValueAtTime(60 + Math.random() * 100, now + i * 0.04);
+          o.connect(g); g.connect(ctx.destination); o.type = isForge ? "square" : "sawtooth";
+          o.frequency.setValueAtTime((isForge ? 40 : 60) + Math.random() * 100, now + i * 0.04);
           g.gain.setValueAtTime(0.2, now + i * 0.04);
           g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.04 + 0.06);
           o.start(now + i * 0.04); o.stop(now + i * 0.04 + 0.06);
@@ -126,16 +161,17 @@ const AudioEngine = {
         for (let i = 0; i < 20; i++) {
           const o = ctx.createOscillator(); const g = ctx.createGain();
           o.connect(g); g.connect(ctx.destination); o.type = i % 2 === 0 ? "sawtooth" : "square";
-          const f = 200 - i * 8 + Math.random() * 50;
+          const f = (isForge ? 150 : 200) - i * 8 + Math.random() * 50;
           o.frequency.setValueAtTime(Math.max(20, f), now + i * 0.05);
           g.gain.setValueAtTime(0.2, now + i * 0.05);
           g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.05 + 0.08);
           o.start(now + i * 0.05); o.stop(now + i * 0.05 + 0.08);
         }
       } else if (type === "gamble") {
-        [200, 400, 600, 800, 1000].forEach((f, i) => {
+        const freqs = isForge ? [140, 280, 420, 560, 700] : [200, 400, 600, 800, 1000];
+        freqs.forEach((f, i) => {
           const o = ctx.createOscillator(); const g = ctx.createGain();
-          o.connect(g); g.connect(ctx.destination); o.type = "square";
+          o.connect(g); g.connect(ctx.destination); o.type = isForge ? "sawtooth" : "square";
           o.frequency.setValueAtTime(f, now + i * 0.06);
           g.gain.setValueAtTime(0.15, now + i * 0.06);
           g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.06 + 0.08);
@@ -145,29 +181,26 @@ const AudioEngine = {
     } catch (e) {}
   }
 };
-// ── Quote Pool ────────────────────────────────────────────────
+// ── Quote Pool (VORAX Messages) ──────────────────────────────
 const QUOTES_POOL = [
-  { category: "SOCIAL", color: "#ffaa00", text: "The spotlight effect is a delusion. People are too busy drowning in their own lives to notice you. Act without hesitation." },
-  { category: "SOCIAL", color: "#ffaa00", text: "Charisma is psychological warfare. Read their souls, and execute." },
-  { category: "SOCIAL", color: "#ffaa00", text: "A strong network is a decentralized empire. Forge alliances that make you untouchable." },
-  { category: "SOCIAL", color: "#ffaa00", text: "Stop caring if NPCs love or despise you — their opinions are irrelevant. The mission is everything." },
-  { category: "INTELLIGENCE", color: "#00ff41", text: "Master your mind. The entire war is won or lost at the interface between consciousness and discipline." },
-  { category: "INTELLIGENCE", color: "#00ff41", text: "AI automation is god-tier leverage. You are writing the code that forces reality to submit." },
-  { category: "INTELLIGENCE", color: "#00ff41", text: "Deep work is descending into the void. Lock yourself in the chamber and build while weak men scroll." },
-  { category: "INTELLIGENCE", color: "#00ff41", text: "Every page you devour adds new weapons to your cognitive arsenal. Conquer more territory." },
+  { category: "VORAX", color: "#FF5E1A", text: "I'm watching, human." },
+  { category: "VORAX", color: "#FF5E1A", text: "Every second idle is a second wasted." },
+  { category: "VORAX", color: "#FF3D00", text: "Your goals won't complete themselves." },
+  { category: "VORAX", color: "#FF5E1A", text: "I feed on your completed tasks. Don't starve me." },
+  { category: "VORAX", color: "#FF3D00", text: "Weakness is a choice. Choose differently." },
+  { category: "VORAX", color: "#FFAA00", text: "The grind never stops. Neither should you." },
+  { category: "VORAX", color: "#FF5E1A", text: "You didn't come this far to only come this far." },
+  { category: "VORAX", color: "#FF3D00", text: "I don't care how you feel. I care what you do." },
+  { category: "VORAX", color: "#FFAA00", text: "Results. Not excuses." },
+  { category: "VORAX", color: "#FF5E1A", text: "Feed me or fall behind." },
   { category: "STRENGTH", color: "#ff3333", text: "Pain is raw data from your body. Absorb it, transmute it, turn it into power." },
-  { category: "STRENGTH", color: "#ff3333", text: "A weak body makes you a slave to the matrix. Lift heavy iron until you break through." },
   { category: "STRENGTH", color: "#ff3333", text: "Endurance is forged in fire. Delete the weak voice that begs you to quit." },
-  { category: "STRENGTH", color: "#ff3333", text: "Gravity wants you broken. Defy it with every single rep." },
-  { category: "VITALITY", color: "#00d4ff", text: "Vitality is not random — it's religious adherence to the protocol. Fuel the machine perfectly." },
-  { category: "VITALITY", color: "#00d4ff", text: "Protein is the sacred code for god-tier biology. Never miss the upload." },
-  { category: "VITALITY", color: "#00d4ff", text: "Your aesthetics scream your level of discipline. Look like a weapon at all times." },
-  { category: "VITALITY", color: "#00d4ff", text: "Sleep is reloading the simulation's save state. Optimize every cycle." },
-  { category: "SYSTEM", color: "#ff00ff", text: "The simulation only rewards cold, relentless consistency. Motivation is for the weak." },
-  { category: "SYSTEM", color: "#ff00ff", text: "Focus is your most valuable currency. Guard it like a dragon or remain forgotten." },
-  { category: "SYSTEM", color: "#ff00ff", text: "You are the operator of this entire game. Turn every piece of friction into fuel." },
-  { category: "SYSTEM", color: "#ff00ff", text: "Comfort is the deadliest virus in the matrix. It keeps men trapped in tutorial mode forever." },
-  { category: "SYSTEM", color: "#ff00ff", text: "A superior version of you already exists. Close the gap or accept mediocrity." },
+  { category: "INTELLIGENCE", color: "#FF5E1A", text: "Deep work is descending into the void. Lock yourself in the chamber and build." },
+  { category: "INTELLIGENCE", color: "#FF5E1A", text: "Every page you devour adds new weapons to your cognitive arsenal." },
+  { category: "VITALITY", color: "#00d4ff", text: "Vitality is not random — it's religious adherence to the protocol." },
+  { category: "SYSTEM", color: "#FF5E1A", text: "Focus is your most valuable currency. Guard it or remain forgotten." },
+  { category: "SYSTEM", color: "#FF3D00", text: "A superior version of you already exists. Close the gap or accept mediocrity." },
+  { category: "SYSTEM", color: "#FFAA00", text: "Comfort is the deadliest virus. It keeps you trapped in tutorial mode forever." },
 ];
 
 function getRandomQuote() {
@@ -177,7 +210,7 @@ function getRandomQuote() {
 
 // ── Skill Definitions ─────────────────────────────────────────
 const SKILL_DEFS = {
-  intelligence: { name: "INTELLIGENCE", icon: "⟐", color: "#00ff41", desc: "Business · Study · Learning" },
+  intelligence: { name: "INTELLIGENCE", icon: "⟐", color: "#FF5E1A", desc: "Business · Study · Learning" },
   strength: { name: "STRENGTH", icon: "⚔", color: "#ff3333", desc: "Gym · Combat · Training" },
   vitality: { name: "VITALITY", icon: "♥", color: "#00d4ff", desc: "Health · Appearance · Recovery" },
   social: { name: "SOCIAL", icon: "★", color: "#ffaa00", desc: "Network · Charisma · Influence" },
@@ -212,7 +245,7 @@ function classifyTask(text) {
 // ── Sub-Skill Definitions (16 sub-skills, 4 per main skill) ──
 const SUB_SKILL_DEFS = {
   intelligence: [
-    { id: "deep_work",     name: "DEEP WORK",     icon: "⊕", color: "#00ff41",
+    { id: "deep_work",     name: "DEEP WORK",     icon: "⊕", color: "#FF5E1A",
       desc: "Focus sessions, coding, building",
       keywords: ["focus","code","build","develop","debug","project","work","create","script","program"] },
     { id: "learning",      name: "LEARNING",      icon: "◈", color: "#00cc33",
@@ -285,7 +318,7 @@ function getSubSkillHit(text, mainSkill) {
 // ── Class Definitions ─────────────────────────────────────────
 const CLASS_DEFS = [
   { id: "undetermined", name: "UNCLASSIFIED", icon: "◇", color: "#999", desc: "Class not yet determined", req: () => true },
-  { id: "strategist", name: "STRATEGIST", icon: "⟐", color: "#00ff41", desc: "INT dominant — bonus XP on deep work", req: (s) => s.intelligence.level >= 5 && s.intelligence.level > s.strength.level && s.intelligence.level > s.social.level },
+  { id: "strategist", name: "STRATEGIST", icon: "⟐", color: "#FF5E1A", desc: "INT dominant — bonus XP on deep work", req: (s) => s.intelligence.level >= 5 && s.intelligence.level > s.strength.level && s.intelligence.level > s.social.level },
   { id: "warrior", name: "WARRIOR", icon: "⚔", color: "#ff3333", desc: "STR dominant — physical task bonus", req: (s) => s.strength.level >= 5 && s.strength.level > s.intelligence.level },
   { id: "diplomat", name: "DIPLOMAT", icon: "★", color: "#ffaa00", desc: "SOC dominant — 50% decay reduction", req: (s) => s.social.level >= 5 && s.social.level > s.intelligence.level && s.social.level > s.strength.level },
   { id: "paladin", name: "PALADIN", icon: "◈", color: "#00d4ff", desc: "Balanced — +10% all XP", req: (s) => { const l = [s.intelligence.level, s.strength.level, s.vitality.level, s.social.level]; return Math.min(...l) >= 3 && Math.max(...l) - Math.min(...l) <= 2; } },
@@ -320,7 +353,7 @@ const BUFF_DEFS = {
 
 // ── Combo Multiplier System ───────────────────────────────────
 const COMBO_THRESHOLDS = [
-  { min: 2,  label: "×2 COMBO",      color: "#00ff41", xpBonus: 0.10, sound: "xp" },
+  { min: 2,  label: "×2 COMBO",      color: "#FF5E1A", xpBonus: 0.10, sound: "xp" },
   { min: 3,  label: "×3 STREAK",     color: "#00d4ff", xpBonus: 0.20, sound: "coin" },
   { min: 5,  label: "×5 ON FIRE",    color: "#ffaa00", xpBonus: 0.35, sound: "event" },
   { min: 7,  label: "×7 RAMPAGE",    color: "#ff00ff", xpBonus: 0.60, sound: "loot" },
@@ -385,7 +418,7 @@ function getOnboardingRewardCost(name, classification) {
 
 // ── Accent Color Options ─────────────────────────────────────
 const ACCENT_COLORS = [
-  { id: "matrix", color: "#00ff41", name: "MATRIX" },
+  { id: "fire", color: "#FF5E1A", name: "FIRE" },
   { id: "ice", color: "#00d4ff", name: "ICE" },
   { id: "neon", color: "#ff00ff", name: "NEON" },
   { id: "gold", color: "#ffaa00", name: "GOLD" },
@@ -567,9 +600,9 @@ function getDefaultState() {
     totalXpMissed: 0,
     absenceLossLog: [],
     settingsConfig: {
-      accentColor: "#00ff41",
+      accentColor: "#FF5E1A",
       soundEnabled: true,
-      soundType: "retro",
+      soundType: "forge",
       tabOrder: null,
       hiddenTabs: [],
       accountEmail: "",
@@ -639,7 +672,7 @@ function checkTaskCountDrop(state) {
 // ── Back Button ───────────────────────────────────────────────
 function BackButton({ onClick, label = "← BACK", color = "#888" }) {
   return (
-    <button onClick={onClick} style={{ background: "none", border: "1px solid #222", color, fontFamily: "monospace", fontSize: 12, padding: "6px 14px", cursor: "pointer", letterSpacing: 2, marginBottom: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>{label}</button>
+    <button onClick={onClick} style={{ background: "none", border: "1px solid #222", color, fontFamily: "'JetBrains Mono', monospace", fontSize: 12, padding: "6px 14px", cursor: "pointer", letterSpacing: 2, marginBottom: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>{label}</button>
   );
 }
 
@@ -652,16 +685,16 @@ function Tip({ term, children }) {
     <span style={{ position: "relative", cursor: "help", borderBottom: "1px dotted #444" }} onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)} onClick={() => setShow(p => !p)}>
       {children || term}
       {show && (
-        <span style={{ position: "absolute", bottom: "120%", left: "50%", transform: "translateX(-50%)", background: "#1a1a1a", border: "1px solid #333", color: "#ccc", fontFamily: "monospace", fontSize: 11, padding: "6px 10px", whiteSpace: "nowrap", zIndex: 9999, pointerEvents: "none", letterSpacing: 1 }}>{text}</span>
+        <span style={{ position: "absolute", bottom: "120%", left: "50%", transform: "translateX(-50%)", background: "#1a1a1a", border: "1px solid #333", color: "#ccc", fontFamily: "'JetBrains Mono', monospace", fontSize: 11, padding: "6px 10px", whiteSpace: "nowrap", zIndex: 9999, pointerEvents: "none", letterSpacing: 1 }}>{text}</span>
       )}
     </span>
   );
 }
 
 // ── Spinner ───────────────────────────────────────────────────
-function Spinner({ color = "#00ff41", text = "Loading..." }) {
+function Spinner({ color = "#FF5E1A", text = "Loading..." }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, color, fontFamily: "monospace", fontSize: 12 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, color, fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
       <span style={{ animation: "blink 0.6s step-end infinite" }}>█</span>
       <span>{text}</span>
     </div>
@@ -749,30 +782,35 @@ function AbsenceReportModal({ daysGone, xpLost, streakLost, potentialXpMissed, o
   );
 }
 
-// ── Particles ─────────────────────────────────────────────────
-function Particles({ active, color = "#00ff41", count = 30 }) {
+// ── Particles (Fire/Ember themed) ─────────────────────────────
+function Particles({ active, count = 14 }) {
   if (!active) return null;
+  const EMBER_COLORS = ["#FF5E1A", "#FF3D00", "#FFAA00", "#FF5E1A", "#FF3D00", "#FFAA00", "#991100"];
   return (
     <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9999 }}>
       {Array.from({ length: count }).map((_, i) => {
         const x = Math.random() * 100; const delay = Math.random() * 0.5;
-        const dur = 0.8 + Math.random() * 1.2; const size = 2 + Math.random() * 4;
-        return <div key={i} style={{ position: "absolute", left: `${x}%`, bottom: "50%", width: size, height: size, background: color, borderRadius: "50%", boxShadow: `0 0 6px ${color}`, animation: `particle-fly ${dur}s ${delay}s ease-out forwards` }} />;
+        const dur = 1.5 + Math.random() * 2; const size = 2 + Math.random() * 3;
+        const c = EMBER_COLORS[i % EMBER_COLORS.length];
+        const opacity = 0.5 + Math.random() * 0.5;
+        return <div key={i} style={{ position: "absolute", left: `${x}%`, bottom: "40%", width: size, height: size, background: c, borderRadius: "50%", boxShadow: `0 0 ${size + 4}px ${c}, 0 0 ${size + 8}px ${c}44`, opacity, animation: `fireFloat ${dur}s ${delay}s ease-in-out forwards` }} />;
       })}
     </div>
   );
 }
 
-// ── Blood Splatter ────────────────────────────────────────────
+// ── Ember Splatter (Fire-themed hit effect) ───────────────────
 function BloodSplatter({ active }) {
   if (!active) return null;
+  const EMBER_SPLAT = ["#FF5E1A", "#FF3D00", "#FFAA00", "#FF5E1A", "#991100"];
   return (
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 5 }}>
-      {Array.from({ length: 15 }).map((_, i) => {
+      {Array.from({ length: 12 }).map((_, i) => {
         const x = 30 + Math.random() * 40, y = 20 + Math.random() * 60;
-        const size = 4 + Math.random() * 12;
+        const size = 3 + Math.random() * 10;
         const dx = (Math.random() - 0.5) * 120, dy = (Math.random() - 0.5) * 120;
-        return <div key={i} style={{ position: "absolute", left: `${x}%`, top: `${y}%`, width: size, height: size, borderRadius: "50%", background: "radial-gradient(circle, #ff0000, #880000)", boxShadow: "0 0 4px #ff0000", animation: `splatter 0.6s ${i*0.02}s ease-out forwards`, "--dx": `${dx}px`, "--dy": `${dy}px` }} />;
+        const c = EMBER_SPLAT[i % EMBER_SPLAT.length];
+        return <div key={i} style={{ position: "absolute", left: `${x}%`, top: `${y}%`, width: size, height: size, borderRadius: "50%", background: `radial-gradient(circle, ${c}, ${c}44)`, boxShadow: `0 0 6px ${c}`, animation: `splatter 0.6s ${i*0.02}s ease-out forwards`, "--dx": `${dx}px`, "--dy": `${dy}px` }} />;
       })}
     </div>
   );
@@ -788,8 +826,8 @@ function ComboBanner({ data, onDone }) {
   if (!data) return null;
   return (
     <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 9900, pointerEvents: "none", animation: "comboBannerAnim 2s ease-out forwards", textAlign: "center" }}>
-      <div style={{ fontSize: 48, fontWeight: 900, fontFamily: "monospace", color: data.color, textShadow: `0 0 30px ${data.color}, 0 0 60px ${data.color}44`, letterSpacing: 6, lineHeight: 1 }}>{data.label}</div>
-      <div style={{ fontSize: 16, fontFamily: "monospace", color: data.color, opacity: 0.7, marginTop: 8, letterSpacing: 4 }}>+{Math.round(data.xpBonus * 100)}% XP BONUS</div>
+      <div style={{ fontSize: 48, fontWeight: 900, fontFamily: "'JetBrains Mono', monospace", background: "linear-gradient(135deg, #FF5E1A, #FFAA00, #FF3D00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", textShadow: "none", filter: "drop-shadow(0 0 20px #FF5E1A88) drop-shadow(0 0 40px #FF3D0044)", letterSpacing: 6, lineHeight: 1 }}>{data.label}</div>
+      <div style={{ fontSize: 16, fontFamily: "'JetBrains Mono', monospace", color: "#FF5E1A", opacity: 0.7, marginTop: 8, letterSpacing: 4 }}>+{Math.round(data.xpBonus * 100)}% XP BONUS</div>
     </div>
   );
 }
@@ -835,14 +873,17 @@ function MatrixAgent({ boss, isHit, isDead }) {
         </div>
         <BloodSplatter active={isHit} />
       </div>
-      {/* Matrix code rain on death */}
+      {/* Fire dissolve on death */}
       {isDead && (
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
-          {Array.from({ length: 20 }).map((_, i) => (
-            <div key={i} style={{ position: "absolute", left: `${Math.random()*100}%`, top: -20, color: "#00ff41", fontSize: 13, fontFamily: "monospace", animation: `matrixRain ${1+Math.random()*2}s ${Math.random()*0.5}s linear forwards`, opacity: 0.6 }}>
+          {Array.from({ length: 20 }).map((_, i) => {
+            const c = ["#FF5E1A", "#FF3D00", "#FFAA00"][i % 3];
+            return (
+            <div key={i} style={{ position: "absolute", left: `${Math.random()*100}%`, top: -20, color: c, fontSize: 13, fontFamily: "'JetBrains Mono', monospace", animation: `matrixRain ${1+Math.random()*2}s ${Math.random()*0.5}s linear forwards`, opacity: 0.6 }}>
               {String.fromCharCode(0x30A0 + Math.random() * 96)}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -859,13 +900,13 @@ function XPBar({ xp, level, def }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 16, color: def.color }}>{def.icon}</span>
           <div>
-            <div style={{ color: def.color, fontFamily: "monospace", fontSize: 12, letterSpacing: 2, fontWeight: 700 }}>{def.name}</div>
-            <div style={{ color: "#888", fontFamily: "monospace", fontSize: 12}}>{def.desc}</div>
+            <div style={{ color: def.color, fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: 2, fontWeight: 700 }}>{def.name}</div>
+            <div style={{ color: "#888", fontFamily: "'JetBrains Mono', monospace", fontSize: 12}}>{def.desc}</div>
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ color: def.color, fontFamily: "monospace", fontSize: 18, fontWeight: 900 }}>LV.{level}</div>
-          <div style={{ color: "#999", fontFamily: "monospace", fontSize: 12}}>{xp}/100</div>
+          <div style={{ color: def.color, fontFamily: "'JetBrains Mono', monospace", fontSize: 18, fontWeight: 900 }}>LV.{level}</div>
+          <div style={{ color: "#999", fontFamily: "'JetBrains Mono', monospace", fontSize: 12}}>{xp}/100</div>
         </div>
       </div>
       <div style={{ height: 3, background: "#111", marginTop: 6, overflow: "hidden" }}>
@@ -1933,7 +1974,7 @@ export default function SimulationOS() {
   const [state, setState] = useState(loadState);
   const [view, setView] = useState("vorax");
   const [showParticles, setShowParticles] = useState(false);
-  const [particleColor, setParticleColor] = useState("#00ff41");
+  const [particleColor, setParticleColor] = useState("#FF5E1A");
   const [tPopup, setTPopup] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [showAddBoss, setShowAddBoss] = useState(false);
@@ -1995,7 +2036,7 @@ export default function SimulationOS() {
   const [coachError, setCoachError] = useState(null);
   const coachEndRef = useRef(null);
 
-  const showToast = useCallback((msg, color = "#00ff41", duration = 1800) => {
+  const showToast = useCallback((msg, color = "#FF5E1A", duration = 1800) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ msg, color });
     toastTimerRef.current = setTimeout(() => setToast(null), duration);
@@ -2007,11 +2048,11 @@ export default function SimulationOS() {
 
   // ── Boot + Yesterday Reminder ───────────────────
   const bootLines = [
-    "SIMULATION OS v5.0.0", "Initializing skill trees...", `Loading operator: ${onboardingData?.username || "OPERATOR"}`,
+    "VORAX v5.0.0", "Initializing skill trees...", `Loading human: ${onboardingData?.username || "HUMAN"}`,
     "Skill trees: INT / STR / VIT / SOC", `Class: ${playerClass.name}`,
     "Boss system: ARMED", "Protocol monitor: WATCHING",
     `Prestige: ${state.prestigeLevel}`,
-    "", ">>> WELCOME BACK, OPERATOR <<<",
+    "", ">>> WELCOME BACK, HUMAN <<<",
   ];
 
   useEffect(() => {
@@ -2214,7 +2255,7 @@ export default function SimulationOS() {
   // ── Rate Task (after Likert selection) ──────────
   const rateAndAward = useCallback((rating) => {
     const task = ratingTask; if (!task) return;
-    AudioEngine.play("xp"); setShowParticles(true); setParticleColor(SKILL_DEFS[task.skill]?.color || "#00ff41");
+    AudioEngine.play("xp"); setShowParticles(true); setParticleColor(SKILL_DEFS[task.skill]?.color || "#FF5E1A");
     setTimeout(() => setShowParticles(false), 1500);
     setRatingTask(null);
     const isHard = rating >= 5;
@@ -2270,7 +2311,7 @@ export default function SimulationOS() {
       return { ...prev, skills: { ...prev.skills, [task.skill]: { xp: nx, level: nl } }, completedToday: [...prev.completedToday, task.id], totalXpEarned: prev.totalXpEarned + finalXp, totalTasksCompleted: prev.totalTasksCompleted + 1, credits: prev.credits + cr, totalCreditsEarned: prev.totalCreditsEarned + cr, consecutiveCompletions: con, activeBuffs: buffs, bosses, hardCompletedToday: isHard ? true : prev.hardCompletedToday, subSkills, completedHistory };
     });
     const finalXpForToast = Math.floor((LIKERT_XP[rating] || 20) * getXpMultiplier(state));
-    showToast(`✓ COMPLETE  +${finalXpForToast} XP`, SKILL_DEFS[ratingTask?.skill]?.color || "#00ff41", 2000);
+    showToast(`✓ COMPLETE  +${finalXpForToast} XP`, SKILL_DEFS[ratingTask?.skill]?.color || "#FF5E1A", 2000);
     setTPopup(true); setTimeout(() => setTPopup(false), 1800);
   }, [ratingTask, showToast]);
 
@@ -2280,7 +2321,7 @@ export default function SimulationOS() {
     setShowQuickLog(false);
   }, []);
 
-  const addTask = useCallback(t => { setState(p => ({ ...p, tasks: [...p.tasks, t] })); setShowAddTask(false); showToast("✓ QUEST ADDED", "#00ff41"); }, [showToast]);
+  const addTask = useCallback(t => { setState(p => ({ ...p, tasks: [...p.tasks, t] })); setShowAddTask(false); showToast("✓ QUEST ADDED", "#FF5E1A"); }, [showToast]);
 
   // ── Add Boss (milestones scheduled by date) ─────
   const addBoss = useCallback(b => {
@@ -2368,7 +2409,7 @@ export default function SimulationOS() {
     });
     setShowMorningPlan(false);
     AudioEngine.play("xp");
-    showToast("✓ DAY PLANNED — GO EXECUTE", "#00ff41", 2000);
+    showToast("✓ DAY PLANNED — GO EXECUTE", "#FF5E1A", 2000);
   }, [showToast]);
 
   const prestige = useCallback(() => {
@@ -2417,7 +2458,7 @@ export default function SimulationOS() {
 
     return `${personality}
 
-Your client: ${onboardingData?.username || 'Operator'}
+Your client: ${onboardingData?.username || 'Human'}
 Life mission: ${onboardingData?.mission || '(not set)'}
 Class: ${cls.name} | Overall Level: ${lvl} | Streak: ${state.streakDays} days | Prestige: ${state.prestigeLevel}
 Main skills: INT lv${state.skills.intelligence?.level} | STR lv${state.skills.strength?.level} | VIT lv${state.skills.vitality?.level} | SOC lv${state.skills.social?.level}
@@ -2439,7 +2480,7 @@ ${recentRewards}
 Recent daily reflections:
 ${recentReflections}
 
-Be concise (under 200 words unless asked for more). Give actionable advice tailored to this operator's actual behavior patterns.`;
+Be concise (under 200 words unless asked for more). Give actionable advice tailored to this human's actual behavior patterns.`;
   }, [state, onboardingData, settings]);
 
   const sendToAI = useCallback(async (userMessage) => {
@@ -2504,7 +2545,7 @@ Be concise (under 200 words unless asked for more). Give actionable advice tailo
     setCoachStreamText("");
     setCoachError(null);
 
-    // Build full operator context for the system prompt
+    // Build full user context for the system prompt
     const lastReflection = (state.endOfDayReflections || []).slice(-1)[0];
     const debuffsActive = (state.activeDebuffs || []).map(d => d.id).join(", ") || "none";
     const allowedRewards = onboardingData?.allowedRewards?.join(", ") || "none";
@@ -2712,7 +2753,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
     { id: 'progress', label: 'PROGRESS', icon: '\u{1F4CA}', viewId: 'skills' },
     { id: 'more', label: 'MORE', icon: '\u2699', viewId: 'more' },
   ];
-  const accentColor = state.settingsConfig?.accentColor || "#00ff41";
+  const accentColor = state.settingsConfig?.accentColor || "#FF5E1A";
   const approvedRewards = onboardingData?.allowedRewards || [];
   const allShopRewards = [
     ...approvedRewards.map((r, i) => ({ id: `ob_${i}`, name: r, desc: "Onboarding approved", category: onboardingData?.classifications?.[r] === "upgrade" ? "UPGRADE" : "ENTERTAINMENT", cost: getOnboardingRewardCost(r, onboardingData?.classifications?.[r] || "entertainment"), icon: onboardingData?.classifications?.[r] === "upgrade" ? "◈" : "▣", isOnboarding: true })),
@@ -2981,12 +3022,12 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
 
   // ════ MAIN RENDER ════
   return (
-    <div style={{ background: "#000", minHeight: "100vh", color: "#eee", fontFamily: "'Courier New', monospace", maxWidth: "100vw", overflowX: "hidden" }}>
+    <div style={{ background: "#000", minHeight: "100vh", color: "#eee", fontFamily: "'Inter', 'JetBrains Mono', monospace", maxWidth: "100vw", overflowX: "hidden" }}>
       <style>{globalStyles}</style>
-      <Particles active={showParticles} color={particleColor} />
+      <Particles active={showParticles} />
       <ComboBanner data={comboBannerData} onDone={() => setComboBannerData(null)} />
       {toast && (
-        <div style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: "#0a0a0a", border: `1px solid ${toast.color}`, color: toast.color, fontFamily: "monospace", fontSize: 13, padding: "10px 20px", zIndex: 99999, letterSpacing: 2, animation: "fadeIn 0.2s ease", whiteSpace: "nowrap", pointerEvents: "none" }}>{toast.msg}</div>
+        <div style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: "#0a0a0a", border: `1px solid ${toast.color}`, color: toast.color, fontFamily: "'JetBrains Mono', monospace", fontSize: 13, padding: "10px 20px", zIndex: 99999, letterSpacing: 2, animation: "fadeIn 0.2s ease", whiteSpace: "nowrap", pointerEvents: "none" }}>{toast.msg}</div>
       )}
       {showAddTask && <AddTaskModal onAdd={addTask} onClose={() => setShowAddTask(false)} />}
       {showAddBoss && <AddBossModal onAdd={addBoss} onClose={() => setShowAddBoss(false)} />}
@@ -3025,12 +3066,12 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
       <div style={{ background: "var(--bg-elevated, #0a0a0a)", borderBottom: "1px solid #111", position: "relative" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px", height: 56 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ color: "var(--accent-fire, #ff6b35)", fontSize: 18, fontWeight: 900, letterSpacing: 3, fontFamily: "monospace" }}>VORAX</span>
-            <span style={{ color: "var(--text-primary, #e0e0e0)", fontSize: 12, fontWeight: 700, opacity: 0.7, fontFamily: "monospace" }}>LV.{overallLevel}</span>
+            <span style={{ color: "var(--accent-fire, #ff6b35)", fontSize: 18, fontWeight: 900, letterSpacing: 3, fontFamily: "'JetBrains Mono', monospace" }}>VORAX</span>
+            <span style={{ color: "var(--text-primary, #e0e0e0)", fontSize: 12, fontWeight: 700, opacity: 0.7, fontFamily: "'JetBrains Mono', monospace" }}>LV.{overallLevel}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <span style={{ color: "var(--accent-gold, #ffaa00)", fontSize: 13, fontFamily: "monospace", fontWeight: 700 }}>{'\u{1FA99}'} {state.credits}</span>
-            <span style={{ color: "#ff6b35", fontSize: 13, fontFamily: "monospace", fontWeight: 700 }}>{'\u{1F525}'} {state.streakDays}d</span>
+            <span style={{ color: "var(--accent-gold, #ffaa00)", fontSize: 13, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>{'\u{1FA99}'} {state.credits}</span>
+            <span style={{ color: "#ff6b35", fontSize: 13, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>{'\u{1F525}'} {state.streakDays}d</span>
           </div>
         </div>
         {/* Full-width XP bar */}
@@ -3040,13 +3081,13 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         {/* Debuff/Buff pills */}
         {((state.activeDebuffs||[]).length > 0 || activeBuffsList.length > 0) && (
           <div style={{ display: "flex", gap: 6, padding: "4px 16px 6px", flexWrap: "wrap" }}>
-            {(state.activeDebuffs||[]).map(d => DEBUFF_DEFS[d.id] && <span key={d.id} style={{ background: `${DEBUFF_DEFS[d.id].color}15`, border: `1px solid ${DEBUFF_DEFS[d.id].color}44`, color: DEBUFF_DEFS[d.id].color, fontSize: 11, padding: "1px 6px", letterSpacing: 1, borderRadius: 3, fontFamily: "monospace" }}>{DEBUFF_DEFS[d.id].icon} {DEBUFF_DEFS[d.id].name}</span>)}
-            {activeBuffsList.map(b => BUFF_DEFS[b.id] && <span key={b.id+b.appliedAt} style={{ background: `${BUFF_DEFS[b.id].color}15`, border: `1px solid ${BUFF_DEFS[b.id].color}44`, color: BUFF_DEFS[b.id].color, fontSize: 11, padding: "1px 6px", letterSpacing: 1, borderRadius: 3, fontFamily: "monospace" }}>{BUFF_DEFS[b.id].icon} {BUFF_DEFS[b.id].name}</span>)}
+            {(state.activeDebuffs||[]).map(d => DEBUFF_DEFS[d.id] && <span key={d.id} style={{ background: `${DEBUFF_DEFS[d.id].color}15`, border: `1px solid ${DEBUFF_DEFS[d.id].color}44`, color: DEBUFF_DEFS[d.id].color, fontSize: 11, padding: "1px 6px", letterSpacing: 1, borderRadius: 3, fontFamily: "'JetBrains Mono', monospace" }}>{DEBUFF_DEFS[d.id].icon} {DEBUFF_DEFS[d.id].name}</span>)}
+            {activeBuffsList.map(b => BUFF_DEFS[b.id] && <span key={b.id+b.appliedAt} style={{ background: `${BUFF_DEFS[b.id].color}15`, border: `1px solid ${BUFF_DEFS[b.id].color}44`, color: BUFF_DEFS[b.id].color, fontSize: 11, padding: "1px 6px", letterSpacing: 1, borderRadius: 3, fontFamily: "'JetBrains Mono', monospace" }}>{BUFF_DEFS[b.id].icon} {BUFF_DEFS[b.id].name}</span>)}
           </div>
         )}
       </div>
 
-      {tPopup && <div style={{ position: "fixed", top: 80, left: "50%", transform: "translateX(-50%)", background: "#00ff4115", border: "1px solid #00ff41", padding: "8px 20px", zIndex: 8000, animation: "fadeSlide 1.5s forwards" }}><span style={{ color: "#00ff41", fontFamily: "monospace", fontSize: 13, letterSpacing: 2 }}>⚡ QUEST COMPLETE</span></div>}
+      {tPopup && <div style={{ position: "fixed", top: 80, left: "50%", transform: "translateX(-50%)", background: "#FF5E1A15", border: "1px solid #FF5E1A", padding: "8px 20px", zIndex: 8000, animation: "fadeSlide 1.5s forwards" }}><span style={{ color: "#FF5E1A", fontFamily: "'JetBrains Mono', monospace", fontSize: 13, letterSpacing: 2 }}>⚡ QUEST COMPLETE</span></div>}
 
       <div style={{ padding: "16px", paddingBottom: 80, minHeight: "60vh" }}>
 
@@ -3439,7 +3480,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
               {/* Account */}
               <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 8, padding: 16, marginBottom: 8 }}>
                 <div style={{ color: "var(--accent-ice)", fontSize: 12, letterSpacing: 2, fontWeight: 600, fontFamily: "var(--font-body)", marginBottom: 12 }}>ACCOUNT</div>
-                <div style={{ color: "var(--text-secondary)", fontSize: 12, fontFamily: "var(--font-body)", marginBottom: 12 }}>Operator: {onboardingData?.username || "Unknown"}</div>
+                <div style={{ color: "var(--text-secondary)", fontSize: 12, fontFamily: "var(--font-body)", marginBottom: 12 }}>Human: {onboardingData?.username || "Unknown"}</div>
                 <div style={{ color: "var(--text-muted)", fontSize: 11, letterSpacing: 1, fontFamily: "var(--font-body)", marginBottom: 4 }}>EMAIL</div>
                 <input value={sc.accountEmail || ""} onChange={e => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, accountEmail: e.target.value } }))} placeholder="your@email.com" style={{ width: "100%", background: "var(--bg-deep)", border: "1px solid var(--border)", color: "var(--text-primary)", padding: 12, fontFamily: "var(--font-mono)", fontSize: 13, marginBottom: 10, boxSizing: "border-box", borderRadius: 6 }} />
                 <div style={{ color: "var(--text-muted)", fontSize: 11, letterSpacing: 1, fontFamily: "var(--font-body)", marginBottom: 4 }}>PASSWORD</div>
@@ -3511,7 +3552,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
           const recentMessages = coachHistory.slice(-4);
 
           return (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 8px 100px", minHeight: "calc(100vh - 80px)" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 8px 100px", minHeight: "calc(100vh - 80px)", animation: "pageTransition 0.2s ease" }}>
 
             {/* VORAX Avatar — prominent, centered, 35-40% viewport */}
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "35vh", paddingTop: 8 }}>
@@ -3524,16 +3565,16 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
             </div>
 
             {/* Expression label */}
-            <div style={{ color: "var(--accent-fire, #FF5E1A)", fontSize: 10, letterSpacing: 4, fontFamily: "monospace", fontWeight: 900, textTransform: "uppercase", marginBottom: 12, opacity: 0.7 }}>
+            <div style={{ color: "var(--accent-fire, #FF5E1A)", fontSize: 10, letterSpacing: 4, fontFamily: "'JetBrains Mono', monospace", fontWeight: 900, textTransform: "uppercase", marginBottom: 12, opacity: 0.7 }}>
               {voraxExpression}
             </div>
 
             {/* No API key warning */}
             {!ANTHROPIC_API_KEY && !settings.anthropicKey && (
               <div style={{ background: "var(--bg-surface, #0f0b1a)", border: "1px solid var(--accent-gold, #FFAA00)33", padding: "12px 16px", marginBottom: 12, width: "100%", maxWidth: 440, borderRadius: 8 }}>
-                <div style={{ color: "var(--accent-gold, #FFAA00)", fontSize: 12, fontFamily: "monospace", fontWeight: 700, marginBottom: 6 }}>VORAX NEEDS AN API KEY</div>
-                <div style={{ color: "var(--text-secondary, #7a7290)", fontSize: 11, fontFamily: "monospace", lineHeight: 1.8 }}>
-                  Go to <button onClick={() => { setView("settings"); setExpandedSetting("coach"); }} style={{ background: "none", border: "none", color: "var(--accent-gold, #FFAA00)", fontFamily: "monospace", fontSize: 11, cursor: "pointer", textDecoration: "underline", padding: 0 }}>Settings</button> to add your Anthropic key.
+                <div style={{ color: "var(--accent-gold, #FFAA00)", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, marginBottom: 6 }}>VORAX NEEDS AN API KEY</div>
+                <div style={{ color: "var(--text-secondary, #7a7290)", fontSize: 11, fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.8 }}>
+                  Go to <button onClick={() => { setView("settings"); setExpandedSetting("coach"); }} style={{ background: "none", border: "none", color: "var(--accent-gold, #FFAA00)", fontFamily: "'JetBrains Mono', monospace", fontSize: 11, cursor: "pointer", textDecoration: "underline", padding: 0 }}>Settings</button> to add your Anthropic key.
                 </div>
               </div>
             )}
@@ -3547,7 +3588,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                     <div key={i} style={{
                       padding: "6px 12px",
                       marginBottom: 4,
-                      fontFamily: "monospace",
+                      fontFamily: "'JetBrains Mono', monospace",
                       fontSize: 11,
                       lineHeight: 1.6,
                       color: msg.role === "user" ? "var(--text-muted, #4a4460)" : "var(--text-secondary, #7a7290)",
@@ -3586,7 +3627,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                   <div style={{
                     color: "var(--text-primary, #ede9f5)",
                     fontSize: 13,
-                    fontFamily: "monospace",
+                    fontFamily: "'JetBrains Mono', monospace",
                     lineHeight: 1.8,
                     whiteSpace: "pre-wrap",
                   }}>
@@ -3607,7 +3648,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                 <div style={{
                   padding: "8px 14px",
                   marginTop: 6,
-                  fontFamily: "monospace",
+                  fontFamily: "'JetBrains Mono', monospace",
                   fontSize: 12,
                   color: "var(--accent-ice, #00B4FF)",
                   borderLeft: "2px solid var(--accent-ice, #00B4FF)44",
@@ -3619,7 +3660,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
               )}
 
               {coachError && (
-                <div style={{ color: "#ff4444", fontSize: 11, padding: "8px 12px", background: "#ff000010", border: "1px solid #ff000033", marginTop: 8, borderRadius: 6, fontFamily: "monospace" }}>{coachError}</div>
+                <div style={{ color: "#ff4444", fontSize: 11, padding: "8px 12px", background: "#ff000010", border: "1px solid #ff000033", marginTop: 8, borderRadius: 6, fontFamily: "'JetBrains Mono', monospace" }}>{coachError}</div>
               )}
               <div ref={coachEndRef} />
             </div>
@@ -3636,7 +3677,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                     background: "var(--accent-fire, #FF5E1A)0a",
                     border: "1px solid var(--accent-fire, #FF5E1A)33",
                     color: "var(--accent-fire, #FF5E1A)",
-                    fontFamily: "monospace",
+                    fontFamily: "'JetBrains Mono', monospace",
                     fontSize: 11,
                     fontWeight: 700,
                     cursor: coachStreaming ? "not-allowed" : "pointer",
@@ -3665,7 +3706,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                   border: "1px solid var(--border, #1e1635)",
                   color: "var(--text-primary, #ede9f5)",
                   padding: "12px 16px",
-                  fontFamily: "monospace",
+                  fontFamily: "'JetBrains Mono', monospace",
                   fontSize: 13,
                   outline: "none",
                   borderRadius: 8,
@@ -3680,7 +3721,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                   background: coachInput.trim() && !coachStreaming ? "var(--accent-fire, #FF5E1A)18" : "var(--bg-surface, #0f0b1a)",
                   border: `1px solid ${coachInput.trim() && !coachStreaming ? "var(--accent-fire, #FF5E1A)" : "var(--border, #1e1635)"}`,
                   color: coachInput.trim() && !coachStreaming ? "var(--accent-fire, #FF5E1A)" : "var(--text-muted, #4a4460)",
-                  fontFamily: "monospace",
+                  fontFamily: "'JetBrains Mono', monospace",
                   fontSize: 13,
                   fontWeight: 900,
                   cursor: coachInput.trim() && !coachStreaming ? "pointer" : "not-allowed",
@@ -3703,7 +3744,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                   background: "transparent",
                   border: "none",
                   color: "var(--text-muted, #4a4460)",
-                  fontFamily: "monospace",
+                  fontFamily: "'JetBrains Mono', monospace",
                   fontSize: 10,
                   cursor: "pointer",
                   letterSpacing: 2,
@@ -3723,8 +3764,8 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
       {/* ── Undo Toast ── */}
       {undoTask && (
         <div style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "#0a0a0a", border: "1px solid #ffaa00", padding: "10px 20px", zIndex: 8000, display: "flex", gap: 12, alignItems: "center" }}>
-          <span style={{ color: "#ffaa00", fontFamily: "monospace", fontSize: 12 }}>Removed: {undoTask.text.slice(0, 25)}{undoTask.text.length > 25 ? "..." : ""}</span>
-          <button onClick={() => { setState(p => ({ ...p, tasks: [...p.tasks, undoTask] })); setUndoTask(null); showToast("✓ QUEST RESTORED", "#00ff41"); }} style={{ background: "#ffaa0012", border: "1px solid #ffaa00", color: "#ffaa00", fontFamily: "monospace", fontSize: 12, padding: "4px 12px", cursor: "pointer", fontWeight: 700 }}>UNDO</button>
+          <span style={{ color: "#ffaa00", fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>Removed: {undoTask.text.slice(0, 25)}{undoTask.text.length > 25 ? "..." : ""}</span>
+          <button onClick={() => { setState(p => ({ ...p, tasks: [...p.tasks, undoTask] })); setUndoTask(null); showToast("✓ QUEST RESTORED", "#FF5E1A"); }} style={{ background: "#ffaa0012", border: "1px solid #ffaa00", color: "#ffaa00", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, padding: "4px 12px", cursor: "pointer", fontWeight: 700 }}>UNDO</button>
         </div>
       )}
 
@@ -3736,7 +3777,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
             <button key={tab.id} onClick={() => { setView(tab.viewId); AudioEngine.play("click"); }} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, background: "transparent", border: "none", cursor: "pointer", padding: "6px 0", position: "relative", WebkitTapHighlightColor: "transparent" }}>
               {isActive && <div style={{ position: "absolute", top: 0, left: "20%", right: "20%", height: 2, background: "linear-gradient(90deg, #ff6b35, #ff4500)", borderRadius: "0 0 2px 2px", boxShadow: "0 0 8px #ff6b3566" }} />}
               <span style={{ fontSize: 18, filter: isActive ? "drop-shadow(0 0 4px #ff6b3544)" : "none", lineHeight: 1 }}>{tab.icon}</span>
-              <span style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, letterSpacing: 1, color: isActive ? "#ff6b35" : "#555", transition: "color 0.2s ease" }}>{tab.label}</span>
+              <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, letterSpacing: 1, color: isActive ? "#ff6b35" : "#555", transition: "color 0.2s ease" }}>{tab.label}</span>
             </button>
           );
         })}
@@ -3744,8 +3785,8 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
 
       {/* ── Quick Action FABs ── */}
       <div style={{ position: "fixed", bottom: 76, right: 16, display: "flex", flexDirection: "column", gap: 8, zIndex: 5000 }}>
-        <button onClick={() => setShowQuickLog(true)} style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "monospace", fontSize: 12, fontWeight: 900, padding: "12px 18px", cursor: "pointer", letterSpacing: 2, boxShadow: `0 0 20px ${accentColor}22` }}>⚡ LOG</button>
-        <button onClick={() => setShowAddTask(true)} style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "monospace", fontSize: 12, fontWeight: 900, padding: "12px 18px", cursor: "pointer", letterSpacing: 2, boxShadow: `0 0 20px ${accentColor}22` }}>+ TASK</button>
+        <button onClick={() => setShowQuickLog(true)} style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 900, padding: "12px 18px", cursor: "pointer", letterSpacing: 2, boxShadow: `0 0 20px ${accentColor}22` }}>⚡ LOG</button>
+        <button onClick={() => setShowAddTask(true)} style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 900, padding: "12px 18px", cursor: "pointer", letterSpacing: 2, boxShadow: `0 0 20px ${accentColor}22` }}>+ TASK</button>
       </div>
 
     </div>
