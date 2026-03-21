@@ -3048,66 +3048,6 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
 
       <div style={{ padding: "16px", paddingBottom: 80, minHeight: "60vh" }}>
 
-        {/* ══ HQ DASHBOARD ══ */}
-        {view === "dashboard" && (
-          <div>
-            <div style={{ color: accentColor, fontSize: 14, letterSpacing: 4, marginBottom: 8, fontWeight: 900 }}>⟐ HEADQUARTERS</div>
-            {/* XP Decay Warning */}
-            {(() => {
-              const lastTask = (state.completedHistory || []).slice(-1)[0];
-              const hoursSinceTask = lastTask ? Math.floor((Date.now() - lastTask.timestamp) / 3600000) : 999;
-              if (hoursSinceTask >= 20 && hoursSinceTask < 48) {
-                return <div style={{ background: "#ff004010", border: "1px solid #ff004033", padding: "10px 14px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div><div style={{ color: "#ff0040", fontSize: 12, fontFamily: "monospace", fontWeight: 700 }}>⚠ XP DECAY WARNING</div><div style={{ color: "#ff004088", fontSize: 11, fontFamily: "monospace" }}>No task logged in {hoursSinceTask}h — skills decay at 48h</div></div>
-                  <div style={{ color: "#ff0040", fontSize: 16, fontWeight: 900, fontFamily: "monospace" }}>{Math.max(0, 48 - hoursSinceTask)}h</div>
-                </div>;
-              }
-              if (hoursSinceTask >= 48) {
-                return <div style={{ background: "#ff004015", border: "1px solid #ff0040", padding: "10px 14px", marginBottom: 12, animation: "pulse 2s infinite" }}>
-                  <div style={{ color: "#ff0040", fontSize: 13, fontFamily: "monospace", fontWeight: 900 }}>💀 DECAY ACTIVE — Log a task NOW</div>
-                </div>;
-              }
-              return null;
-            })()}
-            {onboardingData?.mission && (
-              <div style={{ background: "#00ff4108", border: "1px solid #00ff4118", padding: 14, marginBottom: 12 }}>
-                <div style={{ color: "#00ff4199", fontSize: 12, letterSpacing: 3, marginBottom: 4 }}>LIFE MISSION — {onboardingData.username}</div>
-                <div style={{ color: "#7ddf8d", fontSize: 13, lineHeight: 1.8, fontFamily: "monospace" }}>{onboardingData.mission}</div>
-              </div>
-            )}
-            {/* Yesterday's improvement reminder on HQ */}
-            {(state.endOfDayReflections || []).length > 0 && (() => {
-              const last = (state.endOfDayReflections || []).slice(-1)[0];
-              return (
-                <div style={{ background: "#ffaa0008", border: "1px solid #ffaa0018", padding: 12, marginBottom: 12 }}>
-                  <div style={{ color: "#ffaa00bb", fontSize: 12, letterSpacing: 3, marginBottom: 4 }}>LAST REFLECTION — {last.date}</div>
-                  <div style={{ color: "#aa8800", fontSize: 13, lineHeight: 1.8, fontFamily: "monospace" }}>Improve: {last.improvement}</div>
-                  <div style={{ color: "#999", fontSize: 12, marginTop: 4 }}>Productive: {last.productive}</div>
-                </div>
-              );
-            })()}
-            {Object.entries(state.skills).map(([k, v]) => <XPBar key={k} xp={v.xp} level={v.level} def={SKILL_DEFS[k]} />)}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 16 }}>
-              <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 12, textAlign: "center" }}>
-                <div style={{ color: "#666", fontSize: 10, letterSpacing: 2 }}>TODAY</div>
-                <div style={{ color: accentColor, fontSize: 22, fontWeight: 900 }}>{state.completedToday.length}</div>
-              </div>
-              <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 12, textAlign: "center" }}>
-                <div style={{ color: "#666", fontSize: 10, letterSpacing: 2 }}>STREAK</div>
-                <div style={{ color: state.streakDays > 0 ? "#ffaa00" : "#333", fontSize: 22, fontWeight: 900 }}>{state.streakDays}d</div>
-              </div>
-              <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 12, textAlign: "center" }}>
-                <div style={{ color: "#666", fontSize: 10, letterSpacing: 2 }}>LOGINS</div>
-                <div style={{ color: "#ff00ff", fontSize: 22, fontWeight: 900 }}>{state.loginStreak || 0}d</div>
-              </div>
-            </div>
-            {/* Quick action row */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
-              <button onClick={() => setShowAddTask(true)} style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}33`, color: accentColor, fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: "pointer", letterSpacing: 2, fontWeight: 700 }}>+ NEW QUEST</button>
-              <button onClick={() => setShowQuickLog(true)} style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}33`, color: accentColor, fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: "pointer", letterSpacing: 2, fontWeight: 700 }}>⚡ QUICK LOG</button>
-            </div>
-          </div>
-        )}
 
         {/* ══ QUESTS (touch-friendly reorder) ══ */}
         {view === "quests" && (
@@ -3266,180 +3206,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
           </div>
         )}
 
-        {/* ══ NPCs ══ */}
-        {view === "npcs" && (
-          <div>
-            <BackButton onClick={() => setView("dashboard")} color="#00d4ff" />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ color: "#00d4ff", fontSize: 14, letterSpacing: 4, fontWeight: 900 }}>★ <Tip term="NPC">NPC</Tip> NETWORK</div>
-              <button onClick={() => setShowAddNPC(true)} style={{ background: "#00d4ff12", border: "1px solid #00d4ff", color: "#00d4ff", fontFamily: "monospace", fontSize: 13, padding: "8px 16px", cursor: "pointer", letterSpacing: 2 }}>+ ADD</button>
-            </div>
-            {(state.npcs||[]).length === 0 && (
-              <div style={{ textAlign: "center", padding: 40 }}>
-                <div style={{ color: "#555", fontSize: 36, marginBottom: 12 }}>★</div>
-                <div style={{ color: "#888", fontSize: 13, fontFamily: "monospace", marginBottom: 8 }}>No NPCs in your network.</div>
-                <div style={{ color: "#555", fontSize: 12, fontFamily: "monospace", marginBottom: 16 }}>NPCs are real people in your life — friends, mentors, rivals. Track interactions to level up your Social skill.</div>
-                <button onClick={() => setShowAddNPC(true)} style={{ background: "#00d4ff12", border: "1px solid #00d4ff", color: "#00d4ff", fontFamily: "monospace", fontSize: 13, padding: "10px 24px", cursor: "pointer", letterSpacing: 2 }}>+ ADD FIRST NPC</button>
-              </div>
-            )}
-            {(state.npcs||[]).map(npc => {
-              const pct = (npc.relationshipXp / npc.maxXp) * 100;
-              return (
-                <div key={npc.id} style={{ background: "#0a0a0a", border: `1px solid ${npc.decayWarning ? "#ff004044" : "#00d4ff22"}`, padding: 14, marginBottom: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <div style={{ color: "#00d4ff", fontSize: 12, fontWeight: 700 }}>{npc.name} <span style={{ color: "#888", fontSize: 12}}>({npc.category})</span></div>
-                    <div style={{ display: "flex", gap: 6 }}>
-                      <button onClick={() => interactNPC(npc.id)} style={{ background: "#00d4ff12", border: "1px solid #00d4ff44", color: "#00d4ff", fontFamily: "monospace", fontSize: 12, padding: "4px 10px", cursor: "pointer" }}>INTERACT</button>
-                      <button onClick={() => removeNPC(npc.id)} style={{ background: "none", border: "none", color: "#331111", cursor: "pointer", fontSize: 12 }}>×</button>
-                    </div>
-                  </div>
-                  <div style={{ height: 4, background: "#111", overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${pct}%`, background: npc.decayWarning ? "#ff0040" : "#00d4ff", transition: "width 0.3s" }} />
-                  </div>
-                  {npc.decayWarning && <div style={{ color: "#ff004088", fontSize: 12, marginTop: 4 }}>⚠ RELATIONSHIP DECAYING</div>}
-                </div>
-              );
-            })}
-          </div>
-        )}
 
-        {/* ══ MARKET (Investment System) ══ */}
-        {view === "market" && (() => {
-          // Back button rendered inside the IIFE return
-          const prices = state.marketPrices || { intelligence: 100, strength: 100, vitality: 100, social: 100 };
-          const inv = state.investments || {};
-          const totalValue = Object.keys(prices).reduce((sum, sk) => sum + (inv[sk] || 0) * prices[sk], 0);
-          const totalInvested = (state.investmentHistory || []).filter(h => h.type === "buy").reduce((s, h) => s + h.amount, 0);
-          const totalSold = (state.investmentHistory || []).filter(h => h.type === "sell").reduce((s, h) => s + h.amount, 0);
-          const netPL = Math.round(totalValue + totalSold - totalInvested);
-          return (
-          <div>
-            <BackButton onClick={() => setView("dashboard")} color="#00d4ff" />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ color: "#00d4ff", fontSize: 14, letterSpacing: 4, fontWeight: 900 }}>📈 STAT MARKET</div>
-              <span style={{ color: "#ffaa00", fontSize: 14, fontWeight: 900 }}>{state.credits}¢</span>
-            </div>
-            <div style={{ color: "#999", fontSize: 12, fontFamily: "monospace", marginBottom: 16, lineHeight: 1.8 }}>
-              Invest credits in your stats. Prices rise when you level up, complete tasks, and maintain streaks. They crash when you're inactive.
-            </div>
-            {/* Portfolio Summary */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
-              <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 10, textAlign: "center" }}>
-                <div style={{ color: "#999", fontSize: 7, letterSpacing: 1 }}>PORTFOLIO</div>
-                <div style={{ color: "#00d4ff", fontSize: 16, fontWeight: 900 }}>{Math.round(totalValue)}¢</div>
-              </div>
-              <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 10, textAlign: "center" }}>
-                <div style={{ color: "#999", fontSize: 7, letterSpacing: 1 }}>NET P/L</div>
-                <div style={{ color: netPL >= 0 ? "#00ff41" : "#ff0040", fontSize: 16, fontWeight: 900 }}>{netPL >= 0 ? "+" : ""}{netPL}¢</div>
-              </div>
-              <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 10, textAlign: "center" }}>
-                <div style={{ color: "#999", fontSize: 7, letterSpacing: 1 }}>CASH</div>
-                <div style={{ color: "#ffaa00", fontSize: 16, fontWeight: 900 }}>{state.credits}¢</div>
-              </div>
-            </div>
-            {/* Stat Stocks */}
-            {Object.entries(SKILL_DEFS).map(([sk, def]) => {
-              const price = prices[sk] || 100;
-              const held = inv[sk] || 0;
-              const value = Math.round(held * price);
-              const prevPrice = 100; // baseline
-              const change = ((price - prevPrice) / prevPrice * 100).toFixed(1);
-              const isUp = price >= prevPrice;
-              return (
-                <div key={sk} style={{ background: "#0a0a0a", border: `1px solid ${def.color}22`, padding: 16, marginBottom: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div>
-                      <span style={{ color: def.color, fontSize: 16, marginRight: 8 }}>{def.icon}</span>
-                      <span style={{ color: def.color, fontSize: 13, fontWeight: 900, fontFamily: "monospace", letterSpacing: 2 }}>${sk.toUpperCase().slice(0,3)}</span>
-                      <span style={{ color: "#999", fontSize: 12, marginLeft: 8 }}>LV.{state.skills[sk]?.level || 1}</span>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ color: "#fff", fontSize: 16, fontWeight: 900, fontFamily: "monospace" }}>{price.toFixed(1)}¢</div>
-                      <div style={{ color: isUp ? "#00ff41" : "#ff0040", fontSize: 12, fontFamily: "monospace" }}>{isUp ? "▲" : "▼"} {change}% from base</div>
-                    </div>
-                  </div>
-                  {held > 0 && (
-                    <div style={{ background: "#111", padding: "6px 10px", marginBottom: 10, display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ color: "#888", fontSize: 12, fontFamily: "monospace" }}>HOLDING: {held.toFixed(2)} shares</span>
-                      <span style={{ color: "#00d4ff", fontSize: 12, fontFamily: "monospace" }}>VALUE: {value}¢</span>
-                    </div>
-                  )}
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {[25, 50, 100].map(amt => (
-                      <button key={amt} onClick={() => investIn(sk, amt)} disabled={state.credits < amt} style={{ flex: 1, background: state.credits >= amt ? `${def.color}08` : "#0a0a0a", border: `1px solid ${state.credits >= amt ? def.color + "44" : "#222"}`, color: state.credits >= amt ? def.color : "#333", fontFamily: "monospace", fontSize: 12, padding: "8px 4px", cursor: state.credits >= amt ? "pointer" : "not-allowed", fontWeight: 700 }}>BUY {amt}¢</button>
-                    ))}
-                    {held > 0 && (
-                      <button onClick={() => sellInvestment(sk, held)} style={{ flex: 1, background: "#ff004008", border: "1px solid #ff004044", color: "#ff0040", fontFamily: "monospace", fontSize: 12, padding: "8px 4px", cursor: "pointer", fontWeight: 700 }}>SELL ALL</button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-            {/* Recent Transactions */}
-            {(state.investmentHistory || []).length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>RECENT TRANSACTIONS</div>
-                {(state.investmentHistory || []).slice(-8).reverse().map((h, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #0a0a0a" }}>
-                    <span style={{ color: h.type === "buy" ? "#00ff41" : "#ff0040", fontSize: 12, fontFamily: "monospace" }}>{h.type === "buy" ? "BUY" : "SELL"} ${h.skill.toUpperCase().slice(0,3)}</span>
-                    <span style={{ color: "#999", fontSize: 12, fontFamily: "monospace" }}>{h.shares.toFixed(2)} @ {h.price.toFixed(1)}¢ = {h.amount}¢</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          );
-        })()}
-
-        {/* ══ SHOP ══ */}
-        {view === "shop" && (
-          <div>
-            <BackButton onClick={() => setView("dashboard")} color="#ffaa00" />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ color: "#ffaa00", fontSize: 14, letterSpacing: 4, fontWeight: 900 }}>🪙 REWARD SHOP</div>
-              <span style={{ color: "#ffaa00", fontSize: 14, fontWeight: 900 }}>{state.credits}¢</span>
-            </div>
-            <div style={{ background: "#00ff4108", border: "1px solid #00ff4118", padding: 12, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div><div style={{ color: "#00ff4199", fontSize: 12, letterSpacing: 3 }}>CREDITS REFUSED</div><div style={{ color: "#999", fontSize: 12}}>Badge of discipline</div></div>
-              <div style={{ color: "#00ff41", fontSize: 24, fontWeight: 900, fontFamily: "monospace" }}>{state.creditsRefused || 0}¢</div>
-            </div>
-            <>
-              <button onClick={() => setShowAddReward(true)} style={{ width: "100%", background: "#ffaa0008", border: "1px dashed #ffaa0044", color: "#ffaa00", fontFamily: "monospace", fontSize: 13, padding: "12px", cursor: "pointer", letterSpacing: 3, marginBottom: 16 }}>+ ADD REWARD</button>
-              {Object.entries(rewardGroups).map(([catName, rewards]) => (
-                <div key={catName} style={{ marginBottom: 20 }}>
-                  <div style={{ color: catName === "UPGRADE" ? "#00ff41" : catName === "ENTERTAINMENT" ? "#ff0040" : "#ff00ff", fontSize: 13, letterSpacing: 3, marginBottom: catName === "ENTERTAINMENT" ? 4 : 12, fontFamily: "monospace", borderBottom: catName !== "ENTERTAINMENT" ? `1px solid ${catName === "UPGRADE" ? "#00ff4122" : "#ff004022"}` : "none", paddingBottom: catName === "ENTERTAINMENT" ? 0 : 6 }}>{catName}</div>
-                  {catName === "ENTERTAINMENT" && onboardingData?.mission && (
-                    <div style={{ color: "#ff4466", fontSize: 12, fontFamily: "monospace", marginBottom: 12, borderBottom: "1px solid #ff004022", paddingBottom: 6, lineHeight: 1.6 }}>Earned through discipline · Mission: "{(onboardingData.mission || "").slice(0, 50)}{(onboardingData.mission || "").length > 50 ? '...' : ''}"</div>
-                  )}
-                  {rewards.map(item => {
-                    const canBuy = state.credits >= item.cost;
-                    return (
-                      <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", marginBottom: 4, background: "#0a0a0a", border: "1px solid #111" }}>
-                        <span style={{ fontSize: 16 }}>{item.icon}</span>
-                        <div style={{ flex: 1 }}><div style={{ color: "#ccc", fontSize: 13}}>{item.name}</div>{item.desc && <div style={{ color: "#888", fontSize: 12}}>{item.desc}</div>}</div>
-                        <button onClick={() => purchaseReward(item)} disabled={!canBuy} style={{ background: canBuy ? "#ffaa0012" : "#0a0a0a", border: `1px solid ${canBuy ? "#ffaa00" : "#222"}`, color: canBuy ? "#ffaa00" : "#333", fontFamily: "monospace", fontSize: 13, padding: "8px 14px", cursor: canBuy ? "pointer" : "not-allowed", fontWeight: 700 }}>{item.cost}¢</button>
-                        {item.isCustom && <button onClick={() => deleteCustomReward(item.id)} style={{ background: "none", border: "none", color: "#331111", cursor: "pointer", fontSize: 12 }}>×</button>}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-              {allShopRewards.length === 0 && <div style={{ color: "#999", fontSize: 13, textAlign: "center", padding: 40 }}>No rewards. Add one above.</div>}
-            </>
-            {/* Reflection Log */}
-            {(state.rewardReflections||[]).length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>REWARD REFLECTIONS</div>
-                {(state.rewardReflections||[]).slice(-5).reverse().map((r,i) => (
-                  <div key={i} style={{ background: "#0a0a0a", border: "1px solid #111", padding: 10, marginBottom: 4 }}>
-                    <div style={{ color: "#ffaa0088", fontSize: 12}}>{r.name}</div>
-                    <div style={{ color: "#999", fontSize: 12, marginTop: 2 }}>{r.reflection}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* ══ PROGRESS ══ */}
         {view === "skills" && (
@@ -3554,187 +3321,181 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
           </div>
         )}
 
-        {/* ══ SETTINGS ══ */}
-        {view === "settings" && (() => {
+        {/* ══ MORE (Shop + Settings + Pro) ══ */}
+        {view === "more" && (() => {
           const sc = state.settingsConfig || {};
-          const settingSections = [
-            { id: "account", label: "ACCOUNT", icon: "👤", color: "#00d4ff" },
-            { id: "appearance", label: "APPEARANCE", icon: "🎨", color: "#ff00ff" },
-            { id: "notifications", label: "NOTIFICATIONS", icon: "🔔", color: "#ffaa00" },
-            { id: "sound", label: "SOUND", icon: "🔊", color: "#00ff41" },
-            { id: "coach", label: "AI COACH", icon: "🤖", color: "#ff0040" },
-            { id: "tabs", label: "TAB CUSTOMIZATION", icon: "📱", color: "#8844ff" },
-            { id: "data", label: "DATA & DISCIPLINE", icon: "💾", color: "#ff0040" },
-            { id: "help", label: "HOW TO PLAY", icon: "❓", color: "#888" },
-          ];
+          const currentThemeId = settings.theme || "volcanic";
           return (
-          <div>
-            <BackButton onClick={() => setView("dashboard")} color={accentColor} />
-            <div style={{ color: accentColor, fontSize: 14, letterSpacing: 4, marginBottom: 4, fontWeight: 900 }}>⚙ SETTINGS</div>
-            <div style={{ color: "#555", fontSize: 12, fontFamily: "monospace", marginBottom: 20 }}>Your data lives on this device only. Configure your experience.</div>
+          <div style={{ animation: "pageTransition 0.2s ease" }}>
+            {/* Header */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ color: "var(--text-primary)", fontSize: 20, fontWeight: 700, letterSpacing: 2, fontFamily: "var(--font-body)" }}>MORE</div>
+              <div style={{ color: "var(--text-secondary)", fontSize: 13, fontFamily: "var(--font-body)" }}>Shop, settings, and extras</div>
+            </div>
 
-            {settingSections.map(sec => (
-              <div key={sec.id} style={{ marginBottom: 6 }}>
-                <div onClick={() => setExpandedSetting(expandedSetting === sec.id ? null : sec.id)} style={{ background: expandedSetting === sec.id ? `${sec.color}12` : "#0a0a0a", border: `1px solid ${expandedSetting === sec.id ? sec.color + "44" : "#1a1a1a"}`, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 16 }}>{sec.icon}</span>
-                  <span style={{ color: expandedSetting === sec.id ? sec.color : "#888", fontSize: 13, fontWeight: 700, letterSpacing: 2, fontFamily: "monospace", flex: 1 }}>{sec.label}</span>
-                  <span style={{ color: expandedSetting === sec.id ? sec.color : "#333", fontSize: 12 }}>{expandedSetting === sec.id ? "▾" : "▸"}</span>
+            {/* ─── SECTION 1: REWARD SHOP ─── */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ color: "var(--accent-gold)", fontSize: 14, fontWeight: 700, letterSpacing: 3, fontFamily: "var(--font-body)", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16 }}>&#x1FA99;</span> REWARD SHOP
+              </div>
+              {/* Credits balance */}
+              <div style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 8, padding: "14px 18px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ color: "var(--text-secondary)", fontSize: 11, letterSpacing: 2, fontFamily: "var(--font-body)" }}>BALANCE</div>
+                  <div style={{ color: "var(--accent-gold)", fontSize: 24, fontWeight: 700, fontFamily: "var(--font-mono)" }}>{state.credits}<span style={{ fontSize: 14, opacity: 0.7 }}>&cent;</span></div>
                 </div>
-
-                {expandedSetting === sec.id && (
-                  <div style={{ background: "#050505", border: `1px solid ${sec.color}22`, borderTop: "none", padding: 16 }}>
-
-                    {/* ACCOUNT */}
-                    {sec.id === "account" && (
-                      <div>
-                        <div style={{ color: "#fff", fontSize: 13, fontFamily: "monospace", marginBottom: 4 }}>OPERATOR: {onboardingData?.username || "Unknown"}</div>
-                        <div style={{ color: "#555", fontSize: 12, fontFamily: "monospace", marginBottom: 16 }}>Life mission: {onboardingData?.mission?.slice(0, 60) || "Not set"}{(onboardingData?.mission?.length || 0) > 60 ? "..." : ""}</div>
-                        <div style={{ color: "#00d4ff", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>EMAIL (for future sync)</div>
-                        <input value={sc.accountEmail || ""} onChange={e => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, accountEmail: e.target.value } }))} placeholder="your@email.com" style={{ width: "100%", background: "#111", border: "1px solid #222", color: "#eee", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 12, boxSizing: "border-box" }} />
-                        <div style={{ color: "#00d4ff", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>PASSWORD</div>
-                        <input type="password" value={sc.accountPassword || ""} onChange={e => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, accountPassword: e.target.value } }))} placeholder="Set password..." style={{ width: "100%", background: "#111", border: "1px solid #222", color: "#eee", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }} />
-                        <div style={{ color: "#444", fontSize: 11, fontFamily: "monospace", lineHeight: 1.7 }}>⚠ Stored locally only. Cloud sync coming soon.</div>
-                      </div>
-                    )}
-
-                    {/* APPEARANCE */}
-                    {sec.id === "appearance" && (
-                      <div>
-                        <div style={{ color: "#ff00ff", fontSize: 12, letterSpacing: 2, marginBottom: 12, fontFamily: "monospace" }}>ACCENT COLOR</div>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 16 }}>
-                          {ACCENT_COLORS.map(ac => (
-                            <button key={ac.id} onClick={() => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, accentColor: ac.color } }))} style={{ padding: "12px 8px", background: accentColor === ac.color ? `${ac.color}20` : "#0a0a0a", border: `2px solid ${accentColor === ac.color ? ac.color : "#222"}`, cursor: "pointer", textAlign: "center" }}>
-                              <div style={{ width: 24, height: 24, background: ac.color, borderRadius: "50%", margin: "0 auto 6px", boxShadow: `0 0 12px ${ac.color}44` }} />
-                              <div style={{ color: accentColor === ac.color ? ac.color : "#666", fontFamily: "monospace", fontSize: 11, letterSpacing: 2 }}>{ac.name}</div>
-                            </button>
-                          ))}
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-body)" }}>Refused</div>
+                  <div style={{ color: "var(--accent-toxic, #7CFF3F)", fontSize: 14, fontWeight: 700, fontFamily: "var(--font-mono)" }}>{state.creditsRefused || 0}&cent;</div>
+                </div>
+              </div>
+              {/* Add reward button */}
+              <button onClick={() => setShowAddReward(true)} style={{ width: "100%", background: "var(--bg-surface)", border: "1px dashed var(--accent-gold)44", color: "var(--accent-gold)", fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600, padding: "12px", cursor: "pointer", letterSpacing: 2, marginBottom: 12, borderRadius: 8, minHeight: 44 }}>+ ADD REWARD</button>
+              {/* Reward cards */}
+              {Object.entries(rewardGroups).map(([catName, rewards]) => (
+                <div key={catName} style={{ marginBottom: 16 }}>
+                  <div style={{ color: "var(--text-secondary)", fontSize: 11, letterSpacing: 3, fontWeight: 600, fontFamily: "var(--font-body)", marginBottom: 8, paddingBottom: 6, borderBottom: "1px solid var(--border)" }}>{catName}</div>
+                  {rewards.map(item => {
+                    const canBuy = state.credits >= item.cost;
+                    return (
+                      <div key={item.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 8, padding: "12px 14px", marginBottom: 6, display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontSize: 18, minWidth: 24, textAlign: "center" }}>{item.icon}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 500, fontFamily: "var(--font-body)" }}>{item.name}</div>
+                          {item.desc && <div style={{ color: "var(--text-muted)", fontSize: 12, fontFamily: "var(--font-body)" }}>{item.desc}</div>}
                         </div>
-                        <div style={{ color: "#444", fontSize: 11, fontFamily: "monospace" }}>Accent color changes header and primary UI elements.</div>
+                        <button onClick={() => purchaseReward(item)} disabled={!canBuy} style={{ background: canBuy ? "var(--accent-fire)" : "var(--bg-elevated)", border: "none", color: canBuy ? "#fff" : "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, padding: "8px 14px", cursor: canBuy ? "pointer" : "not-allowed", borderRadius: 6, minHeight: 36, letterSpacing: 1 }}>{item.cost}&cent;</button>
+                        {item.isCustom && <button onClick={() => deleteCustomReward(item.id)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 14, padding: "4px", minWidth: 24, minHeight: 24 }}>&times;</button>}
                       </div>
-                    )}
+                    );
+                  })}
+                </div>
+              ))}
+              {allShopRewards.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", padding: 40, fontFamily: "var(--font-body)" }}>No rewards yet. Add one above.</div>}
+              {/* Reward reflections */}
+              {(state.rewardReflections||[]).length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ color: "var(--text-muted)", fontSize: 11, letterSpacing: 2, marginBottom: 6, fontFamily: "var(--font-body)" }}>REWARD REFLECTIONS</div>
+                  {(state.rewardReflections||[]).slice(-3).reverse().map((r,i) => (
+                    <div key={i} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 6, padding: 10, marginBottom: 4 }}>
+                      <div style={{ color: "var(--accent-gold)", fontSize: 12, fontFamily: "var(--font-body)", opacity: 0.8 }}>{r.name}</div>
+                      <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 2, fontFamily: "var(--font-body)" }}>{r.reflection}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-                    {/* NOTIFICATIONS */}
-                    {sec.id === "notifications" && (
-                      <div>
-                        <div style={{ color: "#ffaa00", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>DAILY REFLECTION REMINDER</div>
-                        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 16 }}>
-                          <span style={{ color: "#888", fontSize: 13, fontFamily: "monospace" }}>Remind at:</span>
-                          <input type="time" value={settings.notificationTime || "21:00"} onChange={e => { const ns = { ...settings, notificationTime: e.target.value }; saveSettingsAndSchedule(ns); }} style={{ background: "#111", border: "1px solid #ffaa0033", color: "#ffaa00", padding: 10, fontFamily: "monospace", fontSize: 13, colorScheme: "dark" }} />
-                        </div>
-                        <div style={{ color: "#ffaa00", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>COACH DISPLAY NAME</div>
-                        <input value={settings.notificationName || "Coach"} onChange={e => { const ns = { ...settings, notificationName: e.target.value }; saveSettingsAndSchedule(ns); }} placeholder="Coach" style={{ width: "100%", background: "#111", border: "1px solid #222", color: "#eee", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }} />
-                        <button onClick={() => { if (Notification.permission !== "granted") Notification.requestPermission(); else showToast("Notifications already enabled", "#00ff41"); }} style={{ width: "100%", background: "#ffaa0008", border: "1px solid #ffaa0033", color: "#ffaa00", fontFamily: "monospace", fontSize: 12, padding: "10px", cursor: "pointer", letterSpacing: 2 }}>ENABLE NOTIFICATIONS</button>
-                      </div>
-                    )}
+            {/* ─── SECTION 2: SETTINGS ─── */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ color: "var(--text-primary)", fontSize: 14, fontWeight: 700, letterSpacing: 3, fontFamily: "var(--font-body)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16 }}>{"\u2699"}</span> SETTINGS
+              </div>
 
-                    {/* SOUND */}
-                    {sec.id === "sound" && (
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                          <span style={{ color: "#00ff41", fontSize: 13, fontFamily: "monospace" }}>SOUND EFFECTS</span>
-                          <button onClick={() => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, soundEnabled: !(p.settingsConfig?.soundEnabled !== false) } }))} style={{ padding: "8px 20px", background: (sc.soundEnabled !== false) ? "#00ff4115" : "#ff004015", border: `1px solid ${(sc.soundEnabled !== false) ? "#00ff41" : "#ff0040"}`, color: (sc.soundEnabled !== false) ? "#00ff41" : "#ff0040", fontFamily: "monospace", fontSize: 12, cursor: "pointer", fontWeight: 700 }}>{(sc.soundEnabled !== false) ? "ON" : "OFF"}</button>
-                        </div>
-                        <div style={{ color: "#00ff41", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>SOUND TYPE</div>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          {["retro", "minimal", "heavy"].map(st => (
-                            <button key={st} onClick={() => { setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, soundType: st } })); AudioEngine.play("click"); }} style={{ flex: 1, padding: "10px 4px", background: (sc.soundType || "retro") === st ? "#00ff4115" : "transparent", border: `1px solid ${(sc.soundType || "retro") === st ? "#00ff41" : "#222"}`, color: (sc.soundType || "retro") === st ? "#00ff41" : "#555", fontFamily: "monospace", fontSize: 12, cursor: "pointer", textTransform: "uppercase" }}>{st}</button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* COACH */}
-                    {sec.id === "coach" && (
-                      <div>
-                        <div style={{ color: "#ff0040", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>ANTHROPIC API KEY</div>
-                        <div style={{ color: "#888", fontSize: 11, fontFamily: "monospace", marginBottom: 8, lineHeight: 1.7 }}>Get a key at console.anthropic.com. Stored only on this device.</div>
-                        <input type="password" value={settings.anthropicKey || ""} onChange={e => { const ns = { ...settings, anthropicKey: e.target.value }; saveSettingsAndSchedule(ns); }} placeholder="sk-ant-..." style={{ width: "100%", background: "#111", border: `1px solid ${settings.anthropicKey ? "#00ff4133" : "#222"}`, color: "#00ff41", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 12, boxSizing: "border-box" }} />
-                        <div style={{ color: "#ff0040", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>COACH PERSONALITY</div>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          {[["direct", "DIRECT"], ["gentle", "GENTLE"], ["drill", "DRILL SGT"]].map(([v, l]) => (
-                            <button key={v} onClick={() => { const ns = { ...settings, coachPersonality: v }; saveSettingsAndSchedule(ns); }} style={{ flex: 1, padding: "10px 4px", background: (settings.coachPersonality || "direct") === v ? "#ff004012" : "transparent", border: `1px solid ${(settings.coachPersonality || "direct") === v ? "#ff0040" : "#222"}`, color: (settings.coachPersonality || "direct") === v ? "#ff0040" : "#555", fontFamily: "monospace", fontSize: 12, cursor: "pointer" }}>{l}</button>
-                          ))}
-                        </div>
-                        {!ANTHROPIC_API_KEY && !settings.anthropicKey && (
-                          <div style={{ marginTop: 12, background: "#ffaa0008", border: "1px solid #ffaa0033", padding: 12 }}>
-                            <div style={{ color: "#ffaa00", fontSize: 12, fontFamily: "monospace", letterSpacing: 1, marginBottom: 6 }}>⚠ NO API KEY SET</div>
-                            <div style={{ color: "#888", fontSize: 11, fontFamily: "monospace", lineHeight: 1.8 }}>
-                              1. Go to console.anthropic.com<br/>
-                              2. Create an account (free tier available)<br/>
-                              3. Generate an API key<br/>
-                              4. Paste it above
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* TAB CUSTOMIZATION — now fixed 5-tab bottom nav */}
-                    {sec.id === "tabs" && (
-                      <div>
-                        <div style={{ color: "#555", fontSize: 11, fontFamily: "monospace", marginBottom: 12 }}>Navigation uses a fixed 5-tab bottom bar.</div>
-                        {TABS.map(tab => (
-                          <div key={tab.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #111" }}>
-                            <span style={{ fontSize: 16 }}>{tab.icon}</span>
-                            <span style={{ color: "#ccc", fontFamily: "monospace", fontSize: 13 }}>{tab.label}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* DATA & DISCIPLINE */}
-                    {sec.id === "data" && (
-                      <div>
-                        <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 14, marginBottom: 12 }}>
-                          <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>SYSTEM REPORT</div>
-                          <div style={{ color: "#aaa", fontSize: 12, lineHeight: 2, fontFamily: "monospace" }}>
-                            Tasks: {state.totalTasksCompleted} · XP: {state.totalXpEarned} · Credits: {state.totalCreditsEarned}¢<br/>
-                            Refused: {state.creditsRefused || 0}¢ · Streak: {state.streakDays}d · Class: {playerClass.name}<br/>
-                            Prestige: {state.prestigeLevel} · Login streak: {state.loginStreak || 0}d<br/>
-                            Goals: {activeBosses.length} active, {defeatedBosses.length} achieved<br/>
-                            Violations: {(state.protocolViolations || []).length} · Reflections: {(state.endOfDayReflections || []).length}
-                          </div>
-                        </div>
-                        <button onClick={() => { if (state.credits > 0 && window.confirm(`Refuse all ${state.credits}¢?`)) { AudioEngine.play("fear"); setState(p => ({ ...p, creditsRefused: (p.creditsRefused || 0) + p.credits, credits: 0 })); } }} disabled={state.credits <= 0} style={{ width: "100%", background: state.credits > 0 ? "#00ff4108" : "#0a0a0a", border: `1px solid ${state.credits > 0 ? "#00ff4133" : "#111"}`, color: state.credits > 0 ? "#00ff41" : "#333", fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: state.credits > 0 ? "pointer" : "not-allowed", letterSpacing: 2, marginBottom: 8 }}>REFUSE ALL {state.credits}¢ — PROVE DISCIPLINE</button>
-                        <button onClick={() => { const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `simulation-os-backup-${new Date().toISOString().split("T")[0]}.json`; a.click(); URL.revokeObjectURL(url); showToast("✓ DATA EXPORTED", "#00ff41"); }} style={{ width: "100%", background: "#00d4ff08", border: "1px solid #00d4ff33", color: "#00d4ff", fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: "pointer", letterSpacing: 2, marginBottom: 8 }}>💾 EXPORT ALL DATA</button>
-                        {/* Reflection Log */}
-                        {(state.endOfDayReflections || []).length > 0 && (
-                          <div style={{ marginTop: 12 }}>
-                            <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>REFLECTION LOG</div>
-                            {(state.endOfDayReflections || []).slice(-5).reverse().map((r, i) => (
-                              <div key={i} style={{ background: "#0a0a0a", border: "1px solid #111", padding: 10, marginBottom: 4 }}>
-                                <div style={{ color: "#999", fontSize: 11 }}>{r.date} · {r.productive}</div>
-                                <div style={{ color: "#888", fontSize: 11, marginTop: 2 }}>{r.improvement}</div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        <button onClick={() => { if (window.confirm("⚠ FACTORY RESET: Delete ALL data permanently? This cannot be undone.")) { localStorage.clear(); window.location.reload(); } }} style={{ width: "100%", background: "#ff000008", border: "1px solid #ff000022", color: "#ff000044", fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: "pointer", letterSpacing: 3, marginTop: 16 }}>☠ FACTORY RESET ☠</button>
-                      </div>
-                    )}
-
-                    {/* HELP — HOW TO PLAY */}
-                    {sec.id === "help" && (
-                      <div style={{ color: "#888", fontSize: 12, fontFamily: "monospace", lineHeight: 2 }}>
-                        <div style={{ color: "#fff", fontSize: 13, fontWeight: 700, marginBottom: 8 }}>SIMULATION OS — HOW IT WORKS</div>
-                        <div style={{ marginBottom: 12 }}>
-                          <span style={{ color: accentColor }}>⚡ QUESTS</span> — Add daily tasks. Complete them and rate difficulty (1-7). Harder tasks earn more <Tip term="XP">XP</Tip> and <Tip term="Credits">credits</Tip>.<br/><br/>
-                          <span style={{ color: "#ff0040" }}>☠ GOALS</span> — Long-term objectives with milestones. Each milestone becomes a quest on its scheduled date.<br/><br/>
-                          <span style={{ color: accentColor }}>◈ SKILLS</span> — Four main skills (INT/STR/VIT/SOC) each with 4 sub-skills. Level up by completing related tasks.<br/><br/>
-                          <span style={{ color: "#ffaa00" }}>🪙 SHOP</span> — Spend earned credits on approved rewards. Entertainment requires justification.<br/><br/>
-                          <span style={{ color: "#00d4ff" }}>📈 MARKET</span> — Invest credits in skill stocks. Prices rise when you're active, crash when you're not.<br/><br/>
-                          <span style={{ color: "#ff00ff" }}>🔥 COMBOS</span> — Complete tasks consecutively for escalating <Tip term="XP">XP</Tip> bonuses (10%-100%).<br/><br/>
-                          <span style={{ color: accentColor }}>⟐ PRESTIGE</span> — At level 5+, reset for a permanent +10% XP multiplier.<br/><br/>
-                          <span style={{ color: "#ff0040" }}>💀 DECAY</span> — If you don't log in, skills decay. The simulation doesn't wait for you.<br/><br/>
-                          <span style={{ color: "#ffaa00" }}>☀ MORNING PLAN</span> — Plan your top priorities each morning to start the day with focus.
-                        </div>
-                        <div style={{ color: "#555", fontSize: 11, marginTop: 8 }}>Simulation OS v5.1 · © 2026 Tejas Ayyagari</div>
-                      </div>
-                    )}
-                  </div>
+              {/* API Key */}
+              <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 8, padding: 16, marginBottom: 8 }}>
+                <div style={{ color: "var(--accent-fire)", fontSize: 12, letterSpacing: 2, fontWeight: 600, fontFamily: "var(--font-body)", marginBottom: 8 }}>API KEY</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-body)", marginBottom: 8, lineHeight: 1.7 }}>Anthropic key for VORAX AI. Get one at console.anthropic.com</div>
+                <input type="password" value={settings.anthropicKey || ""} onChange={e => { const ns = { ...settings, anthropicKey: e.target.value }; saveSettingsAndSchedule(ns); }} placeholder="sk-ant-..." style={{ width: "100%", background: "var(--bg-deep)", border: `1px solid ${settings.anthropicKey ? "var(--accent-toxic)44" : "var(--border)"}`, color: "var(--accent-toxic, #7CFF3F)", padding: 12, fontFamily: "var(--font-mono)", fontSize: 13, borderRadius: 6, boxSizing: "border-box" }} />
+                {!ANTHROPIC_API_KEY && !settings.anthropicKey && (
+                  <div style={{ marginTop: 8, color: "var(--accent-gold)", fontSize: 11, fontFamily: "var(--font-body)", opacity: 0.8 }}>No key set. VORAX AI features require an API key.</div>
                 )}
               </div>
-            ))}
+
+              {/* Theme */}
+              <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 8, padding: 16, marginBottom: 8 }}>
+                <div style={{ color: "var(--accent-royal, #A855F7)", fontSize: 12, letterSpacing: 2, fontWeight: 600, fontFamily: "var(--font-body)", marginBottom: 12 }}>THEME</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {Object.entries(THEMES).map(([tid, t]) => (
+                    <button key={tid} onClick={() => { const ns = { ...settings, theme: tid }; saveSettingsAndSchedule(ns); }} style={{ padding: "14px 10px", background: currentThemeId === tid ? `${t.accentFire}18` : "var(--bg-elevated)", border: `2px solid ${currentThemeId === tid ? t.accentFire : "var(--border)"}`, cursor: "pointer", borderRadius: 8, textAlign: "center", minHeight: 44 }}>
+                      <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 6 }}>
+                        <div style={{ width: 12, height: 12, borderRadius: "50%", background: t.accentFire }} />
+                        <div style={{ width: 12, height: 12, borderRadius: "50%", background: t.accentGold }} />
+                        <div style={{ width: 12, height: 12, borderRadius: "50%", background: t.accentIce }} />
+                      </div>
+                      <div style={{ color: currentThemeId === tid ? t.accentFire : "var(--text-secondary)", fontFamily: "var(--font-body)", fontSize: 11, fontWeight: 700, letterSpacing: 2 }}>{t.name}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sound */}
+              <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 8, padding: 16, marginBottom: 8 }}>
+                <div style={{ color: "var(--accent-toxic, #7CFF3F)", fontSize: 12, letterSpacing: 2, fontWeight: 600, fontFamily: "var(--font-body)", marginBottom: 12 }}>SOUND</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                  <span style={{ color: "var(--text-primary)", fontSize: 13, fontFamily: "var(--font-body)" }}>Sound Effects</span>
+                  <button onClick={() => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, soundEnabled: !(p.settingsConfig?.soundEnabled !== false) } }))} style={{ padding: "8px 20px", background: (sc.soundEnabled !== false) ? "var(--accent-toxic, #7CFF3F)18" : "var(--accent-ember)18", border: `1px solid ${(sc.soundEnabled !== false) ? "var(--accent-toxic, #7CFF3F)" : "var(--accent-ember)"}`, color: (sc.soundEnabled !== false) ? "var(--accent-toxic, #7CFF3F)" : "var(--accent-ember)", fontFamily: "var(--font-body)", fontSize: 12, cursor: "pointer", fontWeight: 700, borderRadius: 6, minHeight: 36, letterSpacing: 1 }}>{(sc.soundEnabled !== false) ? "ON" : "OFF"}</button>
+                </div>
+                <div style={{ color: "var(--text-muted)", fontSize: 11, letterSpacing: 2, fontFamily: "var(--font-body)", marginBottom: 6 }}>TYPE</div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {["retro", "minimal", "heavy"].map(st => (
+                    <button key={st} onClick={() => { setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, soundType: st } })); AudioEngine.play("click"); }} style={{ flex: 1, padding: "10px 4px", background: (sc.soundType || "retro") === st ? "var(--accent-toxic, #7CFF3F)15" : "transparent", border: `1px solid ${(sc.soundType || "retro") === st ? "var(--accent-toxic, #7CFF3F)" : "var(--border)"}`, color: (sc.soundType || "retro") === st ? "var(--accent-toxic, #7CFF3F)" : "var(--text-muted)", fontFamily: "var(--font-body)", fontSize: 12, cursor: "pointer", textTransform: "uppercase", borderRadius: 6, minHeight: 36, fontWeight: 600 }}>{st}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Account */}
+              <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 8, padding: 16, marginBottom: 8 }}>
+                <div style={{ color: "var(--accent-ice)", fontSize: 12, letterSpacing: 2, fontWeight: 600, fontFamily: "var(--font-body)", marginBottom: 12 }}>ACCOUNT</div>
+                <div style={{ color: "var(--text-secondary)", fontSize: 12, fontFamily: "var(--font-body)", marginBottom: 12 }}>Operator: {onboardingData?.username || "Unknown"}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 11, letterSpacing: 1, fontFamily: "var(--font-body)", marginBottom: 4 }}>EMAIL</div>
+                <input value={sc.accountEmail || ""} onChange={e => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, accountEmail: e.target.value } }))} placeholder="your@email.com" style={{ width: "100%", background: "var(--bg-deep)", border: "1px solid var(--border)", color: "var(--text-primary)", padding: 12, fontFamily: "var(--font-mono)", fontSize: 13, marginBottom: 10, boxSizing: "border-box", borderRadius: 6 }} />
+                <div style={{ color: "var(--text-muted)", fontSize: 11, letterSpacing: 1, fontFamily: "var(--font-body)", marginBottom: 4 }}>PASSWORD</div>
+                <input type="password" value={sc.accountPassword || ""} onChange={e => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, accountPassword: e.target.value } }))} placeholder="Set password..." style={{ width: "100%", background: "var(--bg-deep)", border: "1px solid var(--border)", color: "var(--text-primary)", padding: 12, fontFamily: "var(--font-mono)", fontSize: 13, boxSizing: "border-box", borderRadius: 6 }} />
+                <div style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-body)", marginTop: 6 }}>Stored locally. Cloud sync coming soon.</div>
+              </div>
+
+              {/* Data */}
+              <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 8, padding: 16, marginBottom: 8 }}>
+                <div style={{ color: "var(--accent-ember)", fontSize: 12, letterSpacing: 2, fontWeight: 600, fontFamily: "var(--font-body)", marginBottom: 12 }}>DATA</div>
+                <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                  <button onClick={() => { const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `vorax-backup-${new Date().toISOString().split("T")[0]}.json`; a.click(); URL.revokeObjectURL(url); showToast("Data exported", "var(--accent-toxic)"); }} style={{ flex: 1, background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--accent-ice)", fontFamily: "var(--font-body)", fontSize: 12, fontWeight: 600, padding: "12px 8px", cursor: "pointer", borderRadius: 6, minHeight: 44, letterSpacing: 1 }}>EXPORT</button>
+                  <button onClick={() => { const input = document.createElement("input"); input.type = "file"; input.accept = ".json"; input.onchange = e => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { const data = JSON.parse(ev.target.result); setState(data); showToast("Data imported", "var(--accent-toxic)"); } catch { showToast("Invalid file", "var(--accent-ember)"); } }; reader.readAsText(file); }; input.click(); }} style={{ flex: 1, background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--accent-gold)", fontFamily: "var(--font-body)", fontSize: 12, fontWeight: 600, padding: "12px 8px", cursor: "pointer", borderRadius: 6, minHeight: 44, letterSpacing: 1 }}>IMPORT</button>
+                </div>
+                <button onClick={() => { if (window.confirm("FACTORY RESET: Delete ALL data permanently? This cannot be undone.")) { localStorage.clear(); window.location.reload(); } }} style={{ width: "100%", background: "transparent", border: "1px solid var(--accent-ember)33", color: "var(--accent-ember)", fontFamily: "var(--font-body)", fontSize: 12, fontWeight: 600, padding: "12px", cursor: "pointer", borderRadius: 6, minHeight: 44, letterSpacing: 2, opacity: 0.6 }}>FACTORY RESET</button>
+              </div>
+            </div>
+
+            {/* ─── SECTION 3: PRO ─── */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ background: "var(--bg-surface)", border: "2px solid transparent", borderImage: "linear-gradient(135deg, var(--accent-fire), var(--accent-gold), var(--accent-ember)) 1", borderRadius: 0, padding: 20, position: "relative", overflow: "hidden" }}>
+                {/* Glow overlay */}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, var(--accent-fire)08, var(--accent-gold)05, transparent)", pointerEvents: "none" }} />
+                {/* Badge */}
+                <div style={{ position: "absolute", top: 12, right: 12, background: "var(--accent-fire)", color: "#fff", fontSize: 9, fontWeight: 700, letterSpacing: 2, padding: "4px 10px", fontFamily: "var(--font-body)", borderRadius: 4 }}>COMING SOON</div>
+                {/* Title */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, position: "relative" }}>
+                  <span style={{ fontSize: 28, filter: "drop-shadow(0 0 8px var(--accent-fire))" }}>&#x1F525;</span>
+                  <div>
+                    <div style={{ color: "var(--accent-fire)", fontSize: 18, fontWeight: 700, letterSpacing: 4, fontFamily: "var(--font-body)" }}>VORAX PRO</div>
+                    <div style={{ color: "var(--text-secondary)", fontSize: 12, fontFamily: "var(--font-body)" }}>Unlock the full experience</div>
+                  </div>
+                </div>
+                {/* Features list */}
+                <div style={{ position: "relative" }}>
+                  {[
+                    { icon: "\uD83C\uDFA8", name: "Custom Themes", desc: "Design your own color schemes" },
+                    { icon: "\uD83D\uDD0A", name: "Sound Packs", desc: "Premium audio feedback sets" },
+                    { icon: "\uD83D\uDCCA", name: "Advanced Analytics", desc: "Deep performance insights" },
+                    { icon: "\u26A1", name: "Priority Support", desc: "Direct line to the dev team" },
+                  ].map((feat, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < 3 ? "1px solid var(--border)" : "none", opacity: 0.7 }}>
+                      <span style={{ fontSize: 18, minWidth: 28, textAlign: "center", filter: "grayscale(0.3)" }}>{feat.icon}</span>
+                      <div>
+                        <div style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-body)" }}>{feat.name}</div>
+                        <div style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-body)" }}>{feat.desc}</div>
+                      </div>
+                      <span style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: 14 }}>&#x1F512;</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Version footer */}
+            <div style={{ textAlign: "center", padding: "16px 0 8px", color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-body)" }}>
+              VORAX v5.1 &middot; &copy; 2026 Tejas Ayyagari
+            </div>
           </div>
           );
         })()}
