@@ -1900,7 +1900,7 @@ const globalStyles = `
 // ═══════════════════════════════════════════════════════════════
 export default function SimulationOS() {
   const [state, setState] = useState(loadState);
-  const [view, setView] = useState("dashboard");
+  const [view, setView] = useState("vorax");
   const [showParticles, setShowParticles] = useState(false);
   const [particleColor, setParticleColor] = useState("#00ff41");
   const [tPopup, setTPopup] = useState(false);
@@ -2009,15 +2009,11 @@ export default function SimulationOS() {
       if (showAddTask || showAddBoss || showAddNPC || showAddReward || showQuickLog || ratingTask || showEndOfDay) return;
       if (e.key === "n") { e.preventDefault(); setShowAddTask(true); }
       else if (e.key === "q") { e.preventDefault(); setShowQuickLog(true); }
-      else if (e.key === "1") setView("dashboard");
+      else if (e.key === "1") setView("vorax");
       else if (e.key === "2") setView("quests");
       else if (e.key === "3") setView("bosses");
-      else if (e.key === "4") setView("ai");
-      else if (e.key === "5") setView("market");
-      else if (e.key === "6") setView("npcs");
-      else if (e.key === "7") setView("shop");
-      else if (e.key === "8") setView("skills");
-      else if (e.key === "9") setView("settings");
+      else if (e.key === "4") setView("skills");
+      else if (e.key === "5") setView("more");
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -2638,13 +2634,13 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
   const defeatedBosses = (state.bosses || []).filter(b => b.hp <= 0);
   const activeBuffsList = (state.activeBuffs || []).filter(b => b.expiresAt > Date.now());
   const quote = getRandomQuote();
-  const allTabs = [
-    { id: "dashboard", label: "⟐ HQ" }, { id: "quests", label: "⚡ QUESTS" }, { id: "bosses", label: "☠ GOALS" },
-    { id: "ai", label: "🤖 AI" }, { id: "market", label: "📈 MARKET" }, { id: "npcs", label: "★ NPCs" },
-    { id: "shop", label: "🪙 SHOP" }, { id: "skills", label: "◈ STATS" }, { id: "settings", label: "⚙ SET" },
+  const TABS = [
+    { id: 'vorax', label: 'VORAX', icon: '\u{1F525}', viewId: 'vorax' },
+    { id: 'quests', label: 'QUESTS', icon: '\u26A1', viewId: 'quests' },
+    { id: 'goals', label: 'GOALS', icon: '\u2620', viewId: 'bosses' },
+    { id: 'progress', label: 'PROGRESS', icon: '\u{1F4CA}', viewId: 'skills' },
+    { id: 'more', label: 'MORE', icon: '\u2699', viewId: 'more' },
   ];
-  const hiddenTabs = state.settingsConfig?.hiddenTabs || [];
-  const mainTabs = allTabs.filter(t => !hiddenTabs.includes(t.id));
   const accentColor = state.settingsConfig?.accentColor || "#00ff41";
   const approvedRewards = onboardingData?.allowedRewards || [];
   const allShopRewards = [
@@ -2952,53 +2948,34 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         </div>
       )}
 
-      {/* ── HUD ── */}
-      <div style={{ background: "#050505", borderBottom: "1px solid #111", padding: "12px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <span style={{ color: accentColor, fontSize: 14, fontWeight: 900, letterSpacing: 3 }}>SIMULATION OS</span>
-            <span style={{ color: "#555", fontSize: 12, marginLeft: 8 }}>v5.1</span>
+      {/* ── Slim HUD ── */}
+      <div style={{ background: "var(--bg-elevated, #0a0a0a)", borderBottom: "1px solid #111", position: "relative" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px", height: 56 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ color: "var(--accent-fire, #ff6b35)", fontSize: 18, fontWeight: 900, letterSpacing: 3, fontFamily: "monospace" }}>VORAX</span>
+            <span style={{ color: "var(--text-primary, #e0e0e0)", fontSize: 12, fontWeight: 700, opacity: 0.7, fontFamily: "monospace" }}>LV.{overallLevel}</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {/* API status dot */}
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: (ANTHROPIC_API_KEY || settings.anthropicKey) ? "#00ff41" : "#333", boxShadow: (ANTHROPIC_API_KEY || settings.anthropicKey) ? "0 0 6px #00ff41" : "none" }} title={ANTHROPIC_API_KEY || settings.anthropicKey ? "AI Connected" : "No API Key"} />
-            <div style={{ textAlign: "right" }}>
-              <div style={{ color: "#666", fontSize: 11 }}>{dateStr}</div>
-              <div style={{ color: accentColor, fontSize: 11, fontWeight: 700 }}>{timeStr}</div>
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <span style={{ color: "var(--accent-gold, #ffaa00)", fontSize: 13, fontFamily: "monospace", fontWeight: 700 }}>{'\u{1FA99}'} {state.credits}</span>
+            <span style={{ color: "#ff6b35", fontSize: 13, fontFamily: "monospace", fontWeight: 700 }}>{'\u{1F525}'} {state.streakDays}d</span>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 12, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ color: "#fff", fontSize: 13}}>LV.{overallLevel}</span>
-          <span style={{ color: playerClass.color, fontSize: 13}}>{playerClass.icon} {playerClass.name}</span>
-          <span style={{ color: "#ffaa00", fontSize: 13}}>🪙 {state.credits}¢</span>
-          {xpMult !== 1 && <span style={{ color: xpMult > 1 ? "#00ff41" : "#ff0040", fontSize: 12}}>XP ×{xpMult.toFixed(2)}</span>}
-          {state.prestigeLevel > 0 && <span style={{ color: "#ff00ff", fontSize: 12}}>P{state.prestigeLevel}</span>}
-          {(() => { const ct = getComboThreshold(state.consecutiveCompletions); return ct ? <span style={{ color: ct.color, fontSize: 12, border: `1px solid ${ct.color}44`, padding: "1px 6px", animation: "pulse 1.5s infinite" }}>🔥 {ct.label}</span> : null; })()}
-          <span style={{ color: "#999", fontSize: 12}}>☠{activeBosses.length}</span>
-          {(state.loginStreak || 0) > 0 && <span style={{ color: "#ffaa00", fontSize: 12 }}>📅{state.loginStreak}d</span>}
+        {/* Full-width XP bar */}
+        <div style={{ width: "100%", height: 3, background: "#111" }}>
+          <div style={{ height: "100%", width: `${Math.min(100, Object.values(state.skills).reduce((a, s) => a + s.xp, 0) / Object.keys(state.skills).length)}%`, background: "linear-gradient(90deg, #ff6b35, #ff4500)", transition: "width 0.6s ease", boxShadow: "0 0 6px #ff6b3544" }} />
         </div>
+        {/* Debuff/Buff pills */}
         {((state.activeDebuffs||[]).length > 0 || activeBuffsList.length > 0) && (
-          <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
-            {(state.activeDebuffs||[]).map(d => DEBUFF_DEFS[d.id] && <span key={d.id} style={{ background: `${DEBUFF_DEFS[d.id].color}15`, border: `1px solid ${DEBUFF_DEFS[d.id].color}44`, color: DEBUFF_DEFS[d.id].color, fontSize: 12, padding: "2px 6px", letterSpacing: 1 }}>{DEBUFF_DEFS[d.id].icon} {DEBUFF_DEFS[d.id].name}</span>)}
-            {activeBuffsList.map(b => BUFF_DEFS[b.id] && <span key={b.id+b.appliedAt} style={{ background: `${BUFF_DEFS[b.id].color}15`, border: `1px solid ${BUFF_DEFS[b.id].color}44`, color: BUFF_DEFS[b.id].color, fontSize: 12, padding: "2px 6px", letterSpacing: 1 }}>{BUFF_DEFS[b.id].icon} {BUFF_DEFS[b.id].name}</span>)}
+          <div style={{ display: "flex", gap: 6, padding: "4px 16px 6px", flexWrap: "wrap" }}>
+            {(state.activeDebuffs||[]).map(d => DEBUFF_DEFS[d.id] && <span key={d.id} style={{ background: `${DEBUFF_DEFS[d.id].color}15`, border: `1px solid ${DEBUFF_DEFS[d.id].color}44`, color: DEBUFF_DEFS[d.id].color, fontSize: 11, padding: "1px 6px", letterSpacing: 1, borderRadius: 3, fontFamily: "monospace" }}>{DEBUFF_DEFS[d.id].icon} {DEBUFF_DEFS[d.id].name}</span>)}
+            {activeBuffsList.map(b => BUFF_DEFS[b.id] && <span key={b.id+b.appliedAt} style={{ background: `${BUFF_DEFS[b.id].color}15`, border: `1px solid ${BUFF_DEFS[b.id].color}44`, color: BUFF_DEFS[b.id].color, fontSize: 11, padding: "1px 6px", letterSpacing: 1, borderRadius: 3, fontFamily: "monospace" }}>{BUFF_DEFS[b.id].icon} {BUFF_DEFS[b.id].name}</span>)}
           </div>
         )}
       </div>
 
-      <div style={{ padding: "6px 16px", borderBottom: "1px solid #0a0a0a" }}>
-        <div style={{ color: quote.color, fontSize: 12, opacity: 0.6, fontStyle: "italic", letterSpacing: 1 }}>"{quote.text}"</div>
-      </div>
-
-      <div style={{ display: "flex", overflowX: "auto", borderBottom: "1px solid #111", background: "#050505" }}>
-        {mainTabs.map(t => (
-          <button key={t.id} onClick={() => { setView(t.id); AudioEngine.play("click"); }} style={{ flex: "0 0 auto", padding: "10px 14px", background: view === t.id ? "#0a0a0a" : "transparent", border: "none", borderBottom: view === t.id ? `2px solid ${accentColor}` : "2px solid transparent", color: view === t.id ? accentColor : "#444", fontFamily: "monospace", fontSize: 13, cursor: "pointer", letterSpacing: 1, whiteSpace: "nowrap" }}>{t.label}</button>
-        ))}
-      </div>
-
       {tPopup && <div style={{ position: "fixed", top: 80, left: "50%", transform: "translateX(-50%)", background: "#00ff4115", border: "1px solid #00ff41", padding: "8px 20px", zIndex: 8000, animation: "fadeSlide 1.5s forwards" }}><span style={{ color: "#00ff41", fontFamily: "monospace", fontSize: 13, letterSpacing: 2 }}>⚡ QUEST COMPLETE</span></div>}
 
-      <div style={{ padding: "16px", minHeight: "60vh" }}>
+      <div style={{ padding: "16px", paddingBottom: 80, minHeight: "60vh" }}>
 
         {/* ══ HQ DASHBOARD ══ */}
         {view === "dashboard" && (
@@ -3577,21 +3554,16 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                       </div>
                     )}
 
-                    {/* TAB CUSTOMIZATION */}
+                    {/* TAB CUSTOMIZATION — now fixed 5-tab bottom nav */}
                     {sec.id === "tabs" && (
                       <div>
-                        <div style={{ color: "#555", fontSize: 11, fontFamily: "monospace", marginBottom: 12 }}>Show or hide tabs. HQ and Settings cannot be hidden.</div>
-                        {allTabs.map(tab => {
-                          const locked = tab.id === "dashboard" || tab.id === "settings";
-                          const hidden = hiddenTabs.includes(tab.id);
-                          return (
-                            <div key={tab.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #111" }}>
-                              <button onClick={() => { if (locked) return; setState(p => { const ht = [...(p.settingsConfig?.hiddenTabs || [])]; const idx = ht.indexOf(tab.id); if (idx >= 0) ht.splice(idx, 1); else ht.push(tab.id); return { ...p, settingsConfig: { ...p.settingsConfig, hiddenTabs: ht } }; }); }} disabled={locked} style={{ width: 24, height: 24, background: hidden ? "transparent" : `${accentColor}22`, border: `2px solid ${locked ? "#333" : hidden ? "#444" : accentColor}`, color: hidden ? "transparent" : accentColor, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", cursor: locked ? "not-allowed" : "pointer" }}>{hidden ? "" : "✓"}</button>
-                              <span style={{ color: hidden ? "#333" : "#ccc", fontFamily: "monospace", fontSize: 13 }}>{tab.label}</span>
-                              {locked && <span style={{ color: "#333", fontSize: 10, fontFamily: "monospace" }}>LOCKED</span>}
-                            </div>
-                          );
-                        })}
+                        <div style={{ color: "#555", fontSize: 11, fontFamily: "monospace", marginBottom: 12 }}>Navigation uses a fixed 5-tab bottom bar.</div>
+                        {TABS.map(tab => (
+                          <div key={tab.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #111" }}>
+                            <span style={{ fontSize: 16 }}>{tab.icon}</span>
+                            <span style={{ color: "#ccc", fontFamily: "monospace", fontSize: 13 }}>{tab.label}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
 
@@ -3758,8 +3730,22 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         </div>
       )}
 
+      {/* ── Bottom Tab Nav ── */}
+      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 64, background: "rgba(10,10,10,0.92)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderTop: "1px solid #1a1a1a", display: "flex", justifyContent: "space-around", alignItems: "center", zIndex: 1000, padding: "0 4px", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+        {TABS.map(tab => {
+          const isActive = view === tab.viewId;
+          return (
+            <button key={tab.id} onClick={() => { setView(tab.viewId); AudioEngine.play("click"); }} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, background: "transparent", border: "none", cursor: "pointer", padding: "6px 0", position: "relative", WebkitTapHighlightColor: "transparent" }}>
+              {isActive && <div style={{ position: "absolute", top: 0, left: "20%", right: "20%", height: 2, background: "linear-gradient(90deg, #ff6b35, #ff4500)", borderRadius: "0 0 2px 2px", boxShadow: "0 0 8px #ff6b3566" }} />}
+              <span style={{ fontSize: 18, filter: isActive ? "drop-shadow(0 0 4px #ff6b3544)" : "none", lineHeight: 1 }}>{tab.icon}</span>
+              <span style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, letterSpacing: 1, color: isActive ? "#ff6b35" : "#555", transition: "color 0.2s ease" }}>{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
       {/* ── Quick Action FABs ── */}
-      <div style={{ position: "fixed", bottom: 24, right: 24, display: "flex", flexDirection: "column", gap: 8, zIndex: 5000 }}>
+      <div style={{ position: "fixed", bottom: 76, right: 16, display: "flex", flexDirection: "column", gap: 8, zIndex: 5000 }}>
         <button onClick={() => setShowQuickLog(true)} style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "monospace", fontSize: 12, fontWeight: 900, padding: "12px 18px", cursor: "pointer", letterSpacing: 2, boxShadow: `0 0 20px ${accentColor}22` }}>⚡ LOG</button>
         <button onClick={() => setShowAddTask(true)} style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "monospace", fontSize: 12, fontWeight: 900, padding: "12px 18px", cursor: "pointer", letterSpacing: 2, boxShadow: `0 0 20px ${accentColor}22` }}>+ TASK</button>
       </div>
