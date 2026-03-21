@@ -39,6 +39,8 @@ const AudioEngine = {
   },
   play(type) {
     try {
+      const s = loadSettings();
+      if (s.soundEnabled === false) return;
       const ctx = this.getCtx();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -316,6 +318,169 @@ const BUFF_DEFS = {
   iron_will: { name: "IRON WILL", icon: "🛡", color: "#00d4ff", effect: "+25% XP 1hr", xpMult: 1.25 },
 };
 
+// ── Combo Multiplier System ───────────────────────────────────
+const COMBO_THRESHOLDS = [
+  { min: 2,  label: "×2 COMBO",      color: "#00ff41", xpBonus: 0.10, sound: "xp" },
+  { min: 3,  label: "×3 STREAK",     color: "#00d4ff", xpBonus: 0.20, sound: "coin" },
+  { min: 5,  label: "×5 ON FIRE",    color: "#ffaa00", xpBonus: 0.35, sound: "event" },
+  { min: 7,  label: "×7 RAMPAGE",    color: "#ff00ff", xpBonus: 0.60, sound: "loot" },
+  { min: 10, label: "×10 GODMODE",   color: "#ff0040", xpBonus: 1.00, sound: "levelup" },
+];
+
+function getComboThreshold(consecutiveCount) {
+  let best = null;
+  for (const t of COMBO_THRESHOLDS) {
+    if (consecutiveCount >= t.min) best = t;
+  }
+  return best;
+}
+
+function getComboXpBonus(consecutiveCount) {
+  const t = getComboThreshold(consecutiveCount);
+  return t ? t.xpBonus : 0;
+}
+
+// ── Debuff Chat Signals (for AI auto-detection) ───────────────
+const DEBUFF_CHAT_SIGNALS = {
+  sleep_deprived: ["tired","exhausted","didn't sleep","no sleep","insomnia","sleep deprived","barely slept","up all night","couldn't sleep","slept bad","terrible sleep","3 hours","4 hours","few hours of sleep","sleepy","drowsy","groggy","a bit sleepy","so sleepy","feeling sleepy","half asleep","can barely keep my eyes"],
+  doomscrolling: ["scrolling","doomscroll","doom scroll","tiktok","twitter","instagram","reels","wasted time on phone","phone addiction","can't stop scrolling","social media","youtube shorts"],
+  post_nut: ["post nut","jerked","fapped","masturbat","relapsed","nofap","porn","pmo"],
+  rage: ["angry","furious","rage","pissed","lost my temper","snapped","blew up","yelled","screaming","outburst"],
+  melancholy: ["depressed","sad","empty","hopeless","pointless","numb","crying","can't feel","no motivation","don't care anymore","what's the point","lonely"],
+  social_anxiety: ["anxious","anxiety","scared to talk","avoid people","nervous around people","social anxiety","can't talk to","afraid of","too scared","awkward"],
+  isolation: ["isolated","alone all day","haven't talked","no one","by myself","haven't left","stayed in","no contact","didn't go out","hermit"],
+  overstimulated: ["overstimulated","overwhelmed","too much","sensory overload","brain fried","can't focus","scattered","burnout","burnt out","fried"],
+};
+
+function detectDebuffsFromMessage(text) {
+  if (!text) return [];
+  const lower = text.toLowerCase();
+  const detected = [];
+  for (const [debuffId, keywords] of Object.entries(DEBUFF_CHAT_SIGNALS)) {
+    for (const kw of keywords) {
+      if (lower.includes(kw)) { detected.push(debuffId); break; }
+    }
+  }
+  return detected;
+}
+
+// ── Reward Tier Detection (for AI pricing) ────────────────────
+function detectRewardTier(name, desc) {
+  const text = `${name} ${desc || ""}`.toLowerCase();
+  if (/\b(snack|gum|candy|sticker|break|5.min|quick)\b/.test(text)) return "micro";
+  if (/\b(episode|movie|meal|game.session|coffee|dessert|takeout|uber|lyft)\b/.test(text)) return "medium";
+  if (/\b(concert|shoes|clothes|gadget|gear|equipment|day.off|trip)\b/.test(text)) return "large";
+  if (/\b(vacation|console|laptop|phone|tablet|flight|hotel|weekend)\b/.test(text)) return "major";
+  return "medium"; // default
+}
+
+const TIER_RANGES = { micro: [5, 30], medium: [40, 150], large: [150, 500], major: [500, 2000] };
+
+function getOnboardingRewardCost(name, classification) {
+  const tier = detectRewardTier(name, "");
+  const [lo, hi] = TIER_RANGES[tier];
+  const mid = Math.floor((lo + hi) / 2);
+  return classification === "upgrade" ? Math.max(lo, Math.floor(mid * 0.5)) : mid;
+}
+
+// ── Accent Color Options ─────────────────────────────────────
+const ACCENT_COLORS = [
+  { id: "matrix", color: "#00ff41", name: "MATRIX" },
+  { id: "ice", color: "#00d4ff", name: "ICE" },
+  { id: "neon", color: "#ff00ff", name: "NEON" },
+  { id: "gold", color: "#ffaa00", name: "GOLD" },
+  { id: "blood", color: "#ff0040", name: "BLOOD" },
+  { id: "violet", color: "#8844ff", name: "VIOLET" },
+];
+
+// ── Theme Definitions ───────────────────────────────────────
+const THEMES = {
+  volcanic: {
+    id: 'volcanic', name: 'VOLCANIC',
+    bgDeep: '#080510', bgSurface: '#0f0b1a', bgElevated: '#161125',
+    border: '#1e1635', borderGlow: '#2a1f45',
+    textPrimary: '#ede9f5', textSecondary: '#7a7290', textMuted: '#4a4460',
+    accentFire: '#FF5E1A', accentEmber: '#FF3D00', accentGold: '#FFAA00',
+    accentIce: '#00B4FF', accentToxic: '#7CFF3F', accentRoyal: '#A855F7',
+  },
+  ember: {
+    id: 'ember', name: 'EMBER',
+    bgDeep: '#0a0806', bgSurface: '#121008', bgElevated: '#1a1610',
+    border: '#2a2218', borderGlow: '#3a2e20',
+    textPrimary: '#f0e8dc', textSecondary: '#8a7e6e', textMuted: '#5a4e3e',
+    accentFire: '#FF6B2C', accentEmber: '#FF4500', accentGold: '#FFB300',
+    accentIce: '#FF8C42', accentToxic: '#FFAA00', accentRoyal: '#D4740E',
+  },
+  crimson: {
+    id: 'crimson', name: 'CRIMSON',
+    bgDeep: '#0a0408', bgSurface: '#140812', bgElevated: '#1e0c1a',
+    border: '#2e1428', borderGlow: '#3e1c38',
+    textPrimary: '#f0e0ea', textSecondary: '#8a6878', textMuted: '#5a3848',
+    accentFire: '#DC143C', accentEmber: '#B30000', accentGold: '#FFD700',
+    accentIce: '#FF1744', accentToxic: '#FF4081', accentRoyal: '#9C27B0',
+  },
+  phantom: {
+    id: 'phantom', name: 'PHANTOM',
+    bgDeep: '#060810', bgSurface: '#0a0e1a', bgElevated: '#101425',
+    border: '#182035', borderGlow: '#1e2a45',
+    textPrimary: '#e0e8f5', textSecondary: '#6878a0', textMuted: '#384870',
+    accentFire: '#00BCD4', accentEmber: '#0097A7', accentGold: '#7C4DFF',
+    accentIce: '#00E5FF', accentToxic: '#64FFDA', accentRoyal: '#536DFE',
+  },
+};
+
+function getThemeCSS(themeId) {
+  const t = THEMES[themeId] || THEMES.volcanic;
+  return `
+    --bg-deep: ${t.bgDeep};
+    --bg-surface: ${t.bgSurface};
+    --bg-elevated: ${t.bgElevated};
+    --border: ${t.border};
+    --border-glow: ${t.borderGlow};
+    --text-primary: ${t.textPrimary};
+    --text-secondary: ${t.textSecondary};
+    --text-muted: ${t.textMuted};
+    --accent-fire: ${t.accentFire};
+    --accent-ember: ${t.accentEmber};
+    --accent-gold: ${t.accentGold};
+    --accent-ice: ${t.accentIce};
+    --accent-toxic: ${t.accentToxic};
+    --accent-royal: ${t.accentRoyal};
+  `;
+}
+
+// ── Addiction / Indispensability Constants ────────────────────
+const DAILY_LOGIN_BONUS = { xp: 20, credits: 15 };
+const DECAY_RATE_PER_DAY = 3; // XP lost per skill per inactive day (after 1-day grace)
+const DECAY_GRACE_DAYS = 1;
+
+// ── Time helpers ─────────────────────────────────────────────
+function timeAgo(timestamp) {
+  if (!timestamp) return "";
+  const diff = Date.now() - (typeof timestamp === "number" ? timestamp : new Date(timestamp).getTime());
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
+// ── Tooltip component for jargon ─────────────────────────────
+const JARGON = {
+  "NPC": "Real people in your life tracked as relationships",
+  "Debuff": "Negative status effect reducing your XP gains",
+  "Buff": "Positive status effect boosting your XP gains",
+  "Quest": "A task you need to complete for XP and credits",
+  "Credits": "Currency earned by completing tasks, spent on rewards",
+  "XP": "Experience points — fill the bar to level up a skill",
+  "Prestige": "Reset progress for a permanent XP multiplier boost",
+  "Combo": "Complete tasks consecutively for escalating XP bonuses",
+};
 
 // ── Seed Tasks (no pre-set difficulty) ────────────────────────
 const SEED_TASKS = [
@@ -364,6 +529,21 @@ function getDefaultState() {
     investments: {}, investmentHistory: [], marketPrices: { intelligence: 100, strength: 100, vitality: 100, social: 100 }, lastMarketUpdate: null,
     aiChatHistory: [],
     completedHistory: [],  // permanent log of every completed task (last 500)
+    lastLoginDate: null,
+    loginStreak: 0,
+    dailyLoginClaimed: false,
+    morningPlanDone: false,
+    totalXpMissed: 0,
+    absenceLossLog: [],
+    settingsConfig: {
+      accentColor: "#00ff41",
+      soundEnabled: true,
+      soundType: "retro",
+      tabOrder: null,
+      hiddenTabs: [],
+      accountEmail: "",
+      accountPassword: "",
+    },
     subSkills: {
       intelligence: { deep_work:{xp:0,level:1}, learning:{xp:0,level:1}, strategy:{xp:0,level:1}, communication:{xp:0,level:1} },
       strength:     { training:{xp:0,level:1}, cardio:{xp:0,level:1}, discipline:{xp:0,level:1}, martial:{xp:0,level:1} },
@@ -425,6 +605,119 @@ function checkTaskCountDrop(state) {
   const today = state.completedToday?.length || 0;
   return avg > 0 && today <= avg * 0.5;
 }
+// ── Back Button ───────────────────────────────────────────────
+function BackButton({ onClick, label = "← BACK", color = "#888" }) {
+  return (
+    <button onClick={onClick} style={{ background: "none", border: "1px solid #222", color, fontFamily: "monospace", fontSize: 12, padding: "6px 14px", cursor: "pointer", letterSpacing: 2, marginBottom: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>{label}</button>
+  );
+}
+
+// ── Tooltip ───────────────────────────────────────────────────
+function Tip({ term, children }) {
+  const [show, setShow] = useState(false);
+  const text = JARGON[term];
+  if (!text) return children || term;
+  return (
+    <span style={{ position: "relative", cursor: "help", borderBottom: "1px dotted #444" }} onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)} onClick={() => setShow(p => !p)}>
+      {children || term}
+      {show && (
+        <span style={{ position: "absolute", bottom: "120%", left: "50%", transform: "translateX(-50%)", background: "#1a1a1a", border: "1px solid #333", color: "#ccc", fontFamily: "monospace", fontSize: 11, padding: "6px 10px", whiteSpace: "nowrap", zIndex: 9999, pointerEvents: "none", letterSpacing: 1 }}>{text}</span>
+      )}
+    </span>
+  );
+}
+
+// ── Spinner ───────────────────────────────────────────────────
+function Spinner({ color = "#00ff41", text = "Loading..." }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, color, fontFamily: "monospace", fontSize: 12 }}>
+      <span style={{ animation: "blink 0.6s step-end infinite" }}>█</span>
+      <span>{text}</span>
+    </div>
+  );
+}
+
+// ── Daily Login Modal ─────────────────────────────────────────
+function DailyLoginModal({ loginStreak, onClaim }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9600, padding: 16 }}>
+      <div style={{ textAlign: "center", maxWidth: 400 }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🔥</div>
+        <div style={{ color: "#ffaa00", fontFamily: "monospace", fontSize: 16, fontWeight: 900, letterSpacing: 4, marginBottom: 8 }}>DAILY LOGIN</div>
+        <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 28, fontWeight: 900, marginBottom: 8 }}>DAY {loginStreak + 1}</div>
+        <div style={{ color: "#888", fontFamily: "monospace", fontSize: 13, marginBottom: 24, lineHeight: 1.8 }}>
+          You showed up. That alone puts you ahead of 90% of people.<br/>
+          {loginStreak >= 3 && <span style={{ color: "#ffaa00" }}>🔥 {loginStreak}-day streak — don't break it.</span>}
+          {loginStreak >= 7 && <span style={{ color: "#ff00ff" }}><br/>LEGENDARY STREAK. Keep going.</span>}
+        </div>
+        <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 24 }}>
+          <div style={{ background: "#00ff4112", border: "1px solid #00ff4133", padding: "12px 20px" }}>
+            <div style={{ color: "#00ff41", fontFamily: "monospace", fontSize: 20, fontWeight: 900 }}>+{DAILY_LOGIN_BONUS.xp}</div>
+            <div style={{ color: "#00ff4188", fontFamily: "monospace", fontSize: 11 }}>XP</div>
+          </div>
+          <div style={{ background: "#ffaa0012", border: "1px solid #ffaa0033", padding: "12px 20px" }}>
+            <div style={{ color: "#ffaa00", fontFamily: "monospace", fontSize: 20, fontWeight: 900 }}>+{DAILY_LOGIN_BONUS.credits}</div>
+            <div style={{ color: "#ffaa0088", fontFamily: "monospace", fontSize: 11 }}>CREDITS</div>
+          </div>
+        </div>
+        <button onClick={onClaim} style={{ background: "#00ff4112", border: "1px solid #00ff41", color: "#00ff41", fontFamily: "monospace", fontSize: 14, fontWeight: 900, padding: "14px 40px", cursor: "pointer", letterSpacing: 4, animation: "pulse 1.5s infinite" }}>CLAIM & BEGIN</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Morning Planning Modal ────────────────────────────────────
+function MorningPlanModal({ onSubmit, onSkip }) {
+  const [tasks, setTasks] = useState(["", "", ""]);
+  const filled = tasks.filter(t => t.trim()).length;
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9550, padding: 16 }}>
+      <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
+        <div style={{ color: "#00ff41", fontFamily: "monospace", fontSize: 14, fontWeight: 900, letterSpacing: 4, marginBottom: 8 }}>☀ MORNING PLANNING</div>
+        <div style={{ color: "#888", fontFamily: "monospace", fontSize: 13, marginBottom: 20, lineHeight: 1.8 }}>
+          Winners plan their day. What are your 3 priorities today?
+        </div>
+        {tasks.map((t, i) => (
+          <input key={i} value={t} onChange={e => { const n = [...tasks]; n[i] = e.target.value; setTasks(n); }} placeholder={`Priority ${i + 1}...`} style={{ width: "100%", background: "#0a0a0a", border: "1px solid #00ff4122", color: "#eee", padding: "12px 14px", fontFamily: "monospace", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }} />
+        ))}
+        <button onClick={() => setTasks([...tasks, ""])} style={{ background: "none", border: "1px solid #222", color: "#555", fontFamily: "monospace", fontSize: 12, padding: "4px 12px", cursor: "pointer", marginBottom: 16 }}>+ MORE</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => { if (filled > 0) onSubmit(tasks.filter(t => t.trim())); }} disabled={filled === 0} style={{ flex: 1, padding: 14, background: filled > 0 ? "#00ff4112" : "#0a0a0a", border: `1px solid ${filled > 0 ? "#00ff41" : "#222"}`, color: filled > 0 ? "#00ff41" : "#333", fontFamily: "monospace", fontSize: 13, fontWeight: 900, cursor: filled > 0 ? "pointer" : "not-allowed", letterSpacing: 3 }}>LOCK IN PLAN</button>
+          <button onClick={onSkip} style={{ padding: "14px 20px", background: "transparent", border: "1px solid #333", color: "#555", fontFamily: "monospace", fontSize: 12, cursor: "pointer" }}>SKIP</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Absence Report Modal ──────────────────────────────────────
+function AbsenceReportModal({ daysGone, xpLost, streakLost, potentialXpMissed, onDismiss }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9650, padding: 16 }}>
+      <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>💀</div>
+        <div style={{ color: "#ff0040", fontFamily: "monospace", fontSize: 16, fontWeight: 900, letterSpacing: 4, marginBottom: 8 }}>YOU WERE GONE</div>
+        <div style={{ color: "#ff4466", fontFamily: "monospace", fontSize: 28, fontWeight: 900, marginBottom: 20 }}>{daysGone} DAYS</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+          <div style={{ background: "#ff004010", border: "1px solid #ff004033", padding: 14 }}>
+            <div style={{ color: "#ff0040", fontSize: 20, fontWeight: 900, fontFamily: "monospace" }}>-{xpLost}</div>
+            <div style={{ color: "#ff004088", fontSize: 11, fontFamily: "monospace" }}>XP DECAYED</div>
+          </div>
+          <div style={{ background: "#ff004010", border: "1px solid #ff004033", padding: 14 }}>
+            <div style={{ color: "#ff0040", fontSize: 20, fontWeight: 900, fontFamily: "monospace" }}>~{potentialXpMissed}</div>
+            <div style={{ color: "#ff004088", fontSize: 11, fontFamily: "monospace" }}>POTENTIAL XP MISSED</div>
+          </div>
+        </div>
+        {streakLost && <div style={{ color: "#ff0040", fontFamily: "monospace", fontSize: 13, marginBottom: 16, padding: "8px 16px", background: "#ff004010", border: "1px solid #ff004033" }}>🔥 STREAK BROKEN — Reset to 0</div>}
+        <div style={{ color: "#888", fontFamily: "monospace", fontSize: 12, marginBottom: 20, lineHeight: 1.8 }}>
+          Every day you don't show up, your skills decay and your competitors gain ground. The simulation doesn't pause.
+        </div>
+        <button onClick={onDismiss} style={{ background: "#ff004012", border: "1px solid #ff0040", color: "#ff0040", fontFamily: "monospace", fontSize: 14, fontWeight: 900, padding: "14px 40px", cursor: "pointer", letterSpacing: 3 }}>I'M BACK. LET'S GO.</button>
+      </div>
+    </div>
+  );
+}
+
 // ── Particles ─────────────────────────────────────────────────
 function Particles({ active, color = "#00ff41", count = 30 }) {
   if (!active) return null;
@@ -450,6 +743,22 @@ function BloodSplatter({ active }) {
         const dx = (Math.random() - 0.5) * 120, dy = (Math.random() - 0.5) * 120;
         return <div key={i} style={{ position: "absolute", left: `${x}%`, top: `${y}%`, width: size, height: size, borderRadius: "50%", background: "radial-gradient(circle, #ff0000, #880000)", boxShadow: "0 0 4px #ff0000", animation: `splatter 0.6s ${i*0.02}s ease-out forwards`, "--dx": `${dx}px`, "--dy": `${dy}px` }} />;
       })}
+    </div>
+  );
+}
+
+// ── Combo Banner ──────────────────────────────────────────────
+function ComboBanner({ data, onDone }) {
+  useEffect(() => {
+    if (!data) return;
+    const timer = setTimeout(onDone, 2200);
+    return () => clearTimeout(timer);
+  }, [data, onDone]);
+  if (!data) return null;
+  return (
+    <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 9900, pointerEvents: "none", animation: "comboBannerAnim 2s ease-out forwards", textAlign: "center" }}>
+      <div style={{ fontSize: 48, fontWeight: 900, fontFamily: "monospace", color: data.color, textShadow: `0 0 30px ${data.color}, 0 0 60px ${data.color}44`, letterSpacing: 6, lineHeight: 1 }}>{data.label}</div>
+      <div style={{ fontSize: 16, fontFamily: "monospace", color: data.color, opacity: 0.7, marginTop: 8, letterSpacing: 4 }}>+{Math.round(data.xpBonus * 100)}% XP BONUS</div>
     </div>
   );
 }
@@ -768,15 +1077,55 @@ function LevelUpOverlay({ skill, newLevel, onClose }) {
   );
 }
 
-function AddRewardModal({ onAdd, onClose, lifeMission }) {
+function AddRewardModal({ onAdd, onClose, lifeMission, avgDailyCredits, anthropicKey }) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [cat, setCat] = useState("UPGRADE");
   const [cost, setCost] = useState(100);
   const [justification, setJustification] = useState("");
+  const [aiPricing, setAiPricing] = useState(false);
+  const [aiReason, setAiReason] = useState(null);
 
   const isEntertainment = cat === "ENTERTAINMENT";
   const canSubmit = name.trim() && (!isEntertainment || justification.trim().length >= 10);
+
+  const handleAiPrice = async () => {
+    if (!name.trim()) return;
+    const key = anthropicKey || ANTHROPIC_API_KEY;
+    if (!key) { setAiReason("No API key. Set it in Settings."); return; }
+    setAiPricing(true); setAiReason(null);
+    const tier = detectRewardTier(name, desc);
+    const tierRanges = { micro: [5, 30], medium: [40, 150], large: [150, 500], major: [500, 2000] };
+    const [lo, hi] = tierRanges[tier];
+    const avg = avgDailyCredits || 50;
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001", max_tokens: 60,
+          system: `You are a reward pricing engine for a gamified productivity app. The user earns ~${avg} credits per day. Price the reward between ${lo}-${hi} credits. Category: ${cat}. ${cat === "UPGRADE" ? "UPGRADE rewards cost HALF of entertainment." : ""} Return ONLY a JSON object: {"price":NUMBER,"reason":"SHORT_REASON"}`,
+          messages: [{ role: "user", content: `Price this reward: "${name.trim()}"${desc ? ` (${desc.trim()})` : ""}` }],
+        }),
+      });
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || "";
+      const match = raw.match(/\{[\s\S]*?"price"\s*:\s*(\d+)[\s\S]*?"reason"\s*:\s*"([^"]*)"/);
+      if (match) {
+        let price = parseInt(match[1]);
+        if (cat === "UPGRADE") price = Math.max(lo, Math.floor(price * 0.5));
+        price = Math.max(lo, Math.min(hi, price));
+        setCost(price);
+        setAiReason(`${match[2]} (${tier} tier)`);
+      } else {
+        const mid = Math.floor((lo + hi) / 2);
+        setCost(cat === "UPGRADE" ? Math.floor(mid * 0.5) : mid);
+        setAiReason(`Auto-priced as ${tier} tier`);
+      }
+    } catch (e) {
+      setAiReason("AI pricing failed: " + e.message);
+    } finally { setAiPricing(false); }
+  };
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflowY: "auto" }}>
@@ -799,14 +1148,16 @@ function AddRewardModal({ onAdd, onClose, lifeMission }) {
             <div style={{ color: justification.trim().length >= 10 ? "#00ff4188" : "#666", fontSize: 12, fontFamily: "monospace", marginTop: 4 }}>{justification.trim().length}/10 min characters</div>
           </div>
         )}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
           <span style={{ color: "#ffaa00", fontFamily: "monospace", fontSize: 13 }}>COST:</span>
-          <input type="number" min={50} max={500} step={25} value={cost} onChange={e => setCost(Math.max(50, parseInt(e.target.value) || 50))} style={{ width: 90, background: "#111", border: "1px solid #222", color: "#ffaa00", padding: 10, fontFamily: "monospace", fontSize: 14, fontWeight: 900, textAlign: "center" }} />
+          <input type="number" min={5} max={2000} step={5} value={cost} onChange={e => setCost(Math.max(5, parseInt(e.target.value) || 5))} style={{ width: 90, background: "#111", border: "1px solid #222", color: "#ffaa00", padding: 10, fontFamily: "monospace", fontSize: 14, fontWeight: 900, textAlign: "center" }} />
           <span style={{ color: "#ffaa00", fontFamily: "monospace", fontSize: 14, fontWeight: 900 }}>¢</span>
-          <span style={{ color: "#999", fontSize: 12, fontFamily: "monospace" }}>min 50 — max 500</span>
+          <button onClick={handleAiPrice} disabled={!name.trim() || aiPricing} style={{ background: aiPricing ? "#ffaa0008" : "#ffaa0012", border: `1px solid ${name.trim() && !aiPricing ? "#ffaa00" : "#333"}`, color: name.trim() && !aiPricing ? "#ffaa00" : "#555", fontFamily: "monospace", fontSize: 11, padding: "8px 12px", cursor: name.trim() && !aiPricing ? "pointer" : "not-allowed", letterSpacing: 1, fontWeight: 700, whiteSpace: "nowrap" }}>{aiPricing ? "..." : "⚡ AI PRICE"}</button>
         </div>
+        <div style={{ color: "#666", fontSize: 11, fontFamily: "monospace", marginBottom: 8 }}>min 5 — max 2000</div>
+        {aiReason && <div style={{ color: "#ffaa0088", fontSize: 11, fontFamily: "monospace", marginBottom: 12, padding: "6px 10px", background: "#ffaa0008", border: "1px solid #ffaa0022" }}>⚡ {aiReason}</div>}
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => { if (canSubmit) onAdd({ id: `cr_${Date.now()}`, name: name.trim(), desc: desc.trim(), category: cat, cost: Math.min(500, Math.max(50, cost)), icon: cat === "ENTERTAINMENT" ? "▶" : "◈", isCustom: true, justification: justification.trim() || undefined }); }} disabled={!canSubmit} style={{ flex: 1, padding: 12, background: canSubmit ? "#ffaa0012" : "#0a0a0a", border: `1px solid ${canSubmit ? "#ffaa00" : "#222"}`, color: canSubmit ? "#ffaa00" : "#444", fontFamily: "monospace", fontWeight: 700, cursor: canSubmit ? "pointer" : "not-allowed", letterSpacing: 2, fontSize: 13 }}>ADD REWARD</button>
+          <button onClick={() => { if (canSubmit) onAdd({ id: `cr_${Date.now()}`, name: name.trim(), desc: desc.trim(), category: cat, cost: Math.min(2000, Math.max(5, cost)), icon: cat === "ENTERTAINMENT" ? "▶" : "◈", isCustom: true, justification: justification.trim() || undefined }); }} disabled={!canSubmit} style={{ flex: 1, padding: 12, background: canSubmit ? "#ffaa0012" : "#0a0a0a", border: `1px solid ${canSubmit ? "#ffaa00" : "#222"}`, color: canSubmit ? "#ffaa00" : "#444", fontFamily: "monospace", fontWeight: 700, cursor: canSubmit ? "pointer" : "not-allowed", letterSpacing: 2, fontSize: 13 }}>ADD REWARD</button>
           <button onClick={onClose} style={{ padding: "12px 20px", background: "transparent", border: "1px solid #333", color: "#999", fontFamily: "monospace", cursor: "pointer", fontSize: 13 }}>CANCEL</button>
         </div>
       </div>
@@ -899,6 +1250,27 @@ function SettingsModal({ settings, onSave, onClose }) {
 }
 
 const globalStyles = `
+  /* ── CSS Custom Properties (Volcanic defaults) ─────────────── */
+  :root {
+    --bg-deep: #080510;
+    --bg-surface: #0f0b1a;
+    --bg-elevated: #161125;
+    --border: #1e1635;
+    --border-glow: #2a1f45;
+    --text-primary: #ede9f5;
+    --text-secondary: #7a7290;
+    --text-muted: #4a4460;
+    --accent-fire: #FF5E1A;
+    --accent-ember: #FF3D00;
+    --accent-gold: #FFAA00;
+    --accent-ice: #00B4FF;
+    --accent-toxic: #7CFF3F;
+    --accent-royal: #A855F7;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  /* ── Existing Keyframes (preserved) ────────────────────────── */
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
   @keyframes fadeSlide { 0%{opacity:1;transform:translateX(-50%) translateY(0)} 100%{opacity:0;transform:translateX(-50%) translateY(-30px)} }
@@ -909,15 +1281,120 @@ const globalStyles = `
   @keyframes agentDeath { 0%{transform:scale(1);opacity:1;filter:none} 30%{transform:scale(1.1);opacity:1;filter:brightness(3) saturate(0)} 60%{transform:scale(0.9) translateY(10px);opacity:0.6;filter:brightness(2) saturate(0)} 100%{transform:scale(0.3) translateY(40px);opacity:0;filter:brightness(5) saturate(0)} }
   @keyframes matrixRain { 0%{transform:translateY(-20px);opacity:0.8} 100%{transform:translateY(200px);opacity:0} }
   @keyframes fadeIn { 0%{opacity:0;transform:translateY(10px)} 100%{opacity:1;transform:translateY(0)} }
-  @keyframes violationPulse { 0%,100%{border-color:#ff004044} 50%{border-color:#ff0040aa} }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-  body { margin:0; background:#000; overflow-x:hidden; }
-  ::-webkit-scrollbar { width:4px; }
-  ::-webkit-scrollbar-track { background:#000; }
-  ::-webkit-scrollbar-thumb { background:#111; }
-  input::placeholder { color:#333; }
-  textarea::placeholder { color:#333; }
+  @keyframes violationPulse { 0%,100%{border-color:color-mix(in srgb, var(--accent-fire) 25%, transparent)} 50%{border-color:color-mix(in srgb, var(--accent-fire) 65%, transparent)} }
+  @keyframes comboBannerAnim { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.3)} 15%{opacity:1;transform:translate(-50%,-50%) scale(1.15)} 30%{transform:translate(-50%,-50%) scale(1)} 80%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.3) translateY(-40px)} }
+
+  /* ── VORAX New Keyframes ───────────────────────────────────── */
+  @keyframes voraxBreathe {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px var(--accent-fire)); }
+    50% { transform: scale(1.03); filter: drop-shadow(0 0 20px var(--accent-ember)); }
+  }
+  @keyframes voraxEyeGlow {
+    0%, 100% { opacity: 0.7; filter: brightness(1); }
+    50% { opacity: 1; filter: brightness(1.6) drop-shadow(0 0 12px var(--accent-fire)); }
+  }
+  @keyframes voraxMouthOpen {
+    0% { transform: scaleY(0.1); opacity: 0.3; }
+    100% { transform: scaleY(1); opacity: 1; }
+  }
+  @keyframes voraxMouthClose {
+    0% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(0.1); opacity: 0.3; }
+  }
+  @keyframes fireFloat {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    30% { transform: translateY(-20px) scale(1.1); opacity: 0.8; }
+    60% { transform: translateY(-50px) scale(0.8); opacity: 0.5; }
+    100% { transform: translateY(-90px) scale(0.3); opacity: 0; }
+  }
+  @keyframes pageTransition {
+    0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes buttonPress {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+  }
+  @keyframes cardGlow {
+    0%, 100% { box-shadow: 0 0 0 1px var(--border), 0 0 0px transparent; }
+    50% { box-shadow: 0 0 0 1px var(--border-glow), 0 0 20px color-mix(in srgb, var(--accent-fire) 15%, transparent); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* ── Global Reset & Defaults ───────────────────────────────── */
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  html {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    font-family: var(--font-body);
+    line-height: 1.5;
+  }
+
+  code, pre, .mono, [data-mono] {
+    font-family: var(--font-mono);
+  }
+
+  /* ── Scrollbar ─────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-glow);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-fire);
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-glow) var(--bg-deep);
+  }
+
+  /* ── Selection ─────────────────────────────────────────────── */
+  ::selection {
+    background: color-mix(in srgb, var(--accent-fire) 35%, transparent);
+    color: var(--text-primary);
+  }
+  ::-moz-selection {
+    background: color-mix(in srgb, var(--accent-fire) 35%, transparent);
+    color: var(--text-primary);
+  }
+
+  /* ── Placeholder ───────────────────────────────────────────── */
+  input::placeholder { color: var(--text-muted); }
+  textarea::placeholder { color: var(--text-muted); }
+
+  /* ── Focus Ring ────────────────────────────────────────────── */
+  :focus-visible {
+    outline: 2px solid var(--accent-fire);
+    outline-offset: 2px;
+  }
+
+  /* ── Drag Handle ───────────────────────────────────────────── */
   .task-drag { touch-action: none; }
+
+  /* ── Link defaults ─────────────────────────────────────────── */
+  a { color: var(--accent-ice); text-decoration: none; }
+  a:hover { text-decoration: underline; }
 `;
 
 // ═══════════════════════════════════════════════════════════════
@@ -963,8 +1440,15 @@ export default function SimulationOS() {
   const [toast, setToast] = useState(null);
   const toastTimerRef = useRef(null);
   const [settings, setSettings] = useState(loadSettings);
-  const [showSettings, setShowSettings] = useState(false);
   const [expandedSkill, setExpandedSkill] = useState(null); // which main skill is open in skill tree
+  const [comboBannerData, setComboBannerData] = useState(null); // active combo banner display
+  const [showDailyLogin, setShowDailyLogin] = useState(false);
+  const [showMorningPlan, setShowMorningPlan] = useState(false);
+  const [showAbsenceReport, setShowAbsenceReport] = useState(false);
+  const [absenceData, setAbsenceData] = useState(null);
+  const [expandedSetting, setExpandedSetting] = useState(null);
+  const [undoTask, setUndoTask] = useState(null);
+  const undoTimerRef = useRef(null);
   const [aiChatInput, setAiChatInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState(null);
@@ -1019,6 +1503,28 @@ export default function SimulationOS() {
 
   useEffect(() => { saveState(state); }, [state]);
 
+  // ── Keyboard Shortcuts ─────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      // Don't fire when typing in inputs
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (showAddTask || showAddBoss || showAddNPC || showAddReward || showQuickLog || ratingTask || showEndOfDay) return;
+      if (e.key === "n") { e.preventDefault(); setShowAddTask(true); }
+      else if (e.key === "q") { e.preventDefault(); setShowQuickLog(true); }
+      else if (e.key === "1") setView("dashboard");
+      else if (e.key === "2") setView("quests");
+      else if (e.key === "3") setView("bosses");
+      else if (e.key === "4") setView("ai");
+      else if (e.key === "5") setView("market");
+      else if (e.key === "6") setView("npcs");
+      else if (e.key === "7") setView("shop");
+      else if (e.key === "8") setView("skills");
+      else if (e.key === "9") setView("settings");
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [showAddTask, showAddBoss, showAddNPC, showAddReward, showQuickLog, ratingTask, showEndOfDay]);
+
   // Auto-scroll AI chat
   useEffect(() => {
     if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -1029,12 +1535,13 @@ export default function SimulationOS() {
     if (coachEndRef.current) coachEndRef.current.scrollIntoView({ behavior: "smooth" });
   }, [coachHistory, coachStreamText]);
 
-  // ── Day Check + Violations ──────────────────────
+  // ── Day Check + Violations + Decay + Daily Login ──
   useEffect(() => {
     const check = () => {
       const today = new Date().toDateString();
       if (state.lastActiveDate !== today) {
         setState(p => {
+          const daysGone = daysBetween(p.lastActiveDate, today);
           let newNpcs = (p.npcs || []).map(npc => {
             const ds = daysBetween(npc.lastInteraction, today);
             const rate = playerClass.id === "diplomat" ? 0.5 : 1;
@@ -1045,10 +1552,42 @@ export default function SimulationOS() {
           const dtc = [...(p.dailyTaskCounts || []), p.completedToday.length]; if (dtc.length > 30) dtc.shift();
           let violations = [...(p.protocolViolations || [])];
           if (checkTaskCountDrop(p)) violations.push({ date: p.lastActiveDate, reason: "Daily task count dropped 50%+ below 7-day average" });
-          // Save yesterday's end-of-day reflection as reminder
           const lastReflection = (p.endOfDayReflections || []).slice(-1)[0] || null;
-          return { ...p, completedToday: [], lastActiveDate: today, streakDays: p.completedToday.length > 0 ? p.streakDays + 1 : 0, npcs: newNpcs, hardCompletedToday: false, activeDebuffs: (p.activeDebuffs || []).filter(d => !["post_nut","rage"].includes(d.id)), activeBuffs: (p.activeBuffs || []).filter(b => b.expiresAt > Date.now()), consecutiveCompletions: 0, weeklyLog: wl, dailyTaskCounts: dtc, protocolViolations: violations, yesterdayReflection: lastReflection };
+
+          // ── Skill Decay (if gone > GRACE days) ──
+          let totalDecay = 0;
+          let newSkills = { ...p.skills };
+          if (daysGone > DECAY_GRACE_DAYS) {
+            const decayDays = daysGone - DECAY_GRACE_DAYS;
+            Object.keys(newSkills).forEach(sk => {
+              const loss = DECAY_RATE_PER_DAY * decayDays;
+              const s = { ...newSkills[sk] };
+              s.xp = Math.max(0, s.xp - loss);
+              totalDecay += Math.min(loss, (newSkills[sk].xp || 0));
+              newSkills[sk] = s;
+            });
+          }
+
+          // ── Absence report data ──
+          if (daysGone > 1) {
+            const avgDailyXp = p.totalTasksCompleted > 0 && (p.weeklyLog || []).length > 0 ? Math.round(p.totalXpEarned / Math.max(1, (p.weeklyLog || []).length)) : 30;
+            const potentialMissed = avgDailyXp * daysGone;
+            setTimeout(() => {
+              setAbsenceData({ daysGone, xpLost: totalDecay, streakLost: p.streakDays > 0, potentialXpMissed: potentialMissed });
+              setShowAbsenceReport(true);
+            }, 500);
+          }
+
+          // ── Login streak ──
+          const wasConsecutive = daysGone <= 1;
+          const newLoginStreak = wasConsecutive ? (p.loginStreak || 0) : 0;
+
+          return { ...p, skills: newSkills, completedToday: [], lastActiveDate: today, streakDays: p.completedToday.length > 0 ? (wasConsecutive ? p.streakDays + 1 : 1) : 0, npcs: newNpcs, hardCompletedToday: false, activeDebuffs: (p.activeDebuffs || []).filter(d => !["post_nut","rage"].includes(d.id)), activeBuffs: (p.activeBuffs || []).filter(b => b.expiresAt > Date.now()), consecutiveCompletions: 0, weeklyLog: wl, dailyTaskCounts: dtc, protocolViolations: violations, yesterdayReflection: lastReflection, dailyLoginClaimed: false, morningPlanDone: false, loginStreak: newLoginStreak, totalXpMissed: (p.totalXpMissed || 0) + totalDecay };
         });
+      }
+      // Show daily login if not claimed
+      if (!state.dailyLoginClaimed && onboardingData) {
+        setTimeout(() => setShowDailyLogin(true), 800);
       }
     };
     check(); const iv = setInterval(check, 60000); return () => clearInterval(iv);
@@ -1134,14 +1673,21 @@ export default function SimulationOS() {
     setState(prev => {
       const mult = getXpMultiplier(prev); const cM = getCreditMult(prev);
       const baseXp = LIKERT_XP[rating] || 20;
-      const finalXp = Math.floor(baseXp * mult);
+      const con = prev.consecutiveCompletions + 1;
+      const comboBonus = getComboXpBonus(con);
+      const finalXp = Math.floor(baseXp * mult * (1 + comboBonus));
       const sk = prev.skills[task.skill]; let nx = (sk?.xp || 0) + finalXp; let nl = sk?.level || 1; let lvl = false;
       while (nx >= 100) { nx -= 100; nl++; lvl = true; }
       if (lvl) setTimeout(() => setLevelUpInfo({ skill: task.skill, newLevel: nl }), 300);
       const cr = Math.floor((LIKERT_CREDITS[rating] || 20) * cM);
-      const con = prev.consecutiveCompletions + 1;
       let buffs = [...(prev.activeBuffs || [])];
       if (con >= 3 && !buffs.find(b => b.id === "flow_state")) buffs.push({ id: "flow_state", appliedAt: Date.now(), expiresAt: Date.now() + 1800000 });
+      // ── Combo banner trigger ──
+      const comboT = getComboThreshold(con);
+      const prevComboT = getComboThreshold(prev.consecutiveCompletions);
+      if (comboT && (!prevComboT || comboT.min > prevComboT.min)) {
+        setTimeout(() => { AudioEngine.play(comboT.sound); setComboBannerData(comboT); }, 200);
+      }
       // If boss subtask, also mark it done
       let bosses = [...(prev.bosses || [])];
       if (task.bossId) {
@@ -1210,15 +1756,16 @@ export default function SimulationOS() {
     });
   }, []);
 
-  const removeBoss = useCallback(id => setState(p => ({ ...p, bosses: (p.bosses || []).filter(b => b.id !== id), tasks: p.tasks.filter(t => t.bossId !== id) })), []);
+  const removeBoss = useCallback(id => { if (!window.confirm("Remove this goal and all its quests?")) return; setState(p => ({ ...p, bosses: (p.bosses || []).filter(b => b.id !== id), tasks: p.tasks.filter(t => t.bossId !== id) })); }, []);
 
   const addNPC = useCallback(n => { setState(p => ({ ...p, npcs: [...(p.npcs || []), n] })); setShowAddNPC(false); }, []);
   const interactNPC = useCallback(id => { AudioEngine.play("xp"); setState(p => ({ ...p, npcs: (p.npcs || []).map(n => n.id === id ? { ...n, relationshipXp: Math.min(n.maxXp, n.relationshipXp + 10), lastInteraction: new Date().toDateString(), decayWarning: false } : n), skills: { ...p.skills, social: { ...p.skills.social, xp: Math.min(99, p.skills.social.xp + 5) } } })); }, []);
-  const removeNPC = useCallback(id => setState(p => ({ ...p, npcs: (p.npcs || []).filter(n => n.id !== id) })), []);
+  const removeNPC = useCallback(id => { if (!window.confirm("Remove this NPC?")) return; setState(p => ({ ...p, npcs: (p.npcs || []).filter(n => n.id !== id) })); }, []);
   const toggleDebuff = useCallback(id => { AudioEngine.play("click"); setState(p => { const has = (p.activeDebuffs || []).find(d => d.id === id); return { ...p, activeDebuffs: has ? p.activeDebuffs.filter(d => d.id !== id) : [...(p.activeDebuffs || []), { id, appliedAt: Date.now() }] }; }); }, []);
 
   const purchaseReward = useCallback(item => {
     if (state.credits < item.cost) return;
+    if (!window.confirm(`Spend ${item.cost}¢ on "${item.name}"?`)) return;
     AudioEngine.play("coin");
     setState(p => ({ ...p, credits: p.credits - item.cost, purchaseHistory: [...(p.purchaseHistory || []), { ...item, date: Date.now() }], pendingRewardReflection: { name: item.name, date: Date.now() } }));
     showToast("✓ REWARD UNLOCKED", "#ffaa00");
@@ -1236,6 +1783,45 @@ export default function SimulationOS() {
     setShowEndOfDay(false);
   }, []);
 
+
+  // ── Daily Login Claim ──────────────────────────
+  const claimDailyLogin = useCallback(() => {
+    AudioEngine.play("coin");
+    setState(p => {
+      const bonus = DAILY_LOGIN_BONUS;
+      // Distribute XP evenly across skills
+      const perSkill = Math.floor(bonus.xp / 4);
+      const newSkills = { ...p.skills };
+      Object.keys(newSkills).forEach(sk => {
+        const s = { ...newSkills[sk] };
+        s.xp = s.xp + perSkill;
+        while (s.xp >= 100) { s.xp -= 100; s.level++; }
+        newSkills[sk] = s;
+      });
+      return { ...p, skills: newSkills, credits: p.credits + bonus.credits, totalCreditsEarned: p.totalCreditsEarned + bonus.credits, totalXpEarned: p.totalXpEarned + bonus.xp, dailyLoginClaimed: true, loginStreak: (p.loginStreak || 0) + 1, lastLoginDate: new Date().toDateString() };
+    });
+    setShowDailyLogin(false);
+    showToast(`+${DAILY_LOGIN_BONUS.xp} XP · +${DAILY_LOGIN_BONUS.credits}¢`, "#ffaa00", 2500);
+    // Show morning plan if before noon and not done yet
+    const hour = new Date().getHours();
+    if (hour < 12 && !state.morningPlanDone) {
+      setTimeout(() => setShowMorningPlan(true), 600);
+    }
+  }, [showToast, state.morningPlanDone]);
+
+  // ── Morning Plan Submit ───────────────────────
+  const submitMorningPlan = useCallback((taskTexts) => {
+    setState(p => {
+      const newTasks = taskTexts.map((text, i) => {
+        const skill = classifyTask(text) || "intelligence";
+        return { id: `mp_${Date.now()}_${i}`, text, skill, xp: 20 };
+      });
+      return { ...p, tasks: [...p.tasks, ...newTasks], morningPlanDone: true };
+    });
+    setShowMorningPlan(false);
+    AudioEngine.play("xp");
+    showToast("✓ DAY PLANNED — GO EXECUTE", "#00ff41", 2000);
+  }, [showToast]);
 
   const prestige = useCallback(() => {
     if (!window.confirm("PRESTIGE: Reset daily progress, keep stats, +10% XP. Continue?")) return;
@@ -1347,10 +1933,22 @@ Be concise (under 200 words unless asked for more). Give actionable advice tailo
 
   // ── COACH Tab — Streaming Chat ───────────────────────────────
   const sendToCoach = useCallback(async (userMessage) => {
-    if (!ANTHROPIC_API_KEY) {
-      setCoachError("API key not set. Add ANTHROPIC_API_KEY at the top of App.jsx.");
+    if (!ANTHROPIC_API_KEY && !settings.anthropicKey) {
+      setCoachError("No API key. Go to Settings → AI Coach to add your Anthropic API key.");
       return;
     }
+    const activeKey = ANTHROPIC_API_KEY || settings.anthropicKey;
+    // ── Auto-detect debuffs from user message ──
+    const detectedDebuffs = detectDebuffsFromMessage(userMessage);
+    if (detectedDebuffs.length > 0) {
+      setState(prev => {
+        const existing = (prev.activeDebuffs || []).map(d => d.id);
+        const newDebuffs = detectedDebuffs.filter(id => !existing.includes(id));
+        if (newDebuffs.length === 0) return prev;
+        return { ...prev, activeDebuffs: [...prev.activeDebuffs, ...newDebuffs.map(id => ({ id, appliedAt: Date.now() }))] };
+      });
+    }
+
     const newHistory = [...coachHistory, { role: "user", content: userMessage }];
     setCoachHistory(newHistory);
     setCoachInput("");
@@ -1381,7 +1979,8 @@ Credits spent: ${creditsSpent}¢
 Credits refused: ${state.creditsRefused || 0}¢
 Active debuffs: ${debuffsActive}
 Last reflection: ${lastReflection ? `${lastReflection.date} — Productive: ${lastReflection.productive}. ${lastReflection.improvement}` : "None written yet"}
-Allowed rewards: ${allowedRewards}`;
+Allowed rewards: ${allowedRewards}
+${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${detectedDebuffs.map(id => DEBUFF_DEFS[id]?.name || id).join(', ')}. Acknowledge the debuff(s) in your response. Tell the operator what effect this has on their stats and what they should do about it. Be direct.` : ''}`;
 
     const controller = new AbortController();
     try {
@@ -1390,7 +1989,7 @@ Allowed rewards: ${allowedRewards}`;
         signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": ANTHROPIC_API_KEY,
+          "x-api-key": activeKey,
           "anthropic-version": "2023-06-01",
           "anthropic-dangerous-direct-browser-access": "true",
         },
@@ -1439,13 +2038,17 @@ Allowed rewards: ${allowedRewards}`;
       setCoachStreamText("");
     } catch (e) {
       if (e.name !== "AbortError") {
-        setCoachError("Error: " + e.message);
+        const msg = e.message || "";
+        if (msg.includes("401") || msg.includes("invalid")) setCoachError("API key is invalid. Go to Settings → AI Coach to update it.");
+        else if (msg.includes("429") || msg.includes("rate")) setCoachError("Too many requests. Wait a moment and try again.");
+        else if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) setCoachError("No internet connection. Your data is safe locally.");
+        else setCoachError("Error: " + msg);
       }
     } finally {
       setCoachStreaming(false);
       controller.abort(); // no-op if already finished, ensures cleanup
     }
-  }, [coachHistory, state, onboardingData]);
+  }, [coachHistory, state, onboardingData, settings]);
 
   const scheduleNotification = useCallback((timeString) => {
     if (Notification.permission !== 'granted') return;
@@ -1484,7 +2087,19 @@ Allowed rewards: ${allowedRewards}`;
     });
   }, []);
 
-  const removeTask = useCallback(id => { AudioEngine.play("click"); setState(p => ({ ...p, tasks: p.tasks.filter(t => t.id !== id) })); showToast("✗ QUEST REMOVED", "#ff4444"); }, [showToast]);
+  const removeTask = useCallback(id => {
+    if (!window.confirm("Remove this quest?")) return;
+    AudioEngine.play("click");
+    // Save for undo
+    const task = state.tasks.find(t => t.id === id);
+    if (task) {
+      setUndoTask(task);
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = setTimeout(() => setUndoTask(null), 5000);
+    }
+    setState(p => ({ ...p, tasks: p.tasks.filter(t => t.id !== id) }));
+    showToast("✗ QUEST REMOVED — tap UNDO below", "#ff4444", 5000);
+  }, [showToast, state.tasks]);
 
   const addCustomReward = useCallback(reward => { setState(p => ({ ...p, customRewards: [...(p.customRewards || []), reward] })); setShowAddReward(false); }, []);
   const deleteCustomReward = useCallback(id => { setState(p => ({ ...p, customRewards: (p.customRewards || []).filter(r => r.id !== id) })); }, []);
@@ -1525,14 +2140,17 @@ Allowed rewards: ${allowedRewards}`;
   const defeatedBosses = (state.bosses || []).filter(b => b.hp <= 0);
   const activeBuffsList = (state.activeBuffs || []).filter(b => b.expiresAt > Date.now());
   const quote = getRandomQuote();
-  const mainTabs = [
+  const allTabs = [
     { id: "dashboard", label: "⟐ HQ" }, { id: "quests", label: "⚡ QUESTS" }, { id: "bosses", label: "☠ GOALS" },
     { id: "ai", label: "🤖 AI" }, { id: "market", label: "📈 MARKET" }, { id: "npcs", label: "★ NPCs" },
-    { id: "shop", label: "🪙 SHOP" }, { id: "skills", label: "◈ STATS" }, { id: "debug", label: "⚙ SYS" },
+    { id: "shop", label: "🪙 SHOP" }, { id: "skills", label: "◈ STATS" }, { id: "settings", label: "⚙ SET" },
   ];
+  const hiddenTabs = state.settingsConfig?.hiddenTabs || [];
+  const mainTabs = allTabs.filter(t => !hiddenTabs.includes(t.id));
+  const accentColor = state.settingsConfig?.accentColor || "#00ff41";
   const approvedRewards = onboardingData?.allowedRewards || [];
   const allShopRewards = [
-    ...approvedRewards.map((r, i) => ({ id: `ob_${i}`, name: r, desc: "Onboarding approved", category: onboardingData?.classifications?.[r] === "upgrade" ? "UPGRADE" : "ENTERTAINMENT", cost: onboardingData?.classifications?.[r] === "upgrade" ? 75 : 150, icon: onboardingData?.classifications?.[r] === "upgrade" ? "◈" : "▣", isOnboarding: true })),
+    ...approvedRewards.map((r, i) => ({ id: `ob_${i}`, name: r, desc: "Onboarding approved", category: onboardingData?.classifications?.[r] === "upgrade" ? "UPGRADE" : "ENTERTAINMENT", cost: getOnboardingRewardCost(r, onboardingData?.classifications?.[r] || "entertainment"), icon: onboardingData?.classifications?.[r] === "upgrade" ? "◈" : "▣", isOnboarding: true })),
     ...(state.customRewards || []),
   ];
   const rewardGroups = {};
@@ -1801,18 +2419,22 @@ Allowed rewards: ${allowedRewards}`;
     <div style={{ background: "#000", minHeight: "100vh", color: "#eee", fontFamily: "'Courier New', monospace", maxWidth: "100vw", overflowX: "hidden" }}>
       <style>{globalStyles}</style>
       <Particles active={showParticles} color={particleColor} />
+      <ComboBanner data={comboBannerData} onDone={() => setComboBannerData(null)} />
       {toast && (
         <div style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: "#0a0a0a", border: `1px solid ${toast.color}`, color: toast.color, fontFamily: "monospace", fontSize: 13, padding: "10px 20px", zIndex: 99999, letterSpacing: 2, animation: "fadeIn 0.2s ease", whiteSpace: "nowrap", pointerEvents: "none" }}>{toast.msg}</div>
       )}
       {showAddTask && <AddTaskModal onAdd={addTask} onClose={() => setShowAddTask(false)} />}
       {showAddBoss && <AddBossModal onAdd={addBoss} onClose={() => setShowAddBoss(false)} />}
       {showAddNPC && <AddNPCModal onAdd={addNPC} onClose={() => setShowAddNPC(false)} />}
-      {showAddReward && <AddRewardModal onAdd={addCustomReward} onClose={() => setShowAddReward(false)} lifeMission={onboardingData?.mission || ""} />}
+      {showAddReward && <AddRewardModal onAdd={addCustomReward} onClose={() => setShowAddReward(false)} lifeMission={onboardingData?.mission || ""} avgDailyCredits={state.totalCreditsEarned > 0 && state.totalTasksCompleted > 0 ? Math.round(state.totalCreditsEarned / Math.max(1, (state.weeklyLog || []).length || 7)) : 50} anthropicKey={settings.anthropicKey} />}
       {showQuickLog && <QuickLogModal onLog={quickLog} onClose={() => setShowQuickLog(false)} />}
       {levelUpInfo && <LevelUpOverlay skill={levelUpInfo.skill} newLevel={levelUpInfo.newLevel} onClose={() => setLevelUpInfo(null)} />}
       {showEndOfDay && <EndOfDayModal onSubmit={submitEndOfDay} />}
-      {showSettings && <SettingsModal settings={settings} onSave={saveSettingsAndSchedule} onClose={() => setShowSettings(false)} />}
+      {/* SettingsModal removed — settings are now a full tab */}
       {showRewardReflection && state.pendingRewardReflection && <RewardReflectionModal reward={state.pendingRewardReflection} onSubmit={submitRewardReflection} />}
+      {showDailyLogin && !state.dailyLoginClaimed && <DailyLoginModal loginStreak={state.loginStreak || 0} onClaim={claimDailyLogin} />}
+      {showMorningPlan && !state.morningPlanDone && <MorningPlanModal onSubmit={submitMorningPlan} onSkip={() => { setShowMorningPlan(false); setState(p => ({ ...p, morningPlanDone: true })); }} />}
+      {showAbsenceReport && absenceData && <AbsenceReportModal daysGone={absenceData.daysGone} xpLost={absenceData.xpLost} streakLost={absenceData.streakLost} potentialXpMissed={absenceData.potentialXpMissed} onDismiss={() => setShowAbsenceReport(false)} />}
       {showYesterdayReminder && state.yesterdayReflection && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", zIndex: 9500 }}>
           <div style={{ color: "#ffaa00bb", fontSize: 12, letterSpacing: 3, marginBottom: 8, fontFamily: "monospace" }}>YESTERDAY'S COMMITMENT</div>
@@ -1836,12 +2458,16 @@ Allowed rewards: ${allowedRewards}`;
       <div style={{ background: "#050505", borderBottom: "1px solid #111", padding: "12px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <span style={{ color: "#00ff41", fontSize: 14, fontWeight: 900, letterSpacing: 3 }}>SIMULATION OS</span>
-            <span style={{ color: "#999", fontSize: 13, marginLeft: 8 }}>v5.0</span>
+            <span style={{ color: accentColor, fontSize: 14, fontWeight: 900, letterSpacing: 3 }}>SIMULATION OS</span>
+            <span style={{ color: "#555", fontSize: 12, marginLeft: 8 }}>v5.1</span>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ color: "#999", fontSize: 12}}>{dateStr}</div>
-            <div style={{ color: "#00ff41", fontSize: 12, fontWeight: 700 }}>{timeStr}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* API status dot */}
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: (ANTHROPIC_API_KEY || settings.anthropicKey) ? "#00ff41" : "#333", boxShadow: (ANTHROPIC_API_KEY || settings.anthropicKey) ? "0 0 6px #00ff41" : "none" }} title={ANTHROPIC_API_KEY || settings.anthropicKey ? "AI Connected" : "No API Key"} />
+            <div style={{ textAlign: "right" }}>
+              <div style={{ color: "#666", fontSize: 11 }}>{dateStr}</div>
+              <div style={{ color: accentColor, fontSize: 11, fontWeight: 700 }}>{timeStr}</div>
+            </div>
           </div>
         </div>
         <div style={{ display: "flex", gap: 12, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -1850,7 +2476,9 @@ Allowed rewards: ${allowedRewards}`;
           <span style={{ color: "#ffaa00", fontSize: 13}}>🪙 {state.credits}¢</span>
           {xpMult !== 1 && <span style={{ color: xpMult > 1 ? "#00ff41" : "#ff0040", fontSize: 12}}>XP ×{xpMult.toFixed(2)}</span>}
           {state.prestigeLevel > 0 && <span style={{ color: "#ff00ff", fontSize: 12}}>P{state.prestigeLevel}</span>}
+          {(() => { const ct = getComboThreshold(state.consecutiveCompletions); return ct ? <span style={{ color: ct.color, fontSize: 12, border: `1px solid ${ct.color}44`, padding: "1px 6px", animation: "pulse 1.5s infinite" }}>🔥 {ct.label}</span> : null; })()}
           <span style={{ color: "#999", fontSize: 12}}>☠{activeBosses.length}</span>
+          {(state.loginStreak || 0) > 0 && <span style={{ color: "#ffaa00", fontSize: 12 }}>📅{state.loginStreak}d</span>}
         </div>
         {((state.activeDebuffs||[]).length > 0 || activeBuffsList.length > 0) && (
           <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
@@ -1866,7 +2494,7 @@ Allowed rewards: ${allowedRewards}`;
 
       <div style={{ display: "flex", overflowX: "auto", borderBottom: "1px solid #111", background: "#050505" }}>
         {mainTabs.map(t => (
-          <button key={t.id} onClick={() => { setView(t.id); AudioEngine.play("click"); }} style={{ flex: "0 0 auto", padding: "10px 14px", background: view === t.id ? "#0a0a0a" : "transparent", border: "none", borderBottom: view === t.id ? "2px solid #00ff41" : "2px solid transparent", color: view === t.id ? "#00ff41" : "#444", fontFamily: "monospace", fontSize: 13, cursor: "pointer", letterSpacing: 1, whiteSpace: "nowrap" }}>{t.label}</button>
+          <button key={t.id} onClick={() => { setView(t.id); AudioEngine.play("click"); }} style={{ flex: "0 0 auto", padding: "10px 14px", background: view === t.id ? "#0a0a0a" : "transparent", border: "none", borderBottom: view === t.id ? `2px solid ${accentColor}` : "2px solid transparent", color: view === t.id ? accentColor : "#444", fontFamily: "monospace", fontSize: 13, cursor: "pointer", letterSpacing: 1, whiteSpace: "nowrap" }}>{t.label}</button>
         ))}
       </div>
 
@@ -1877,7 +2505,24 @@ Allowed rewards: ${allowedRewards}`;
         {/* ══ HQ DASHBOARD ══ */}
         {view === "dashboard" && (
           <div>
-            <div style={{ color: "#00ff41", fontSize: 13, letterSpacing: 4, marginBottom: 16 }}>⟐ HEADQUARTERS</div>
+            <div style={{ color: accentColor, fontSize: 14, letterSpacing: 4, marginBottom: 8, fontWeight: 900 }}>⟐ HEADQUARTERS</div>
+            {/* XP Decay Warning */}
+            {(() => {
+              const lastTask = (state.completedHistory || []).slice(-1)[0];
+              const hoursSinceTask = lastTask ? Math.floor((Date.now() - lastTask.timestamp) / 3600000) : 999;
+              if (hoursSinceTask >= 20 && hoursSinceTask < 48) {
+                return <div style={{ background: "#ff004010", border: "1px solid #ff004033", padding: "10px 14px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div><div style={{ color: "#ff0040", fontSize: 12, fontFamily: "monospace", fontWeight: 700 }}>⚠ XP DECAY WARNING</div><div style={{ color: "#ff004088", fontSize: 11, fontFamily: "monospace" }}>No task logged in {hoursSinceTask}h — skills decay at 48h</div></div>
+                  <div style={{ color: "#ff0040", fontSize: 16, fontWeight: 900, fontFamily: "monospace" }}>{Math.max(0, 48 - hoursSinceTask)}h</div>
+                </div>;
+              }
+              if (hoursSinceTask >= 48) {
+                return <div style={{ background: "#ff004015", border: "1px solid #ff0040", padding: "10px 14px", marginBottom: 12, animation: "pulse 2s infinite" }}>
+                  <div style={{ color: "#ff0040", fontSize: 13, fontFamily: "monospace", fontWeight: 900 }}>💀 DECAY ACTIVE — Log a task NOW</div>
+                </div>;
+              }
+              return null;
+            })()}
             {onboardingData?.mission && (
               <div style={{ background: "#00ff4108", border: "1px solid #00ff4118", padding: 14, marginBottom: 12 }}>
                 <div style={{ color: "#00ff4199", fontSize: 12, letterSpacing: 3, marginBottom: 4 }}>LIFE MISSION — {onboardingData.username}</div>
@@ -1896,23 +2541,24 @@ Allowed rewards: ${allowedRewards}`;
               );
             })()}
             {Object.entries(state.skills).map(([k, v]) => <XPBar key={k} xp={v.xp} level={v.level} def={SKILL_DEFS[k]} />)}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 16 }}>
               <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 12, textAlign: "center" }}>
-                <div style={{ color: "#999", fontSize: 12, letterSpacing: 2 }}>TASKS TODAY</div>
-                <div style={{ color: "#00ff41", fontSize: 24, fontWeight: 900 }}>{state.completedToday.length}</div>
+                <div style={{ color: "#666", fontSize: 10, letterSpacing: 2 }}>TODAY</div>
+                <div style={{ color: accentColor, fontSize: 22, fontWeight: 900 }}>{state.completedToday.length}</div>
               </div>
               <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 12, textAlign: "center" }}>
-                <div style={{ color: "#999", fontSize: 12, letterSpacing: 2 }}>TOTAL XP</div>
-                <div style={{ color: "#00ff41", fontSize: 24, fontWeight: 900 }}>{state.totalXpEarned}</div>
+                <div style={{ color: "#666", fontSize: 10, letterSpacing: 2 }}>STREAK</div>
+                <div style={{ color: state.streakDays > 0 ? "#ffaa00" : "#333", fontSize: 22, fontWeight: 900 }}>{state.streakDays}d</div>
               </div>
               <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 12, textAlign: "center" }}>
-                <div style={{ color: "#999", fontSize: 12, letterSpacing: 2 }}>STREAK</div>
-                <div style={{ color: state.streakDays > 0 ? "#ffaa00" : "#333", fontSize: 24, fontWeight: 900 }}>{state.streakDays}d</div>
+                <div style={{ color: "#666", fontSize: 10, letterSpacing: 2 }}>LOGINS</div>
+                <div style={{ color: "#ff00ff", fontSize: 22, fontWeight: 900 }}>{state.loginStreak || 0}d</div>
               </div>
-              <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 12, textAlign: "center" }}>
-                <div style={{ color: "#999", fontSize: 12, letterSpacing: 2 }}>GOALS HIT</div>
-                <div style={{ color: "#ff0040", fontSize: 24, fontWeight: 900 }}>{defeatedBosses.length}</div>
-              </div>
+            </div>
+            {/* Quick action row */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+              <button onClick={() => setShowAddTask(true)} style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}33`, color: accentColor, fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: "pointer", letterSpacing: 2, fontWeight: 700 }}>+ NEW QUEST</button>
+              <button onClick={() => setShowQuickLog(true)} style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}33`, color: accentColor, fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: "pointer", letterSpacing: 2, fontWeight: 700 }}>⚡ QUICK LOG</button>
             </div>
           </div>
         )}
@@ -1920,12 +2566,20 @@ Allowed rewards: ${allowedRewards}`;
         {/* ══ QUESTS (touch-friendly reorder) ══ */}
         {view === "quests" && (
           <div>
+            <BackButton onClick={() => setView("dashboard")} color={accentColor} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ color: "#00ff41", fontSize: 13, letterSpacing: 4 }}>⚡ ACTIVE QUESTS</div>
+              <div style={{ color: accentColor, fontSize: 14, letterSpacing: 4, fontWeight: 900 }}>⚡ ACTIVE QUESTS</div>
               <button onClick={() => setShowAddTask(true)} style={{ background: "#00ff4112", border: "1px solid #00ff41", color: "#00ff41", fontFamily: "monospace", fontSize: 13, padding: "8px 16px", cursor: "pointer", letterSpacing: 2 }}>+ NEW</button>
             </div>
-            {activeTasks.length === 0 && state.completedToday.length > 0 && <div style={{ color: "#00ff41", fontSize: 13, textAlign: "center", padding: 40, fontFamily: "monospace" }}>🎯 ALL TASKS COMPLETE</div>}
-            {activeTasks.length === 0 && state.completedToday.length === 0 && <div style={{ color: "#999", fontSize: 13, textAlign: "center", padding: 40 }}>No active quests. Add one above.</div>}
+            {activeTasks.length === 0 && state.completedToday.length > 0 && <div style={{ color: accentColor, fontSize: 13, textAlign: "center", padding: 40, fontFamily: "monospace" }}>🎯 ALL TASKS COMPLETE</div>}
+            {activeTasks.length === 0 && state.completedToday.length === 0 && (
+              <div style={{ textAlign: "center", padding: 40 }}>
+                <div style={{ color: "#555", fontSize: 36, marginBottom: 12 }}>⚡</div>
+                <div style={{ color: "#888", fontSize: 13, fontFamily: "monospace", marginBottom: 8 }}>No active quests yet.</div>
+                <div style={{ color: "#555", fontSize: 12, fontFamily: "monospace", marginBottom: 16 }}>Quests are daily tasks that earn XP and credits. Add your first one to start leveling up.</div>
+                <button onClick={() => setShowAddTask(true)} style={{ background: `${accentColor}12`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "monospace", fontSize: 13, padding: "10px 24px", cursor: "pointer", letterSpacing: 2 }}>+ ADD FIRST QUEST</button>
+              </div>
+            )}
             {activeTasks.map((task, idx) => {
               const isBossTask = !!task.bossId;
               return (
@@ -1960,11 +2614,19 @@ Allowed rewards: ${allowedRewards}`;
         {/* ══ GOALS (Boss Fights) ══ */}
         {view === "bosses" && (
           <div>
+            <BackButton onClick={() => setView("dashboard")} color="#ff0040" />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ color: "#ff0040", fontSize: 13, letterSpacing: 4 }}>☠ LONG-TERM GOALS</div>
+              <div style={{ color: "#ff0040", fontSize: 14, letterSpacing: 4, fontWeight: 900 }}>☠ LONG-TERM GOALS</div>
               <button onClick={() => setShowAddBoss(true)} style={{ background: "#ff004012", border: "1px solid #ff0040", color: "#ff0040", fontFamily: "monospace", fontSize: 13, padding: "8px 16px", cursor: "pointer", letterSpacing: 2 }}>+ NEW GOAL</button>
             </div>
-            {activeBosses.length === 0 && <div style={{ color: "#999", fontSize: 13, textAlign: "center", padding: 40 }}>No active goals. Set one above.</div>}
+            {activeBosses.length === 0 && (
+              <div style={{ textAlign: "center", padding: 40 }}>
+                <div style={{ color: "#555", fontSize: 36, marginBottom: 12 }}>☠</div>
+                <div style={{ color: "#888", fontSize: 13, fontFamily: "monospace", marginBottom: 8 }}>No active goals.</div>
+                <div style={{ color: "#555", fontSize: 12, fontFamily: "monospace", marginBottom: 16 }}>Goals are long-term objectives with milestones. Set one to give your daily tasks a bigger purpose.</div>
+                <button onClick={() => setShowAddBoss(true)} style={{ background: "#ff004012", border: "1px solid #ff0040", color: "#ff0040", fontFamily: "monospace", fontSize: 13, padding: "10px 24px", cursor: "pointer", letterSpacing: 2 }}>+ SET FIRST GOAL</button>
+              </div>
+            )}
             {activeBosses.map(boss => {
               const hpPct = (boss.hp / boss.maxHp) * 100;
               const daysLeft = Math.max(0, Math.ceil((boss.deadline - Date.now()) / 86400000));
@@ -2021,11 +2683,19 @@ Allowed rewards: ${allowedRewards}`;
         {/* ══ NPCs ══ */}
         {view === "npcs" && (
           <div>
+            <BackButton onClick={() => setView("dashboard")} color="#00d4ff" />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ color: "#00d4ff", fontSize: 13, letterSpacing: 4 }}>★ NPC NETWORK</div>
+              <div style={{ color: "#00d4ff", fontSize: 14, letterSpacing: 4, fontWeight: 900 }}>★ <Tip term="NPC">NPC</Tip> NETWORK</div>
               <button onClick={() => setShowAddNPC(true)} style={{ background: "#00d4ff12", border: "1px solid #00d4ff", color: "#00d4ff", fontFamily: "monospace", fontSize: 13, padding: "8px 16px", cursor: "pointer", letterSpacing: 2 }}>+ ADD</button>
             </div>
-            {(state.npcs||[]).length === 0 && <div style={{ color: "#999", fontSize: 13, textAlign: "center", padding: 40 }}>No NPCs. Add one above.</div>}
+            {(state.npcs||[]).length === 0 && (
+              <div style={{ textAlign: "center", padding: 40 }}>
+                <div style={{ color: "#555", fontSize: 36, marginBottom: 12 }}>★</div>
+                <div style={{ color: "#888", fontSize: 13, fontFamily: "monospace", marginBottom: 8 }}>No NPCs in your network.</div>
+                <div style={{ color: "#555", fontSize: 12, fontFamily: "monospace", marginBottom: 16 }}>NPCs are real people in your life — friends, mentors, rivals. Track interactions to level up your Social skill.</div>
+                <button onClick={() => setShowAddNPC(true)} style={{ background: "#00d4ff12", border: "1px solid #00d4ff", color: "#00d4ff", fontFamily: "monospace", fontSize: 13, padding: "10px 24px", cursor: "pointer", letterSpacing: 2 }}>+ ADD FIRST NPC</button>
+              </div>
+            )}
             {(state.npcs||[]).map(npc => {
               const pct = (npc.relationshipXp / npc.maxXp) * 100;
               return (
@@ -2049,6 +2719,7 @@ Allowed rewards: ${allowedRewards}`;
 
         {/* ══ MARKET (Investment System) ══ */}
         {view === "market" && (() => {
+          // Back button rendered inside the IIFE return
           const prices = state.marketPrices || { intelligence: 100, strength: 100, vitality: 100, social: 100 };
           const inv = state.investments || {};
           const totalValue = Object.keys(prices).reduce((sum, sk) => sum + (inv[sk] || 0) * prices[sk], 0);
@@ -2057,8 +2728,9 @@ Allowed rewards: ${allowedRewards}`;
           const netPL = Math.round(totalValue + totalSold - totalInvested);
           return (
           <div>
+            <BackButton onClick={() => setView("dashboard")} color="#00d4ff" />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ color: "#00d4ff", fontSize: 13, letterSpacing: 4 }}>📈 STAT MARKET</div>
+              <div style={{ color: "#00d4ff", fontSize: 14, letterSpacing: 4, fontWeight: 900 }}>📈 STAT MARKET</div>
               <span style={{ color: "#ffaa00", fontSize: 14, fontWeight: 900 }}>{state.credits}¢</span>
             </div>
             <div style={{ color: "#999", fontSize: 12, fontFamily: "monospace", marginBottom: 16, lineHeight: 1.8 }}>
@@ -2136,8 +2808,9 @@ Allowed rewards: ${allowedRewards}`;
         {/* ══ SHOP ══ */}
         {view === "shop" && (
           <div>
+            <BackButton onClick={() => setView("dashboard")} color="#ffaa00" />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ color: "#ffaa00", fontSize: 13, letterSpacing: 4 }}>🪙 REWARD SHOP</div>
+              <div style={{ color: "#ffaa00", fontSize: 14, letterSpacing: 4, fontWeight: 900 }}>🪙 REWARD SHOP</div>
               <span style={{ color: "#ffaa00", fontSize: 14, fontWeight: 900 }}>{state.credits}¢</span>
             </div>
             <div style={{ background: "#00ff4108", border: "1px solid #00ff4118", padding: 12, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -2185,7 +2858,8 @@ Allowed rewards: ${allowedRewards}`;
         {/* ══ STATS ══ */}
         {view === "skills" && (
           <div>
-            <div style={{ color: "#00ff41", fontSize: 13, letterSpacing: 4, marginBottom: 16 }}>◈ OPERATOR STATS</div>
+            <BackButton onClick={() => setView("dashboard")} color={accentColor} />
+            <div style={{ color: accentColor, fontSize: 14, letterSpacing: 4, marginBottom: 16, fontWeight: 900 }}>◈ OPERATOR STATS</div>
             <div style={{ background: "#0a0a0a", border: `1px solid ${playerClass.color}33`, padding: 16, marginBottom: 16, textAlign: "center" }}>
               <div style={{ color: playerClass.color, fontSize: 28 }}>{playerClass.icon}</div>
               <div style={{ color: playerClass.color, fontSize: 14, fontWeight: 900, letterSpacing: 3, marginTop: 4 }}>{playerClass.name}</div>
@@ -2262,11 +2936,20 @@ Allowed rewards: ${allowedRewards}`;
               })}
             </div>
             <div style={{ marginTop: 20 }}>
-              <div style={{ color: "#ff0040", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>DEBUFFS</div>
+              <div style={{ color: "#ff0040", fontSize: 12, letterSpacing: 2, marginBottom: 4 }}>ACTIVE DEBUFFS</div>
+              <div style={{ color: "#555", fontSize: 11, fontFamily: "monospace", marginBottom: 8 }}>Auto-detected from coach chat · tap × to remove</div>
+              {(state.activeDebuffs||[]).length === 0 && <div style={{ color: "#222", fontSize: 12, fontFamily: "monospace", padding: 8 }}>No active debuffs — clean status</div>}
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {Object.entries(DEBUFF_DEFS).map(([id, d]) => {
-                  const active = (state.activeDebuffs||[]).find(x => x.id === id);
-                  return <button key={id} onClick={() => toggleDebuff(id)} style={{ background: active ? `${d.color}15` : "transparent", border: `1px solid ${active ? d.color : "#222"}`, color: active ? d.color : "#444", fontFamily: "monospace", fontSize: 12, padding: "6px 10px", cursor: "pointer" }}>{d.icon} {d.name}</button>;
+                {(state.activeDebuffs||[]).map(d => {
+                  const def = DEBUFF_DEFS[d.id];
+                  if (!def) return null;
+                  return (
+                    <div key={d.id} style={{ background: `${def.color}15`, border: `1px solid ${def.color}44`, color: def.color, fontFamily: "monospace", fontSize: 12, padding: "6px 10px", display: "flex", alignItems: "center", gap: 6 }}>
+                      <span>{def.icon} {def.name}</span>
+                      <span style={{ color: `${def.color}88`, fontSize: 10 }}>{def.effect}</span>
+                      <button onClick={() => toggleDebuff(d.id)} style={{ background: "none", border: "none", color: def.color, cursor: "pointer", fontSize: 14, padding: "0 2px", opacity: 0.6 }}>×</button>
+                    </div>
+                  );
                 })}
               </div>
             </div>
@@ -2281,55 +2964,203 @@ Allowed rewards: ${allowedRewards}`;
           </div>
         )}
 
-        {/* ══ SYS ══ */}
-        {view === "debug" && (
+        {/* ══ SETTINGS ══ */}
+        {view === "settings" && (() => {
+          const sc = state.settingsConfig || {};
+          const settingSections = [
+            { id: "account", label: "ACCOUNT", icon: "👤", color: "#00d4ff" },
+            { id: "appearance", label: "APPEARANCE", icon: "🎨", color: "#ff00ff" },
+            { id: "notifications", label: "NOTIFICATIONS", icon: "🔔", color: "#ffaa00" },
+            { id: "sound", label: "SOUND", icon: "🔊", color: "#00ff41" },
+            { id: "coach", label: "AI COACH", icon: "🤖", color: "#ff0040" },
+            { id: "tabs", label: "TAB CUSTOMIZATION", icon: "📱", color: "#8844ff" },
+            { id: "data", label: "DATA & DISCIPLINE", icon: "💾", color: "#ff0040" },
+            { id: "help", label: "HOW TO PLAY", icon: "❓", color: "#888" },
+          ];
+          return (
           <div>
-            <div style={{ color: "#00ff41", fontSize: 13, letterSpacing: 4, marginBottom: 16 }}>⚙ SYSTEM</div>
-            <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 14, marginBottom: 16 }}>
-              <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 10 }}>REPORT</div>
-              <div style={{ color: "#aaa", fontSize: 13, lineHeight: 1.8 }}>
-                Tasks: {state.totalTasksCompleted} · XP: {state.totalXpEarned} · Credits: {state.totalCreditsEarned}¢<br/>
-                Refused: {state.creditsRefused || 0}¢ · Streak: {state.streakDays}d · Class: {playerClass.name}<br/>
-                Prestige: {state.prestigeLevel} · Goals: {activeBosses.length} active, {defeatedBosses.length} done<br/>
-                Violations: {(state.protocolViolations||[]).length} · Reflections: {(state.endOfDayReflections||[]).length}
-              </div>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <button onClick={() => { if (state.credits > 0) { AudioEngine.play("fear"); setState(p => ({ ...p, creditsRefused: (p.creditsRefused || 0) + p.credits, credits: 0 })); } }} disabled={state.credits <= 0} style={{ width: "100%", background: state.credits > 0 ? "#00ff4108" : "#0a0a0a", border: `1px solid ${state.credits > 0 ? "#00ff4133" : "#111"}`, color: state.credits > 0 ? "#00ff41" : "#333", fontFamily: "monospace", fontSize: 13, padding: "12px", cursor: state.credits > 0 ? "pointer" : "not-allowed", letterSpacing: 2, marginBottom: 8 }}>REFUSE ALL {state.credits}¢ — PROVE DISCIPLINE</button>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>FLASH LOG (+15 XP)</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {Object.entries(SKILL_DEFS).map(([k, v]) => (
-                  <button key={k} onClick={() => {
-                    AudioEngine.play("xp"); setShowParticles(true); setParticleColor(v.color); setTimeout(() => setShowParticles(false), 1500);
-                    setState(p => { const sk = p.skills[k]; let nx = sk.xp + 15; let nl = sk.level; let lvl = false; while (nx >= 100) { nx -= 100; nl++; lvl = true; } if (lvl) setTimeout(() => setLevelUpInfo({ skill: k, newLevel: nl }), 300); return { ...p, skills: { ...p.skills, [k]: { xp: nx, level: nl } }, totalXpEarned: p.totalXpEarned + 15 }; });
-                  }} style={{ flex: 1, minWidth: 70, background: `${v.color}10`, border: `1px solid ${v.color}33`, color: v.color, fontFamily: "monospace", fontSize: 12, padding: "8px 4px", cursor: "pointer" }}>{v.icon} {v.name.slice(0,3)}</button>
-                ))}
-              </div>
-            </div>
-            {/* End-of-day reflection history */}
-            {(state.endOfDayReflections||[]).length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>REFLECTION LOG</div>
-                {(state.endOfDayReflections||[]).slice(-7).reverse().map((r,i) => (
-                  <div key={i} style={{ background: "#0a0a0a", border: "1px solid #111", padding: 10, marginBottom: 4 }}>
-                    <div style={{ color: "#999", fontSize: 12}}>{r.date} · {r.productive}</div>
-                    <div style={{ color: "#888", fontSize: 12, marginTop: 2 }}>{r.improvement}</div>
+            <BackButton onClick={() => setView("dashboard")} color={accentColor} />
+            <div style={{ color: accentColor, fontSize: 14, letterSpacing: 4, marginBottom: 4, fontWeight: 900 }}>⚙ SETTINGS</div>
+            <div style={{ color: "#555", fontSize: 12, fontFamily: "monospace", marginBottom: 20 }}>Your data lives on this device only. Configure your experience.</div>
+
+            {settingSections.map(sec => (
+              <div key={sec.id} style={{ marginBottom: 6 }}>
+                <div onClick={() => setExpandedSetting(expandedSetting === sec.id ? null : sec.id)} style={{ background: expandedSetting === sec.id ? `${sec.color}12` : "#0a0a0a", border: `1px solid ${expandedSetting === sec.id ? sec.color + "44" : "#1a1a1a"}`, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 16 }}>{sec.icon}</span>
+                  <span style={{ color: expandedSetting === sec.id ? sec.color : "#888", fontSize: 13, fontWeight: 700, letterSpacing: 2, fontFamily: "monospace", flex: 1 }}>{sec.label}</span>
+                  <span style={{ color: expandedSetting === sec.id ? sec.color : "#333", fontSize: 12 }}>{expandedSetting === sec.id ? "▾" : "▸"}</span>
+                </div>
+
+                {expandedSetting === sec.id && (
+                  <div style={{ background: "#050505", border: `1px solid ${sec.color}22`, borderTop: "none", padding: 16 }}>
+
+                    {/* ACCOUNT */}
+                    {sec.id === "account" && (
+                      <div>
+                        <div style={{ color: "#fff", fontSize: 13, fontFamily: "monospace", marginBottom: 4 }}>OPERATOR: {onboardingData?.username || "Unknown"}</div>
+                        <div style={{ color: "#555", fontSize: 12, fontFamily: "monospace", marginBottom: 16 }}>Life mission: {onboardingData?.mission?.slice(0, 60) || "Not set"}{(onboardingData?.mission?.length || 0) > 60 ? "..." : ""}</div>
+                        <div style={{ color: "#00d4ff", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>EMAIL (for future sync)</div>
+                        <input value={sc.accountEmail || ""} onChange={e => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, accountEmail: e.target.value } }))} placeholder="your@email.com" style={{ width: "100%", background: "#111", border: "1px solid #222", color: "#eee", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 12, boxSizing: "border-box" }} />
+                        <div style={{ color: "#00d4ff", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>PASSWORD</div>
+                        <input type="password" value={sc.accountPassword || ""} onChange={e => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, accountPassword: e.target.value } }))} placeholder="Set password..." style={{ width: "100%", background: "#111", border: "1px solid #222", color: "#eee", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }} />
+                        <div style={{ color: "#444", fontSize: 11, fontFamily: "monospace", lineHeight: 1.7 }}>⚠ Stored locally only. Cloud sync coming soon.</div>
+                      </div>
+                    )}
+
+                    {/* APPEARANCE */}
+                    {sec.id === "appearance" && (
+                      <div>
+                        <div style={{ color: "#ff00ff", fontSize: 12, letterSpacing: 2, marginBottom: 12, fontFamily: "monospace" }}>ACCENT COLOR</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 16 }}>
+                          {ACCENT_COLORS.map(ac => (
+                            <button key={ac.id} onClick={() => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, accentColor: ac.color } }))} style={{ padding: "12px 8px", background: accentColor === ac.color ? `${ac.color}20` : "#0a0a0a", border: `2px solid ${accentColor === ac.color ? ac.color : "#222"}`, cursor: "pointer", textAlign: "center" }}>
+                              <div style={{ width: 24, height: 24, background: ac.color, borderRadius: "50%", margin: "0 auto 6px", boxShadow: `0 0 12px ${ac.color}44` }} />
+                              <div style={{ color: accentColor === ac.color ? ac.color : "#666", fontFamily: "monospace", fontSize: 11, letterSpacing: 2 }}>{ac.name}</div>
+                            </button>
+                          ))}
+                        </div>
+                        <div style={{ color: "#444", fontSize: 11, fontFamily: "monospace" }}>Accent color changes header and primary UI elements.</div>
+                      </div>
+                    )}
+
+                    {/* NOTIFICATIONS */}
+                    {sec.id === "notifications" && (
+                      <div>
+                        <div style={{ color: "#ffaa00", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>DAILY REFLECTION REMINDER</div>
+                        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 16 }}>
+                          <span style={{ color: "#888", fontSize: 13, fontFamily: "monospace" }}>Remind at:</span>
+                          <input type="time" value={settings.notificationTime || "21:00"} onChange={e => { const ns = { ...settings, notificationTime: e.target.value }; saveSettingsAndSchedule(ns); }} style={{ background: "#111", border: "1px solid #ffaa0033", color: "#ffaa00", padding: 10, fontFamily: "monospace", fontSize: 13, colorScheme: "dark" }} />
+                        </div>
+                        <div style={{ color: "#ffaa00", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>COACH DISPLAY NAME</div>
+                        <input value={settings.notificationName || "Coach"} onChange={e => { const ns = { ...settings, notificationName: e.target.value }; saveSettingsAndSchedule(ns); }} placeholder="Coach" style={{ width: "100%", background: "#111", border: "1px solid #222", color: "#eee", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }} />
+                        <button onClick={() => { if (Notification.permission !== "granted") Notification.requestPermission(); else showToast("Notifications already enabled", "#00ff41"); }} style={{ width: "100%", background: "#ffaa0008", border: "1px solid #ffaa0033", color: "#ffaa00", fontFamily: "monospace", fontSize: 12, padding: "10px", cursor: "pointer", letterSpacing: 2 }}>ENABLE NOTIFICATIONS</button>
+                      </div>
+                    )}
+
+                    {/* SOUND */}
+                    {sec.id === "sound" && (
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                          <span style={{ color: "#00ff41", fontSize: 13, fontFamily: "monospace" }}>SOUND EFFECTS</span>
+                          <button onClick={() => setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, soundEnabled: !(p.settingsConfig?.soundEnabled !== false) } }))} style={{ padding: "8px 20px", background: (sc.soundEnabled !== false) ? "#00ff4115" : "#ff004015", border: `1px solid ${(sc.soundEnabled !== false) ? "#00ff41" : "#ff0040"}`, color: (sc.soundEnabled !== false) ? "#00ff41" : "#ff0040", fontFamily: "monospace", fontSize: 12, cursor: "pointer", fontWeight: 700 }}>{(sc.soundEnabled !== false) ? "ON" : "OFF"}</button>
+                        </div>
+                        <div style={{ color: "#00ff41", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>SOUND TYPE</div>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          {["retro", "minimal", "heavy"].map(st => (
+                            <button key={st} onClick={() => { setState(p => ({ ...p, settingsConfig: { ...p.settingsConfig, soundType: st } })); AudioEngine.play("click"); }} style={{ flex: 1, padding: "10px 4px", background: (sc.soundType || "retro") === st ? "#00ff4115" : "transparent", border: `1px solid ${(sc.soundType || "retro") === st ? "#00ff41" : "#222"}`, color: (sc.soundType || "retro") === st ? "#00ff41" : "#555", fontFamily: "monospace", fontSize: 12, cursor: "pointer", textTransform: "uppercase" }}>{st}</button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* COACH */}
+                    {sec.id === "coach" && (
+                      <div>
+                        <div style={{ color: "#ff0040", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>ANTHROPIC API KEY</div>
+                        <div style={{ color: "#888", fontSize: 11, fontFamily: "monospace", marginBottom: 8, lineHeight: 1.7 }}>Get a key at console.anthropic.com. Stored only on this device.</div>
+                        <input type="password" value={settings.anthropicKey || ""} onChange={e => { const ns = { ...settings, anthropicKey: e.target.value }; saveSettingsAndSchedule(ns); }} placeholder="sk-ant-..." style={{ width: "100%", background: "#111", border: `1px solid ${settings.anthropicKey ? "#00ff4133" : "#222"}`, color: "#00ff41", padding: 12, fontFamily: "monospace", fontSize: 13, marginBottom: 12, boxSizing: "border-box" }} />
+                        <div style={{ color: "#ff0040", fontSize: 12, letterSpacing: 2, marginBottom: 8, fontFamily: "monospace" }}>COACH PERSONALITY</div>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          {[["direct", "DIRECT"], ["gentle", "GENTLE"], ["drill", "DRILL SGT"]].map(([v, l]) => (
+                            <button key={v} onClick={() => { const ns = { ...settings, coachPersonality: v }; saveSettingsAndSchedule(ns); }} style={{ flex: 1, padding: "10px 4px", background: (settings.coachPersonality || "direct") === v ? "#ff004012" : "transparent", border: `1px solid ${(settings.coachPersonality || "direct") === v ? "#ff0040" : "#222"}`, color: (settings.coachPersonality || "direct") === v ? "#ff0040" : "#555", fontFamily: "monospace", fontSize: 12, cursor: "pointer" }}>{l}</button>
+                          ))}
+                        </div>
+                        {!ANTHROPIC_API_KEY && !settings.anthropicKey && (
+                          <div style={{ marginTop: 12, background: "#ffaa0008", border: "1px solid #ffaa0033", padding: 12 }}>
+                            <div style={{ color: "#ffaa00", fontSize: 12, fontFamily: "monospace", letterSpacing: 1, marginBottom: 6 }}>⚠ NO API KEY SET</div>
+                            <div style={{ color: "#888", fontSize: 11, fontFamily: "monospace", lineHeight: 1.8 }}>
+                              1. Go to console.anthropic.com<br/>
+                              2. Create an account (free tier available)<br/>
+                              3. Generate an API key<br/>
+                              4. Paste it above
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* TAB CUSTOMIZATION */}
+                    {sec.id === "tabs" && (
+                      <div>
+                        <div style={{ color: "#555", fontSize: 11, fontFamily: "monospace", marginBottom: 12 }}>Show or hide tabs. HQ and Settings cannot be hidden.</div>
+                        {allTabs.map(tab => {
+                          const locked = tab.id === "dashboard" || tab.id === "settings";
+                          const hidden = hiddenTabs.includes(tab.id);
+                          return (
+                            <div key={tab.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #111" }}>
+                              <button onClick={() => { if (locked) return; setState(p => { const ht = [...(p.settingsConfig?.hiddenTabs || [])]; const idx = ht.indexOf(tab.id); if (idx >= 0) ht.splice(idx, 1); else ht.push(tab.id); return { ...p, settingsConfig: { ...p.settingsConfig, hiddenTabs: ht } }; }); }} disabled={locked} style={{ width: 24, height: 24, background: hidden ? "transparent" : `${accentColor}22`, border: `2px solid ${locked ? "#333" : hidden ? "#444" : accentColor}`, color: hidden ? "transparent" : accentColor, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", cursor: locked ? "not-allowed" : "pointer" }}>{hidden ? "" : "✓"}</button>
+                              <span style={{ color: hidden ? "#333" : "#ccc", fontFamily: "monospace", fontSize: 13 }}>{tab.label}</span>
+                              {locked && <span style={{ color: "#333", fontSize: 10, fontFamily: "monospace" }}>LOCKED</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* DATA & DISCIPLINE */}
+                    {sec.id === "data" && (
+                      <div>
+                        <div style={{ background: "#0a0a0a", border: "1px solid #111", padding: 14, marginBottom: 12 }}>
+                          <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>SYSTEM REPORT</div>
+                          <div style={{ color: "#aaa", fontSize: 12, lineHeight: 2, fontFamily: "monospace" }}>
+                            Tasks: {state.totalTasksCompleted} · XP: {state.totalXpEarned} · Credits: {state.totalCreditsEarned}¢<br/>
+                            Refused: {state.creditsRefused || 0}¢ · Streak: {state.streakDays}d · Class: {playerClass.name}<br/>
+                            Prestige: {state.prestigeLevel} · Login streak: {state.loginStreak || 0}d<br/>
+                            Goals: {activeBosses.length} active, {defeatedBosses.length} achieved<br/>
+                            Violations: {(state.protocolViolations || []).length} · Reflections: {(state.endOfDayReflections || []).length}
+                          </div>
+                        </div>
+                        <button onClick={() => { if (state.credits > 0 && window.confirm(`Refuse all ${state.credits}¢?`)) { AudioEngine.play("fear"); setState(p => ({ ...p, creditsRefused: (p.creditsRefused || 0) + p.credits, credits: 0 })); } }} disabled={state.credits <= 0} style={{ width: "100%", background: state.credits > 0 ? "#00ff4108" : "#0a0a0a", border: `1px solid ${state.credits > 0 ? "#00ff4133" : "#111"}`, color: state.credits > 0 ? "#00ff41" : "#333", fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: state.credits > 0 ? "pointer" : "not-allowed", letterSpacing: 2, marginBottom: 8 }}>REFUSE ALL {state.credits}¢ — PROVE DISCIPLINE</button>
+                        <button onClick={() => { const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `simulation-os-backup-${new Date().toISOString().split("T")[0]}.json`; a.click(); URL.revokeObjectURL(url); showToast("✓ DATA EXPORTED", "#00ff41"); }} style={{ width: "100%", background: "#00d4ff08", border: "1px solid #00d4ff33", color: "#00d4ff", fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: "pointer", letterSpacing: 2, marginBottom: 8 }}>💾 EXPORT ALL DATA</button>
+                        {/* Reflection Log */}
+                        {(state.endOfDayReflections || []).length > 0 && (
+                          <div style={{ marginTop: 12 }}>
+                            <div style={{ color: "#999", fontSize: 12, letterSpacing: 2, marginBottom: 8 }}>REFLECTION LOG</div>
+                            {(state.endOfDayReflections || []).slice(-5).reverse().map((r, i) => (
+                              <div key={i} style={{ background: "#0a0a0a", border: "1px solid #111", padding: 10, marginBottom: 4 }}>
+                                <div style={{ color: "#999", fontSize: 11 }}>{r.date} · {r.productive}</div>
+                                <div style={{ color: "#888", fontSize: 11, marginTop: 2 }}>{r.improvement}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <button onClick={() => { if (window.confirm("⚠ FACTORY RESET: Delete ALL data permanently? This cannot be undone.")) { localStorage.clear(); window.location.reload(); } }} style={{ width: "100%", background: "#ff000008", border: "1px solid #ff000022", color: "#ff000044", fontFamily: "monospace", fontSize: 12, padding: "12px", cursor: "pointer", letterSpacing: 3, marginTop: 16 }}>☠ FACTORY RESET ☠</button>
+                      </div>
+                    )}
+
+                    {/* HELP — HOW TO PLAY */}
+                    {sec.id === "help" && (
+                      <div style={{ color: "#888", fontSize: 12, fontFamily: "monospace", lineHeight: 2 }}>
+                        <div style={{ color: "#fff", fontSize: 13, fontWeight: 700, marginBottom: 8 }}>SIMULATION OS — HOW IT WORKS</div>
+                        <div style={{ marginBottom: 12 }}>
+                          <span style={{ color: accentColor }}>⚡ QUESTS</span> — Add daily tasks. Complete them and rate difficulty (1-7). Harder tasks earn more <Tip term="XP">XP</Tip> and <Tip term="Credits">credits</Tip>.<br/><br/>
+                          <span style={{ color: "#ff0040" }}>☠ GOALS</span> — Long-term objectives with milestones. Each milestone becomes a quest on its scheduled date.<br/><br/>
+                          <span style={{ color: accentColor }}>◈ SKILLS</span> — Four main skills (INT/STR/VIT/SOC) each with 4 sub-skills. Level up by completing related tasks.<br/><br/>
+                          <span style={{ color: "#ffaa00" }}>🪙 SHOP</span> — Spend earned credits on approved rewards. Entertainment requires justification.<br/><br/>
+                          <span style={{ color: "#00d4ff" }}>📈 MARKET</span> — Invest credits in skill stocks. Prices rise when you're active, crash when you're not.<br/><br/>
+                          <span style={{ color: "#ff00ff" }}>🔥 COMBOS</span> — Complete tasks consecutively for escalating <Tip term="XP">XP</Tip> bonuses (10%-100%).<br/><br/>
+                          <span style={{ color: accentColor }}>⟐ PRESTIGE</span> — At level 5+, reset for a permanent +10% XP multiplier.<br/><br/>
+                          <span style={{ color: "#ff0040" }}>💀 DECAY</span> — If you don't log in, skills decay. The simulation doesn't wait for you.<br/><br/>
+                          <span style={{ color: "#ffaa00" }}>☀ MORNING PLAN</span> — Plan your top priorities each morning to start the day with focus.
+                        </div>
+                        <div style={{ color: "#555", fontSize: 11, marginTop: 8 }}>Simulation OS v5.1 · © 2026 Tejas Ayyagari</div>
+                      </div>
+                    )}
                   </div>
-                ))}
+                )}
               </div>
-            )}
-            <button onClick={() => { if (window.confirm("FACTORY RESET: Delete ALL data?")) { localStorage.clear(); window.location.reload(); } }} style={{ width: "100%", background: "#ff000008", border: "1px solid #ff000022", color: "#ff000066", fontFamily: "monospace", fontSize: 13, padding: "12px", cursor: "pointer", letterSpacing: 3 }}>☠ FACTORY RESET ☠</button>
+            ))}
           </div>
-        )}
+          );
+        })()}
 
         {/* ══ AI ══ */}
         {view === "ai" && (
           <div style={{ padding: "16px 0px 100px" }}>
+            <BackButton onClick={() => setView("dashboard")} color={accentColor} />
             {/* Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ color: "#00ff41", fontSize: 14, letterSpacing: 4, fontFamily: "monospace", fontWeight: 900 }}>⟁ SIMULATION COACH</div>
+              <div style={{ color: accentColor, fontSize: 14, letterSpacing: 4, fontFamily: "monospace", fontWeight: 900 }}>⟁ SIMULATION COACH</div>
               <button onClick={() => { setCoachHistory([]); setCoachStreamText(""); setCoachError(null); }} style={{ background: "transparent", border: "1px solid #ff004033", color: "#ff004088", fontFamily: "monospace", fontSize: 11, padding: "5px 10px", cursor: "pointer", letterSpacing: 2 }}>CLEAR SESSION</button>
             </div>
 
@@ -2337,6 +3168,19 @@ Allowed rewards: ${allowedRewards}`;
             {onboardingData?.mission && (
               <div style={{ background: "#00ff4106", border: "1px solid #00ff4115", padding: "8px 12px", marginBottom: 12, fontFamily: "monospace", fontSize: 11, color: "#00ff4155", letterSpacing: 1, lineHeight: 1.6 }}>
                 MISSION: {onboardingData.mission}
+              </div>
+            )}
+
+            {/* No API key guide */}
+            {!ANTHROPIC_API_KEY && !settings.anthropicKey && (
+              <div style={{ background: "#ffaa0008", border: "1px solid #ffaa0033", padding: 16, marginBottom: 12 }}>
+                <div style={{ color: "#ffaa00", fontSize: 13, fontFamily: "monospace", fontWeight: 700, marginBottom: 8 }}>⚠ AI COACH NEEDS SETUP</div>
+                <div style={{ color: "#888", fontSize: 12, fontFamily: "monospace", lineHeight: 2 }}>
+                  1. Go to <span style={{ color: "#00d4ff" }}>console.anthropic.com</span><br/>
+                  2. Create a free account<br/>
+                  3. Generate an API key<br/>
+                  4. Go to <button onClick={() => { setView("settings"); setExpandedSetting("coach"); }} style={{ background: "none", border: "none", color: "#ffaa00", fontFamily: "monospace", fontSize: 12, cursor: "pointer", textDecoration: "underline", padding: 0 }}>Settings → AI Coach</button> and paste it
+                </div>
               </div>
             )}
 
@@ -2408,10 +3252,19 @@ Allowed rewards: ${allowedRewards}`;
 
       </div>
 
-      {/* ── Quick Log FAB ── */}
-      {view === "dashboard" && (
-        <button onClick={() => setShowQuickLog(true)} style={{ position: "fixed", bottom: 24, right: 24, background: "#00ff4118", border: "1px solid #00ff41", color: "#00ff41", fontFamily: "monospace", fontSize: 13, fontWeight: 900, padding: "14px 22px", cursor: "pointer", letterSpacing: 2, zIndex: 5000, boxShadow: "0 0 20px #00ff4122" }}>+ QUICK LOG</button>
+      {/* ── Undo Toast ── */}
+      {undoTask && (
+        <div style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "#0a0a0a", border: "1px solid #ffaa00", padding: "10px 20px", zIndex: 8000, display: "flex", gap: 12, alignItems: "center" }}>
+          <span style={{ color: "#ffaa00", fontFamily: "monospace", fontSize: 12 }}>Removed: {undoTask.text.slice(0, 25)}{undoTask.text.length > 25 ? "..." : ""}</span>
+          <button onClick={() => { setState(p => ({ ...p, tasks: [...p.tasks, undoTask] })); setUndoTask(null); showToast("✓ QUEST RESTORED", "#00ff41"); }} style={{ background: "#ffaa0012", border: "1px solid #ffaa00", color: "#ffaa00", fontFamily: "monospace", fontSize: 12, padding: "4px 12px", cursor: "pointer", fontWeight: 700 }}>UNDO</button>
+        </div>
       )}
+
+      {/* ── Quick Action FABs ── */}
+      <div style={{ position: "fixed", bottom: 24, right: 24, display: "flex", flexDirection: "column", gap: 8, zIndex: 5000 }}>
+        <button onClick={() => setShowQuickLog(true)} style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "monospace", fontSize: 12, fontWeight: 900, padding: "12px 18px", cursor: "pointer", letterSpacing: 2, boxShadow: `0 0 20px ${accentColor}22` }}>⚡ LOG</button>
+        <button onClick={() => setShowAddTask(true)} style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "monospace", fontSize: 12, fontWeight: 900, padding: "12px 18px", cursor: "pointer", letterSpacing: 2, boxShadow: `0 0 20px ${accentColor}22` }}>+ TASK</button>
+      </div>
 
     </div>
   );
