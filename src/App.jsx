@@ -845,6 +845,504 @@ function XPBar({ xp, level, def }) {
 }
 
 
+// ── VORAX Avatar ──────────────────────────────────────────────
+function VoraxAvatar({ expression = 'idle', theme, speaking = false, size = 280 }) {
+  const t = theme || THEMES.volcanic;
+
+  // Expression-based color mapping
+  const expressionConfig = {
+    idle: {
+      eyeColor: t.accentEmber,
+      eyeGlow: t.accentFire,
+      eyeIntensity: 0.6,
+      mouthCurve: 0,
+      auraColor: `${t.accentFire}15`,
+      auraIntensity: 0.3,
+      particleSpeed: 4,
+      jawOpen: 0,
+      teethVisible: false,
+      crownEffect: false,
+    },
+    pleased: {
+      eyeColor: t.accentGold,
+      eyeGlow: t.accentGold,
+      eyeIntensity: 0.9,
+      mouthCurve: 3,
+      auraColor: `${t.accentGold}25`,
+      auraIntensity: 0.5,
+      particleSpeed: 3.5,
+      jawOpen: 0,
+      teethVisible: false,
+      crownEffect: false,
+    },
+    disappointed: {
+      eyeColor: '#991111',
+      eyeGlow: '#661111',
+      eyeIntensity: 0.4,
+      mouthCurve: -4,
+      auraColor: `${t.accentEmber}10`,
+      auraIntensity: 0.15,
+      particleSpeed: 6,
+      jawOpen: 0,
+      teethVisible: false,
+      crownEffect: false,
+    },
+    furious: {
+      eyeColor: '#FF1111',
+      eyeGlow: '#FF0000',
+      eyeIntensity: 1,
+      mouthCurve: 0,
+      auraColor: `${t.accentEmber}35`,
+      auraIntensity: 0.9,
+      particleSpeed: 1.5,
+      jawOpen: 8,
+      teethVisible: true,
+      crownEffect: false,
+    },
+    proud: {
+      eyeColor: '#FFFAE6',
+      eyeGlow: t.accentGold,
+      eyeIntensity: 1,
+      mouthCurve: 2,
+      auraColor: `${t.accentGold}30`,
+      auraIntensity: 0.7,
+      particleSpeed: 3,
+      jawOpen: 0,
+      teethVisible: false,
+      crownEffect: true,
+    },
+    demanding: {
+      eyeColor: t.accentIce,
+      eyeGlow: t.accentIce,
+      eyeIntensity: 1,
+      mouthCurve: -1,
+      auraColor: `${t.accentIce}20`,
+      auraIntensity: 0.6,
+      particleSpeed: 2.5,
+      jawOpen: 2,
+      teethVisible: false,
+      crownEffect: false,
+    },
+  };
+
+  const cfg = expressionConfig[expression] || expressionConfig.idle;
+  const cx = size / 2;
+  const cy = size / 2;
+  const s = size / 280; // scale factor
+
+  // Ember particle positions
+  const embers = [
+    { x: cx - 70 * s, y: cy - 50 * s, delay: 0, dur: cfg.particleSpeed },
+    { x: cx + 65 * s, y: cy - 40 * s, delay: 0.7, dur: cfg.particleSpeed * 0.9 },
+    { x: cx - 45 * s, y: cy + 30 * s, delay: 1.4, dur: cfg.particleSpeed * 1.1 },
+    { x: cx + 50 * s, y: cy + 20 * s, delay: 2.1, dur: cfg.particleSpeed * 0.8 },
+    { x: cx - 10 * s, y: cy - 70 * s, delay: 0.3, dur: cfg.particleSpeed * 1.2 },
+  ];
+
+  const mouthAnim = speaking
+    ? 'voraxMouthOpen 0.3s ease-in-out infinite alternate'
+    : 'voraxMouthClose 0.2s ease forwards';
+
+  return (
+    <div style={{
+      width: size,
+      height: size,
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      animation: 'voraxBreathe 4s ease-in-out infinite',
+    }}>
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        width={size}
+        height={size}
+        style={{ overflow: 'visible' }}
+      >
+        <defs>
+          {/* Eye glow gradient */}
+          <radialGradient id="vorax-eye-glow-l" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stopColor={cfg.eyeColor} stopOpacity={cfg.eyeIntensity} />
+            <stop offset="60%" stopColor={cfg.eyeGlow} stopOpacity={cfg.eyeIntensity * 0.5} />
+            <stop offset="100%" stopColor={cfg.eyeGlow} stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="vorax-eye-glow-r" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stopColor={cfg.eyeColor} stopOpacity={cfg.eyeIntensity} />
+            <stop offset="60%" stopColor={cfg.eyeGlow} stopOpacity={cfg.eyeIntensity * 0.5} />
+            <stop offset="100%" stopColor={cfg.eyeGlow} stopOpacity="0" />
+          </radialGradient>
+          {/* Aura gradient */}
+          <radialGradient id="vorax-aura" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={cfg.auraColor} />
+            <stop offset="100%" stopColor="transparent" />
+          </radialGradient>
+          {/* Head surface gradient */}
+          <linearGradient id="vorax-head-fill" x1="50%" y1="0%" x2="50%" y2="100%">
+            <stop offset="0%" stopColor={t.bgElevated} />
+            <stop offset="50%" stopColor={t.bgSurface} />
+            <stop offset="100%" stopColor={t.bgDeep} />
+          </linearGradient>
+          {/* Flare filter for furious */}
+          <filter id="vorax-flare" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation={expression === 'furious' ? 3 : 0} />
+          </filter>
+        </defs>
+
+        {/* Ambient aura circle */}
+        <circle
+          cx={cx}
+          cy={cy}
+          r={120 * s}
+          fill="url(#vorax-aura)"
+          opacity={cfg.auraIntensity}
+        />
+
+        {/* Crown embers for proud expression */}
+        {cfg.crownEffect && (
+          <g>
+            {[
+              { x: cx - 40 * s, y: cy - 105 * s },
+              { x: cx - 20 * s, y: cy - 115 * s },
+              { x: cx, y: cy - 120 * s },
+              { x: cx + 20 * s, y: cy - 115 * s },
+              { x: cx + 40 * s, y: cy - 105 * s },
+            ].map((pt, i) => (
+              <polygon
+                key={`crown-${i}`}
+                points={`${pt.x},${pt.y} ${pt.x - 4 * s},${pt.y + 12 * s} ${pt.x + 4 * s},${pt.y + 12 * s}`}
+                fill={t.accentGold}
+                opacity={0.8}
+                style={{ animation: `voraxEyeGlow 1.5s ease-in-out ${i * 0.2}s infinite` }}
+              />
+            ))}
+          </g>
+        )}
+
+        {/* ── HORNS ── */}
+        {/* Left horn */}
+        <polygon
+          points={`${cx - 38 * s},${cy - 72 * s} ${cx - 60 * s},${cy - 130 * s} ${cx - 25 * s},${cy - 68 * s}`}
+          fill={t.bgElevated}
+          stroke={t.accentFire}
+          strokeWidth={1.2 * s}
+          opacity={0.9}
+        />
+        <polygon
+          points={`${cx - 52 * s},${cy - 110 * s} ${cx - 68 * s},${cy - 140 * s} ${cx - 45 * s},${cy - 108 * s}`}
+          fill={t.bgElevated}
+          stroke={t.accentEmber}
+          strokeWidth={0.8 * s}
+          opacity={0.7}
+        />
+        {/* Right horn */}
+        <polygon
+          points={`${cx + 38 * s},${cy - 72 * s} ${cx + 60 * s},${cy - 130 * s} ${cx + 25 * s},${cy - 68 * s}`}
+          fill={t.bgElevated}
+          stroke={t.accentFire}
+          strokeWidth={1.2 * s}
+          opacity={0.9}
+        />
+        <polygon
+          points={`${cx + 52 * s},${cy - 110 * s} ${cx + 68 * s},${cy - 140 * s} ${cx + 45 * s},${cy - 108 * s}`}
+          fill={t.bgElevated}
+          stroke={t.accentEmber}
+          strokeWidth={0.8 * s}
+          opacity={0.7}
+        />
+
+        {/* ── MAIN HEAD SHAPE (angular shield/diamond) ── */}
+        <polygon
+          points={`
+            ${cx},${cy - 80 * s}
+            ${cx + 30 * s},${cy - 75 * s}
+            ${cx + 55 * s},${cy - 55 * s}
+            ${cx + 70 * s},${cy - 20 * s}
+            ${cx + 68 * s},${cy + 15 * s}
+            ${cx + 55 * s},${cy + 45 * s}
+            ${cx + 35 * s},${cy + 65 * s}
+            ${cx + 12 * s},${cy + 78 * s}
+            ${cx},${cy + 82 * s}
+            ${cx - 12 * s},${cy + 78 * s}
+            ${cx - 35 * s},${cy + 65 * s}
+            ${cx - 55 * s},${cy + 45 * s}
+            ${cx - 68 * s},${cy + 15 * s}
+            ${cx - 70 * s},${cy - 20 * s}
+            ${cx - 55 * s},${cy - 55 * s}
+            ${cx - 30 * s},${cy - 75 * s}
+          `}
+          fill="url(#vorax-head-fill)"
+          stroke={t.accentFire}
+          strokeWidth={1.5 * s}
+          strokeOpacity={0.4}
+        />
+
+        {/* ── Angular face lines / cheekbones ── */}
+        {/* Left cheekbone */}
+        <line
+          x1={cx - 62 * s} y1={cy - 10 * s}
+          x2={cx - 35 * s} y2={cy + 20 * s}
+          stroke={t.accentEmber}
+          strokeWidth={1 * s}
+          opacity={0.3}
+        />
+        <line
+          x1={cx - 35 * s} y1={cy + 20 * s}
+          x2={cx - 25 * s} y2={cy + 50 * s}
+          stroke={t.accentEmber}
+          strokeWidth={0.8 * s}
+          opacity={0.2}
+        />
+        {/* Right cheekbone */}
+        <line
+          x1={cx + 62 * s} y1={cy - 10 * s}
+          x2={cx + 35 * s} y2={cy + 20 * s}
+          stroke={t.accentEmber}
+          strokeWidth={1 * s}
+          opacity={0.3}
+        />
+        <line
+          x1={cx + 35 * s} y1={cy + 20 * s}
+          x2={cx + 25 * s} y2={cy + 50 * s}
+          stroke={t.accentEmber}
+          strokeWidth={0.8 * s}
+          opacity={0.2}
+        />
+        {/* Forehead ridge */}
+        <line
+          x1={cx - 30 * s} y1={cy - 60 * s}
+          x2={cx} y2={cy - 50 * s}
+          stroke={t.accentFire}
+          strokeWidth={0.8 * s}
+          opacity={0.25}
+        />
+        <line
+          x1={cx + 30 * s} y1={cy - 60 * s}
+          x2={cx} y2={cy - 50 * s}
+          stroke={t.accentFire}
+          strokeWidth={0.8 * s}
+          opacity={0.25}
+        />
+        {/* Nose ridge */}
+        <line
+          x1={cx} y1={cy - 45 * s}
+          x2={cx} y2={cy + 10 * s}
+          stroke={t.accentEmber}
+          strokeWidth={0.6 * s}
+          opacity={0.15}
+        />
+
+        {/* ── EYE SOCKETS (angular) ── */}
+        {/* Left eye socket */}
+        <polygon
+          points={`
+            ${cx - 44 * s},${cy - 28 * s}
+            ${cx - 18 * s},${cy - 32 * s}
+            ${cx - 12 * s},${cy - 18 * s}
+            ${cx - 18 * s},${cy - 8 * s}
+            ${cx - 44 * s},${cy - 12 * s}
+          `}
+          fill={t.bgDeep}
+          stroke={cfg.eyeColor}
+          strokeWidth={1 * s}
+          strokeOpacity={0.5}
+        />
+        {/* Left eye orb */}
+        <ellipse
+          cx={cx - 28 * s}
+          cy={cy - 20 * s}
+          rx={10 * s}
+          ry={8 * s}
+          fill="url(#vorax-eye-glow-l)"
+          style={{ animation: 'voraxEyeGlow 2.5s ease-in-out infinite' }}
+        />
+        {/* Left pupil slit */}
+        <ellipse
+          cx={cx - 28 * s}
+          cy={cy - 20 * s}
+          rx={2.5 * s}
+          ry={6 * s}
+          fill={cfg.eyeColor}
+          opacity={cfg.eyeIntensity}
+        />
+
+        {/* Right eye socket */}
+        <polygon
+          points={`
+            ${cx + 44 * s},${cy - 28 * s}
+            ${cx + 18 * s},${cy - 32 * s}
+            ${cx + 12 * s},${cy - 18 * s}
+            ${cx + 18 * s},${cy - 8 * s}
+            ${cx + 44 * s},${cy - 12 * s}
+          `}
+          fill={t.bgDeep}
+          stroke={cfg.eyeColor}
+          strokeWidth={1 * s}
+          strokeOpacity={0.5}
+        />
+        {/* Right eye orb */}
+        <ellipse
+          cx={cx + 28 * s}
+          cy={cy - 20 * s}
+          rx={10 * s}
+          ry={8 * s}
+          fill="url(#vorax-eye-glow-r)"
+          style={{ animation: 'voraxEyeGlow 2.5s ease-in-out 0.3s infinite' }}
+        />
+        {/* Right pupil slit */}
+        <ellipse
+          cx={cx + 28 * s}
+          cy={cy - 20 * s}
+          rx={2.5 * s}
+          ry={6 * s}
+          fill={cfg.eyeColor}
+          opacity={cfg.eyeIntensity}
+        />
+
+        {/* ── SNOUT / NOSE ── */}
+        <polygon
+          points={`
+            ${cx - 12 * s},${cy + 5 * s}
+            ${cx},${cy - 2 * s}
+            ${cx + 12 * s},${cy + 5 * s}
+            ${cx + 8 * s},${cy + 14 * s}
+            ${cx},${cy + 16 * s}
+            ${cx - 8 * s},${cy + 14 * s}
+          `}
+          fill={t.bgDeep}
+          stroke={t.accentEmber}
+          strokeWidth={0.6 * s}
+          strokeOpacity={0.3}
+        />
+        {/* Nostrils */}
+        <ellipse cx={cx - 5 * s} cy={cy + 10 * s} rx={2 * s} ry={1.5 * s} fill={t.accentEmber} opacity={0.4} />
+        <ellipse cx={cx + 5 * s} cy={cy + 10 * s} rx={2 * s} ry={1.5 * s} fill={t.accentEmber} opacity={0.4} />
+
+        {/* ── MOUTH / JAW ── */}
+        <g style={{ animation: mouthAnim, transformOrigin: `${cx}px ${cy + 30 * s}px` }}>
+          {/* Jaw outline */}
+          <polygon
+            points={`
+              ${cx - 30 * s},${cy + 22 * s + cfg.mouthCurve * s}
+              ${cx - 15 * s},${cy + 30 * s + cfg.jawOpen * s}
+              ${cx},${cy + 34 * s + cfg.jawOpen * s + cfg.mouthCurve * s}
+              ${cx + 15 * s},${cy + 30 * s + cfg.jawOpen * s}
+              ${cx + 30 * s},${cy + 22 * s + cfg.mouthCurve * s}
+            `}
+            fill="none"
+            stroke={t.accentEmber}
+            strokeWidth={1.2 * s}
+            strokeOpacity={0.5}
+          />
+          {/* Mouth interior (dark slit) */}
+          <polygon
+            points={`
+              ${cx - 22 * s},${cy + 24 * s + cfg.mouthCurve * s}
+              ${cx - 10 * s},${cy + 28 * s + cfg.jawOpen * 0.7 * s}
+              ${cx},${cy + 30 * s + cfg.jawOpen * 0.7 * s + cfg.mouthCurve * 0.5 * s}
+              ${cx + 10 * s},${cy + 28 * s + cfg.jawOpen * 0.7 * s}
+              ${cx + 22 * s},${cy + 24 * s + cfg.mouthCurve * s}
+            `}
+            fill={t.bgDeep}
+            stroke={expression === 'furious' ? '#FF0000' : t.accentEmber}
+            strokeWidth={0.5 * s}
+            strokeOpacity={0.3}
+          />
+
+          {/* Teeth (angular, visible when furious or jawOpen > 0) */}
+          {(cfg.teethVisible || cfg.jawOpen > 3) && (
+            <g>
+              {/* Upper teeth */}
+              {[-18, -10, -3, 3, 10, 18].map((offset, i) => (
+                <polygon
+                  key={`tooth-u-${i}`}
+                  points={`
+                    ${cx + (offset - 2) * s},${cy + 24 * s + cfg.mouthCurve * s}
+                    ${cx + offset * s},${cy + 28 * s + cfg.mouthCurve * s}
+                    ${cx + (offset + 2) * s},${cy + 24 * s + cfg.mouthCurve * s}
+                  `}
+                  fill={t.textPrimary}
+                  opacity={0.85}
+                />
+              ))}
+              {/* Lower teeth */}
+              {[-14, -6, 0, 6, 14].map((offset, i) => (
+                <polygon
+                  key={`tooth-l-${i}`}
+                  points={`
+                    ${cx + (offset - 2) * s},${cy + 30 * s + cfg.jawOpen * 0.7 * s}
+                    ${cx + offset * s},${cy + 27 * s + cfg.jawOpen * 0.4 * s}
+                    ${cx + (offset + 2) * s},${cy + 30 * s + cfg.jawOpen * 0.7 * s}
+                  `}
+                  fill={t.textPrimary}
+                  opacity={0.7}
+                />
+              ))}
+            </g>
+          )}
+        </g>
+
+        {/* ── JAW LINES ── */}
+        <line
+          x1={cx - 55 * s} y1={cy + 45 * s}
+          x2={cx - 25 * s} y2={cy + 60 * s}
+          stroke={t.accentFire}
+          strokeWidth={0.8 * s}
+          opacity={0.2}
+        />
+        <line
+          x1={cx + 55 * s} y1={cy + 45 * s}
+          x2={cx + 25 * s} y2={cy + 60 * s}
+          stroke={t.accentFire}
+          strokeWidth={0.8 * s}
+          opacity={0.2}
+        />
+        {/* Chin point accent */}
+        <polygon
+          points={`
+            ${cx - 8 * s},${cy + 72 * s}
+            ${cx},${cy + 82 * s}
+            ${cx + 8 * s},${cy + 72 * s}
+          `}
+          fill="none"
+          stroke={t.accentEmber}
+          strokeWidth={0.6 * s}
+          opacity={0.25}
+        />
+
+        {/* ── EMBER PARTICLES ── */}
+        {embers.map((e, i) => (
+          <circle
+            key={`ember-${i}`}
+            cx={e.x}
+            cy={e.y}
+            r={2.5 * s}
+            fill={expression === 'furious' ? '#FF2200' : t.accentFire}
+            opacity={0.7}
+            style={{
+              animation: `fireFloat ${e.dur}s ease-in-out ${e.delay}s infinite`,
+            }}
+          />
+        ))}
+
+        {/* Furious red flare ring */}
+        {expression === 'furious' && (
+          <circle
+            cx={cx}
+            cy={cy}
+            r={85 * s}
+            fill="none"
+            stroke="#FF0000"
+            strokeWidth={2 * s}
+            opacity={0.25}
+            style={{ animation: 'voraxEyeGlow 0.8s ease-in-out infinite' }}
+          />
+        )}
+      </svg>
+    </div>
+  );
+}
+
+
 
 // ── Modals ────────────────────────────────────────────────────
 // AI skill map — Anthropic returns one of 5 labels; map wealth → intelligence
