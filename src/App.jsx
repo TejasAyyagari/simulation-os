@@ -413,7 +413,7 @@ function getOnboardingRewardCost(name, classification) {
   const tier = detectRewardTier(name, "");
   const [lo, hi] = TIER_RANGES[tier];
   const mid = Math.floor((lo + hi) / 2);
-  return classification === "upgrade" ? Math.max(lo, Math.floor(mid * 0.5)) : mid;
+  return classification === "beneficial" ? Math.max(lo, Math.floor(mid * 0.5)) : mid;
 }
 
 // ── Accent Color Options ─────────────────────────────────────
@@ -919,502 +919,166 @@ function XPBar({ xp, level, def }) {
 
 // ── VORAX Avatar ──────────────────────────────────────────────
 function VoraxAvatar({ expression = 'idle', theme, speaking = false, size = 280 }) {
-  const t = theme || THEMES.volcanic;
+  const [tapped, setTapped] = useState(false);
+  const [blinkVisible, setBlinkVisible] = useState(false);
+  const blinkTimerRef = useRef(null);
 
-  // Expression-based color mapping
-  const expressionConfig = {
-    idle: {
-      eyeColor: t.accentEmber,
-      eyeGlow: t.accentFire,
-      eyeIntensity: 0.6,
-      mouthCurve: 0,
-      auraColor: `${t.accentFire}15`,
-      auraIntensity: 0.3,
-      particleSpeed: 4,
-      jawOpen: 0,
-      teethVisible: false,
-      crownEffect: false,
-    },
-    pleased: {
-      eyeColor: t.accentGold,
-      eyeGlow: t.accentGold,
-      eyeIntensity: 0.9,
-      mouthCurve: 3,
-      auraColor: `${t.accentGold}25`,
-      auraIntensity: 0.5,
-      particleSpeed: 3.5,
-      jawOpen: 0,
-      teethVisible: false,
-      crownEffect: false,
-    },
-    disappointed: {
-      eyeColor: '#991111',
-      eyeGlow: '#661111',
-      eyeIntensity: 0.4,
-      mouthCurve: -4,
-      auraColor: `${t.accentEmber}10`,
-      auraIntensity: 0.15,
-      particleSpeed: 6,
-      jawOpen: 0,
-      teethVisible: false,
-      crownEffect: false,
-    },
-    furious: {
-      eyeColor: '#FF1111',
-      eyeGlow: '#FF0000',
-      eyeIntensity: 1,
-      mouthCurve: 0,
-      auraColor: `${t.accentEmber}35`,
-      auraIntensity: 0.9,
-      particleSpeed: 1.5,
-      jawOpen: 8,
-      teethVisible: true,
-      crownEffect: false,
-    },
-    proud: {
-      eyeColor: '#FFFAE6',
-      eyeGlow: t.accentGold,
-      eyeIntensity: 1,
-      mouthCurve: 2,
-      auraColor: `${t.accentGold}30`,
-      auraIntensity: 0.7,
-      particleSpeed: 3,
-      jawOpen: 0,
-      teethVisible: false,
-      crownEffect: true,
-    },
-    demanding: {
-      eyeColor: t.accentIce,
-      eyeGlow: t.accentIce,
-      eyeIntensity: 1,
-      mouthCurve: -1,
-      auraColor: `${t.accentIce}20`,
-      auraIntensity: 0.6,
-      particleSpeed: 2.5,
-      jawOpen: 2,
-      teethVisible: false,
-      crownEffect: false,
-    },
+  // Random blink effect every 4-6 seconds
+  useEffect(() => {
+    const scheduleBlink = () => {
+      const delay = 4000 + Math.random() * 2000;
+      blinkTimerRef.current = setTimeout(() => {
+        setBlinkVisible(true);
+        setTimeout(() => setBlinkVisible(false), 150);
+        scheduleBlink();
+      }, delay);
+    };
+    scheduleBlink();
+    return () => { if (blinkTimerRef.current) clearTimeout(blinkTimerRef.current); };
+  }, []);
+
+  const handleTap = () => {
+    setTapped(true);
+    setTimeout(() => setTapped(false), 400);
   };
 
-  const cfg = expressionConfig[expression] || expressionConfig.idle;
-  const cx = size / 2;
-  const cy = size / 2;
-  const s = size / 280; // scale factor
+  // Expression-based glow config
+  const glowConfig = {
+    idle: { shadow: '0 0 30px rgba(255, 94, 26, 0.3), 0 0 60px rgba(255, 94, 26, 0.1)', filter: 'brightness(1) saturate(1)' },
+    pleased: { shadow: '0 0 40px rgba(255, 170, 0, 0.5), 0 0 80px rgba(255, 170, 0, 0.2)', filter: 'brightness(1.1) saturate(1.1)' },
+    disappointed: { shadow: '0 0 15px rgba(100, 50, 50, 0.3)', filter: 'brightness(0.7) saturate(0.5)' },
+    furious: { shadow: '0 0 50px rgba(255, 0, 0, 0.6), 0 0 100px rgba(255, 0, 0, 0.3)', filter: 'brightness(1.2) saturate(1.4)' },
+    proud: { shadow: '0 0 50px rgba(255, 200, 50, 0.6), 0 0 100px rgba(255, 170, 0, 0.3)', filter: 'brightness(1.25) saturate(1.2)' },
+    demanding: { shadow: '0 0 40px rgba(0, 180, 255, 0.4), 0 0 80px rgba(200, 220, 255, 0.2)', filter: 'brightness(1.05) saturate(1.1)' },
+  };
 
-  // Ember particle positions
-  const embers = [
-    { x: cx - 70 * s, y: cy - 50 * s, delay: 0, dur: cfg.particleSpeed },
-    { x: cx + 65 * s, y: cy - 40 * s, delay: 0.7, dur: cfg.particleSpeed * 0.9 },
-    { x: cx - 45 * s, y: cy + 30 * s, delay: 1.4, dur: cfg.particleSpeed * 1.1 },
-    { x: cx + 50 * s, y: cy + 20 * s, delay: 2.1, dur: cfg.particleSpeed * 0.8 },
-    { x: cx - 10 * s, y: cy - 70 * s, delay: 0.3, dur: cfg.particleSpeed * 1.2 },
-  ];
-
-  const mouthAnim = speaking
-    ? 'voraxMouthOpen 0.3s ease-in-out infinite alternate'
-    : 'voraxMouthClose 0.2s ease forwards';
+  const glow = glowConfig[expression] || glowConfig.idle;
+  const isFurious = expression === 'furious';
 
   return (
-    <div style={{
-      width: size,
-      height: size,
-      position: 'relative',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      animation: 'voraxBreathe 4s ease-in-out infinite',
-    }}>
-      <svg
-        viewBox={`0 0 ${size} ${size}`}
-        width={size}
-        height={size}
-        style={{ overflow: 'visible' }}
-      >
-        <defs>
-          {/* Eye glow gradient */}
-          <radialGradient id="vorax-eye-glow-l" cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor={cfg.eyeColor} stopOpacity={cfg.eyeIntensity} />
-            <stop offset="60%" stopColor={cfg.eyeGlow} stopOpacity={cfg.eyeIntensity * 0.5} />
-            <stop offset="100%" stopColor={cfg.eyeGlow} stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="vorax-eye-glow-r" cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor={cfg.eyeColor} stopOpacity={cfg.eyeIntensity} />
-            <stop offset="60%" stopColor={cfg.eyeGlow} stopOpacity={cfg.eyeIntensity * 0.5} />
-            <stop offset="100%" stopColor={cfg.eyeGlow} stopOpacity="0" />
-          </radialGradient>
-          {/* Aura gradient */}
-          <radialGradient id="vorax-aura" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor={cfg.auraColor} />
-            <stop offset="100%" stopColor="transparent" />
-          </radialGradient>
-          {/* Head surface gradient */}
-          <linearGradient id="vorax-head-fill" x1="50%" y1="0%" x2="50%" y2="100%">
-            <stop offset="0%" stopColor={t.bgElevated} />
-            <stop offset="50%" stopColor={t.bgSurface} />
-            <stop offset="100%" stopColor={t.bgDeep} />
-          </linearGradient>
-          {/* Flare filter for furious */}
-          <filter id="vorax-flare" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation={expression === 'furious' ? 3 : 0} />
-          </filter>
-        </defs>
-
-        {/* Ambient aura circle */}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={120 * s}
-          fill="url(#vorax-aura)"
-          opacity={cfg.auraIntensity}
+    <div
+      onClick={handleTap}
+      style={{
+        width: size,
+        height: size,
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        animation: tapped
+          ? 'voraxHeadTilt 0.4s ease'
+          : isFurious
+            ? 'voraxBreathe 4s ease-in-out infinite, voraxFuriousShake 0.15s ease-in-out infinite'
+            : 'voraxBreathe 4s ease-in-out infinite',
+      }}
+    >
+      {/* Bobbing wrapper */}
+      <div style={{
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        animation: 'voraxBob 5s ease-in-out infinite',
+      }}>
+        {/* Main image */}
+        <img
+          src="/vorax-avatar.png"
+          alt="VORAX"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            borderRadius: '50%',
+            filter: glow.filter,
+            boxShadow: glow.shadow,
+            transition: 'filter 0.5s ease, box-shadow 0.5s ease',
+          }}
+          draggable={false}
         />
 
-        {/* Crown embers for proud expression */}
-        {cfg.crownEffect && (
-          <g>
-            {[
-              { x: cx - 40 * s, y: cy - 105 * s },
-              { x: cx - 20 * s, y: cy - 115 * s },
-              { x: cx, y: cy - 120 * s },
-              { x: cx + 20 * s, y: cy - 115 * s },
-              { x: cx + 40 * s, y: cy - 105 * s },
-            ].map((pt, i) => (
-              <polygon
-                key={`crown-${i}`}
-                points={`${pt.x},${pt.y} ${pt.x - 4 * s},${pt.y + 12 * s} ${pt.x + 4 * s},${pt.y + 12 * s}`}
-                fill={t.accentGold}
-                opacity={0.8}
-                style={{ animation: `voraxEyeGlow 1.5s ease-in-out ${i * 0.2}s infinite` }}
-              />
-            ))}
-          </g>
+        {/* Eye blink overlay */}
+        {blinkVisible && (
+          <div style={{
+            position: 'absolute',
+            top: '22%',
+            left: '20%',
+            width: '60%',
+            height: '12%',
+            background: 'rgba(8, 5, 16, 0.85)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            zIndex: 2,
+          }} />
         )}
 
-        {/* ── HORNS ── */}
-        {/* Left horn */}
-        <polygon
-          points={`${cx - 38 * s},${cy - 72 * s} ${cx - 60 * s},${cy - 130 * s} ${cx - 25 * s},${cy - 68 * s}`}
-          fill={t.bgElevated}
-          stroke={t.accentFire}
-          strokeWidth={1.2 * s}
-          opacity={0.9}
-        />
-        <polygon
-          points={`${cx - 52 * s},${cy - 110 * s} ${cx - 68 * s},${cy - 140 * s} ${cx - 45 * s},${cy - 108 * s}`}
-          fill={t.bgElevated}
-          stroke={t.accentEmber}
-          strokeWidth={0.8 * s}
-          opacity={0.7}
-        />
-        {/* Right horn */}
-        <polygon
-          points={`${cx + 38 * s},${cy - 72 * s} ${cx + 60 * s},${cy - 130 * s} ${cx + 25 * s},${cy - 68 * s}`}
-          fill={t.bgElevated}
-          stroke={t.accentFire}
-          strokeWidth={1.2 * s}
-          opacity={0.9}
-        />
-        <polygon
-          points={`${cx + 52 * s},${cy - 110 * s} ${cx + 68 * s},${cy - 140 * s} ${cx + 45 * s},${cy - 108 * s}`}
-          fill={t.bgElevated}
-          stroke={t.accentEmber}
-          strokeWidth={0.8 * s}
-          opacity={0.7}
-        />
-
-        {/* ── MAIN HEAD SHAPE (angular shield/diamond) ── */}
-        <polygon
-          points={`
-            ${cx},${cy - 80 * s}
-            ${cx + 30 * s},${cy - 75 * s}
-            ${cx + 55 * s},${cy - 55 * s}
-            ${cx + 70 * s},${cy - 20 * s}
-            ${cx + 68 * s},${cy + 15 * s}
-            ${cx + 55 * s},${cy + 45 * s}
-            ${cx + 35 * s},${cy + 65 * s}
-            ${cx + 12 * s},${cy + 78 * s}
-            ${cx},${cy + 82 * s}
-            ${cx - 12 * s},${cy + 78 * s}
-            ${cx - 35 * s},${cy + 65 * s}
-            ${cx - 55 * s},${cy + 45 * s}
-            ${cx - 68 * s},${cy + 15 * s}
-            ${cx - 70 * s},${cy - 20 * s}
-            ${cx - 55 * s},${cy - 55 * s}
-            ${cx - 30 * s},${cy - 75 * s}
-          `}
-          fill="url(#vorax-head-fill)"
-          stroke={t.accentFire}
-          strokeWidth={1.5 * s}
-          strokeOpacity={0.4}
-        />
-
-        {/* ── Angular face lines / cheekbones ── */}
-        {/* Left cheekbone */}
-        <line
-          x1={cx - 62 * s} y1={cy - 10 * s}
-          x2={cx - 35 * s} y2={cy + 20 * s}
-          stroke={t.accentEmber}
-          strokeWidth={1 * s}
-          opacity={0.3}
-        />
-        <line
-          x1={cx - 35 * s} y1={cy + 20 * s}
-          x2={cx - 25 * s} y2={cy + 50 * s}
-          stroke={t.accentEmber}
-          strokeWidth={0.8 * s}
-          opacity={0.2}
-        />
-        {/* Right cheekbone */}
-        <line
-          x1={cx + 62 * s} y1={cy - 10 * s}
-          x2={cx + 35 * s} y2={cy + 20 * s}
-          stroke={t.accentEmber}
-          strokeWidth={1 * s}
-          opacity={0.3}
-        />
-        <line
-          x1={cx + 35 * s} y1={cy + 20 * s}
-          x2={cx + 25 * s} y2={cy + 50 * s}
-          stroke={t.accentEmber}
-          strokeWidth={0.8 * s}
-          opacity={0.2}
-        />
-        {/* Forehead ridge */}
-        <line
-          x1={cx - 30 * s} y1={cy - 60 * s}
-          x2={cx} y2={cy - 50 * s}
-          stroke={t.accentFire}
-          strokeWidth={0.8 * s}
-          opacity={0.25}
-        />
-        <line
-          x1={cx + 30 * s} y1={cy - 60 * s}
-          x2={cx} y2={cy - 50 * s}
-          stroke={t.accentFire}
-          strokeWidth={0.8 * s}
-          opacity={0.25}
-        />
-        {/* Nose ridge */}
-        <line
-          x1={cx} y1={cy - 45 * s}
-          x2={cx} y2={cy + 10 * s}
-          stroke={t.accentEmber}
-          strokeWidth={0.6 * s}
-          opacity={0.15}
-        />
-
-        {/* ── EYE SOCKETS (angular) ── */}
-        {/* Left eye socket */}
-        <polygon
-          points={`
-            ${cx - 44 * s},${cy - 28 * s}
-            ${cx - 18 * s},${cy - 32 * s}
-            ${cx - 12 * s},${cy - 18 * s}
-            ${cx - 18 * s},${cy - 8 * s}
-            ${cx - 44 * s},${cy - 12 * s}
-          `}
-          fill={t.bgDeep}
-          stroke={cfg.eyeColor}
-          strokeWidth={1 * s}
-          strokeOpacity={0.5}
-        />
-        {/* Left eye orb */}
-        <ellipse
-          cx={cx - 28 * s}
-          cy={cy - 20 * s}
-          rx={10 * s}
-          ry={8 * s}
-          fill="url(#vorax-eye-glow-l)"
-          style={{ animation: 'voraxEyeGlow 2.5s ease-in-out infinite' }}
-        />
-        {/* Left pupil slit */}
-        <ellipse
-          cx={cx - 28 * s}
-          cy={cy - 20 * s}
-          rx={2.5 * s}
-          ry={6 * s}
-          fill={cfg.eyeColor}
-          opacity={cfg.eyeIntensity}
-        />
-
-        {/* Right eye socket */}
-        <polygon
-          points={`
-            ${cx + 44 * s},${cy - 28 * s}
-            ${cx + 18 * s},${cy - 32 * s}
-            ${cx + 12 * s},${cy - 18 * s}
-            ${cx + 18 * s},${cy - 8 * s}
-            ${cx + 44 * s},${cy - 12 * s}
-          `}
-          fill={t.bgDeep}
-          stroke={cfg.eyeColor}
-          strokeWidth={1 * s}
-          strokeOpacity={0.5}
-        />
-        {/* Right eye orb */}
-        <ellipse
-          cx={cx + 28 * s}
-          cy={cy - 20 * s}
-          rx={10 * s}
-          ry={8 * s}
-          fill="url(#vorax-eye-glow-r)"
-          style={{ animation: 'voraxEyeGlow 2.5s ease-in-out 0.3s infinite' }}
-        />
-        {/* Right pupil slit */}
-        <ellipse
-          cx={cx + 28 * s}
-          cy={cy - 20 * s}
-          rx={2.5 * s}
-          ry={6 * s}
-          fill={cfg.eyeColor}
-          opacity={cfg.eyeIntensity}
-        />
-
-        {/* ── SNOUT / NOSE ── */}
-        <polygon
-          points={`
-            ${cx - 12 * s},${cy + 5 * s}
-            ${cx},${cy - 2 * s}
-            ${cx + 12 * s},${cy + 5 * s}
-            ${cx + 8 * s},${cy + 14 * s}
-            ${cx},${cy + 16 * s}
-            ${cx - 8 * s},${cy + 14 * s}
-          `}
-          fill={t.bgDeep}
-          stroke={t.accentEmber}
-          strokeWidth={0.6 * s}
-          strokeOpacity={0.3}
-        />
-        {/* Nostrils */}
-        <ellipse cx={cx - 5 * s} cy={cy + 10 * s} rx={2 * s} ry={1.5 * s} fill={t.accentEmber} opacity={0.4} />
-        <ellipse cx={cx + 5 * s} cy={cy + 10 * s} rx={2 * s} ry={1.5 * s} fill={t.accentEmber} opacity={0.4} />
-
-        {/* ── MOUTH / JAW ── */}
-        <g style={{ animation: mouthAnim, transformOrigin: `${cx}px ${cy + 30 * s}px` }}>
-          {/* Jaw outline */}
-          <polygon
-            points={`
-              ${cx - 30 * s},${cy + 22 * s + cfg.mouthCurve * s}
-              ${cx - 15 * s},${cy + 30 * s + cfg.jawOpen * s}
-              ${cx},${cy + 34 * s + cfg.jawOpen * s + cfg.mouthCurve * s}
-              ${cx + 15 * s},${cy + 30 * s + cfg.jawOpen * s}
-              ${cx + 30 * s},${cy + 22 * s + cfg.mouthCurve * s}
-            `}
-            fill="none"
-            stroke={t.accentEmber}
-            strokeWidth={1.2 * s}
-            strokeOpacity={0.5}
-          />
-          {/* Mouth interior (dark slit) */}
-          <polygon
-            points={`
-              ${cx - 22 * s},${cy + 24 * s + cfg.mouthCurve * s}
-              ${cx - 10 * s},${cy + 28 * s + cfg.jawOpen * 0.7 * s}
-              ${cx},${cy + 30 * s + cfg.jawOpen * 0.7 * s + cfg.mouthCurve * 0.5 * s}
-              ${cx + 10 * s},${cy + 28 * s + cfg.jawOpen * 0.7 * s}
-              ${cx + 22 * s},${cy + 24 * s + cfg.mouthCurve * s}
-            `}
-            fill={t.bgDeep}
-            stroke={expression === 'furious' ? '#FF0000' : t.accentEmber}
-            strokeWidth={0.5 * s}
-            strokeOpacity={0.3}
-          />
-
-          {/* Teeth (angular, visible when furious or jawOpen > 0) */}
-          {(cfg.teethVisible || cfg.jawOpen > 3) && (
-            <g>
-              {/* Upper teeth */}
-              {[-18, -10, -3, 3, 10, 18].map((offset, i) => (
-                <polygon
-                  key={`tooth-u-${i}`}
-                  points={`
-                    ${cx + (offset - 2) * s},${cy + 24 * s + cfg.mouthCurve * s}
-                    ${cx + offset * s},${cy + 28 * s + cfg.mouthCurve * s}
-                    ${cx + (offset + 2) * s},${cy + 24 * s + cfg.mouthCurve * s}
-                  `}
-                  fill={t.textPrimary}
-                  opacity={0.85}
-                />
-              ))}
-              {/* Lower teeth */}
-              {[-14, -6, 0, 6, 14].map((offset, i) => (
-                <polygon
-                  key={`tooth-l-${i}`}
-                  points={`
-                    ${cx + (offset - 2) * s},${cy + 30 * s + cfg.jawOpen * 0.7 * s}
-                    ${cx + offset * s},${cy + 27 * s + cfg.jawOpen * 0.4 * s}
-                    ${cx + (offset + 2) * s},${cy + 30 * s + cfg.jawOpen * 0.7 * s}
-                  `}
-                  fill={t.textPrimary}
-                  opacity={0.7}
-                />
-              ))}
-            </g>
-          )}
-        </g>
-
-        {/* ── JAW LINES ── */}
-        <line
-          x1={cx - 55 * s} y1={cy + 45 * s}
-          x2={cx - 25 * s} y2={cy + 60 * s}
-          stroke={t.accentFire}
-          strokeWidth={0.8 * s}
-          opacity={0.2}
-        />
-        <line
-          x1={cx + 55 * s} y1={cy + 45 * s}
-          x2={cx + 25 * s} y2={cy + 60 * s}
-          stroke={t.accentFire}
-          strokeWidth={0.8 * s}
-          opacity={0.2}
-        />
-        {/* Chin point accent */}
-        <polygon
-          points={`
-            ${cx - 8 * s},${cy + 72 * s}
-            ${cx},${cy + 82 * s}
-            ${cx + 8 * s},${cy + 72 * s}
-          `}
-          fill="none"
-          stroke={t.accentEmber}
-          strokeWidth={0.6 * s}
-          opacity={0.25}
-        />
-
-        {/* ── EMBER PARTICLES ── */}
-        {embers.map((e, i) => (
-          <circle
-            key={`ember-${i}`}
-            cx={e.x}
-            cy={e.y}
-            r={2.5 * s}
-            fill={expression === 'furious' ? '#FF2200' : t.accentFire}
-            opacity={0.7}
-            style={{
-              animation: `fireFloat ${e.dur}s ease-in-out ${e.delay}s infinite`,
-            }}
-          />
-        ))}
-
-        {/* Furious red flare ring */}
-        {expression === 'furious' && (
-          <circle
-            cx={cx}
-            cy={cy}
-            r={85 * s}
-            fill="none"
-            stroke="#FF0000"
-            strokeWidth={2 * s}
-            opacity={0.25}
-            style={{ animation: 'voraxEyeGlow 0.8s ease-in-out infinite' }}
-          />
+        {/* Mouth speaking animation overlay */}
+        {speaking && (
+          <div style={{
+            position: 'absolute',
+            bottom: 0,
+            left: '15%',
+            width: '70%',
+            height: '20%',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+            zIndex: 3,
+          }}>
+            <div style={{
+              width: '100%',
+              height: '100%',
+              background: 'rgba(8, 5, 16, 0.15)',
+              borderRadius: '0 0 50% 50%',
+              animation: 'voraxMouthSpeak 0.25s ease-in-out infinite alternate',
+              transformOrigin: 'top center',
+            }} />
+          </div>
         )}
-      </svg>
+      </div>
     </div>
   );
 }
 
 
+
+// ── EditTaskModal ──────────────────────────────────────────────
+function EditTaskModal({ task, onSave, onClose }) {
+  const [text, setText] = useState(task.text);
+  const [skill, setSkill] = useState(task.skill);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", zIndex: 9800, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: "#161125", border: "1px solid #2a1f45", borderRadius: 12, padding: 24, maxWidth: 480, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+        <div style={{ color: "#ede9f5", fontSize: 18, fontWeight: 700, letterSpacing: 1, fontFamily: "'Inter', sans-serif", marginBottom: 20 }}>EDIT QUEST</div>
+
+        <div style={{ color: "#FF5E1A", fontSize: 12, fontWeight: 600, letterSpacing: 2, fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>QUEST TEXT</div>
+        <input value={text} onChange={e => setText(e.target.value)} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, borderRadius: 8, boxSizing: "border-box", marginBottom: 16 }} />
+
+        <div style={{ color: "#FF5E1A", fontSize: 12, fontWeight: 600, letterSpacing: 2, fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>SKILL CATEGORY</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 20 }}>
+          {Object.entries(SKILL_DEFS).map(([key, def]) => (
+            <button key={key} onClick={() => setSkill(key)} style={{
+              padding: "10px 8px",
+              background: skill === key ? def.color + "20" : "#0f0b1a",
+              border: `2px solid ${skill === key ? def.color : "#1e1635"}`,
+              color: skill === key ? def.color : "#7a7290",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              borderRadius: 8,
+              minHeight: 44,
+            }}>{def.icon} {def.name}</button>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => { if (text.trim()) onSave({ ...task, text: text.trim(), skill }); }} style={{ flex: 1, background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", border: "none", color: "#fff", borderRadius: 8, padding: "12px 24px", fontWeight: 600, fontSize: 14, cursor: "pointer", fontFamily: "'Inter', sans-serif" }}>SAVE</button>
+          <button onClick={onClose} style={{ background: "transparent", border: "1px solid #1e1635", color: "#7a7290", borderRadius: 8, padding: "12px 20px", cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: 14 }}>CANCEL</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Modals ────────────────────────────────────────────────────
 // AI skill map — Anthropic returns one of 5 labels; map wealth → intelligence
@@ -1650,14 +1314,14 @@ function LevelUpOverlay({ skill, newLevel, onClose }) {
 function AddRewardModal({ onAdd, onClose, lifeMission, avgDailyCredits, anthropicKey }) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
-  const [cat, setCat] = useState("UPGRADE");
+  const [cat, setCat] = useState("BENEFICIAL");
   const [cost, setCost] = useState(100);
   const [justification, setJustification] = useState("");
   const [aiPricing, setAiPricing] = useState(false);
   const [aiReason, setAiReason] = useState(null);
 
-  const isEntertainment = cat === "ENTERTAINMENT";
-  const canSubmit = name.trim() && (!isEntertainment || justification.trim().length >= 10);
+  const isDistraction = cat === "DISTRACTING";
+  const canSubmit = name.trim() && (!isDistraction || justification.trim().length >= 10);
 
   const handleAiPrice = async () => {
     if (!name.trim()) return;
@@ -1674,7 +1338,7 @@ function AddRewardModal({ onAdd, onClose, lifeMission, avgDailyCredits, anthropi
         headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
         body: JSON.stringify({
           model: "claude-haiku-4-5-20251001", max_tokens: 60,
-          system: `You are a reward pricing engine for a gamified productivity app. The user earns ~${avg} credits per day. Price the reward between ${lo}-${hi} credits. Category: ${cat}. ${cat === "UPGRADE" ? "UPGRADE rewards cost HALF of entertainment." : ""} Return ONLY a JSON object: {"price":NUMBER,"reason":"SHORT_REASON"}`,
+          system: `You are a reward pricing engine for a gamified productivity app. The user earns ~${avg} credits per day. Price the reward between ${lo}-${hi} credits. Category: ${cat}. ${cat === "BENEFICIAL" ? "BENEFICIAL rewards cost HALF of distracting ones." : ""} Return ONLY a JSON object: {"price":NUMBER,"reason":"SHORT_REASON"}`,
           messages: [{ role: "user", content: `Price this reward: "${name.trim()}"${desc ? ` (${desc.trim()})` : ""}` }],
         }),
       });
@@ -1683,13 +1347,13 @@ function AddRewardModal({ onAdd, onClose, lifeMission, avgDailyCredits, anthropi
       const match = raw.match(/\{[\s\S]*?"price"\s*:\s*(\d+)[\s\S]*?"reason"\s*:\s*"([^"]*)"/);
       if (match) {
         let price = parseInt(match[1]);
-        if (cat === "UPGRADE") price = Math.max(lo, Math.floor(price * 0.5));
+        if (cat === "BENEFICIAL") price = Math.max(lo, Math.floor(price * 0.5));
         price = Math.max(lo, Math.min(hi, price));
         setCost(price);
         setAiReason(`${match[2]} (${tier} tier)`);
       } else {
         const mid = Math.floor((lo + hi) / 2);
-        setCost(cat === "UPGRADE" ? Math.floor(mid * 0.5) : mid);
+        setCost(cat === "BENEFICIAL" ? Math.floor(mid * 0.5) : mid);
         setAiReason(`Auto-priced as ${tier} tier`);
       }
     } catch (e) {
@@ -1705,13 +1369,13 @@ function AddRewardModal({ onAdd, onClose, lifeMission, avgDailyCredits, anthropi
         <input placeholder="Short description (optional)..." value={desc} onChange={e => setDesc(e.target.value)} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, marginBottom: 12, boxSizing: "border-box", borderRadius: 8 }} />
         <div style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>CATEGORY</div>
         <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-          {["UPGRADE", "ENTERTAINMENT", "OTHER"].map(c => (
-            <button key={c} onClick={() => { setCat(c); setJustification(""); }} style={{ flex: 1, padding: "10px 4px", background: cat === c ? (c === "ENTERTAINMENT" ? "#FF3D0015" : c === "UPGRADE" ? "#7CFF3F15" : "#ffffff10") : "transparent", border: `1px solid ${cat === c ? (c === "ENTERTAINMENT" ? "#FF3D00" : c === "UPGRADE" ? "#7CFF3F" : "#7a7290") : "#1e1635"}`, color: cat === c ? (c === "ENTERTAINMENT" ? "#FF3D00" : c === "UPGRADE" ? "#7CFF3F" : "#ede9f5") : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 12, cursor: "pointer", letterSpacing: 1, borderRadius: 8 }}>{c}</button>
+          {["BENEFICIAL", "DISTRACTING", "OTHER"].map(c => (
+            <button key={c} onClick={() => { setCat(c); setJustification(""); }} style={{ flex: 1, padding: "10px 4px", background: cat === c ? (c === "DISTRACTING" ? "#FF3D0015" : c === "BENEFICIAL" ? "#7CFF3F15" : "#ffffff10") : "transparent", border: `1px solid ${cat === c ? (c === "DISTRACTING" ? "#FF3D00" : c === "BENEFICIAL" ? "#7CFF3F" : "#7a7290") : "#1e1635"}`, color: cat === c ? (c === "DISTRACTING" ? "#FF3D00" : c === "BENEFICIAL" ? "#7CFF3F" : "#ede9f5") : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 12, cursor: "pointer", letterSpacing: 1, borderRadius: 8 }}>{c}</button>
           ))}
         </div>
-        {isEntertainment && (
+        {isDistraction && (
           <div style={{ background: "#FFAA0008", border: "1px solid #FFAA0044", padding: 14, marginBottom: 12, borderRadius: 8 }}>
-            <div style={{ color: "#FFAA00", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8, letterSpacing: 1 }}>ENTERTAINMENT REQUIRES JUSTIFICATION</div>
+            <div style={{ color: "#FFAA00", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8, letterSpacing: 1 }}>DISTRACTING REWARD REQUIRES JUSTIFICATION</div>
             {lifeMission && <div style={{ color: "#FFAA0099", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8, lineHeight: 1.6 }}>Your mission: "{lifeMission.slice(0, 80)}{lifeMission.length > 80 ? '...' : ''}"</div>}
             <div style={{ color: "#7a7290", fontSize: 12, fontFamily: "'Inter', sans-serif", marginBottom: 8, lineHeight: 1.6 }}>How does this reward support your life mission — or does it give you real rest that makes you more effective? Be specific.</div>
             <textarea placeholder="My justification..." value={justification} onChange={e => setJustification(e.target.value)} rows={3} style={{ width: "100%", background: "#0f0b1a", border: `1px solid ${justification.trim().length >= 10 ? "#FFAA0066" : "#1e1635"}`, color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, resize: "vertical", lineHeight: 1.8, boxSizing: "border-box", borderRadius: 8 }} />
@@ -1727,7 +1391,7 @@ function AddRewardModal({ onAdd, onClose, lifeMission, avgDailyCredits, anthropi
         <div style={{ color: "#4a4460", fontSize: 11, fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>min 5 — max 2000</div>
         {aiReason && <div style={{ color: "#FFAA0088", fontSize: 11, fontFamily: "'Inter', sans-serif", marginBottom: 12, padding: "6px 10px", background: "#FFAA0008", border: "1px solid #FFAA0022", borderRadius: 8 }}>{aiReason}</div>}
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => { if (canSubmit) onAdd({ id: `cr_${Date.now()}`, name: name.trim(), desc: desc.trim(), category: cat, cost: Math.min(2000, Math.max(5, cost)), icon: cat === "ENTERTAINMENT" ? "▶" : "◈", isCustom: true, justification: justification.trim() || undefined }); }} disabled={!canSubmit} style={{ flex: 1, padding: "12px 24px", background: canSubmit ? "linear-gradient(135deg, #FF5E1A, #FF3D00)" : "#0f0b1a", border: canSubmit ? "none" : "1px solid #1e1635", color: canSubmit ? "#fff" : "#4a4460", fontFamily: "'Inter', sans-serif", fontWeight: 600, cursor: canSubmit ? "pointer" : "not-allowed", letterSpacing: 2, fontSize: 14, borderRadius: 8 }}>ADD REWARD</button>
+          <button onClick={() => { if (canSubmit) onAdd({ id: `cr_${Date.now()}`, name: name.trim(), desc: desc.trim(), category: cat, cost: Math.min(2000, Math.max(5, cost)), icon: cat === "DISTRACTING" ? "▶" : "◈", isCustom: true, justification: justification.trim() || undefined }); }} disabled={!canSubmit} style={{ flex: 1, padding: "12px 24px", background: canSubmit ? "linear-gradient(135deg, #FF5E1A, #FF3D00)" : "#0f0b1a", border: canSubmit ? "none" : "1px solid #1e1635", color: canSubmit ? "#fff" : "#4a4460", fontFamily: "'Inter', sans-serif", fontWeight: 600, cursor: canSubmit ? "pointer" : "not-allowed", letterSpacing: 2, fontSize: 14, borderRadius: 8 }}>ADD REWARD</button>
           <button onClick={onClose} style={{ padding: "12px 20px", background: "transparent", border: "1px solid #1e1635", color: "#7a7290", fontFamily: "'Inter', sans-serif", cursor: "pointer", fontSize: 13, borderRadius: 8 }}>CANCEL</button>
         </div>
       </div>
@@ -1856,8 +1520,27 @@ const globalStyles = `
 
   /* ── VORAX New Keyframes ───────────────────────────────────── */
   @keyframes voraxBreathe {
-    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px var(--accent-fire)); }
-    50% { transform: scale(1.03); filter: drop-shadow(0 0 20px var(--accent-ember)); }
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+  @keyframes voraxBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+  @keyframes voraxHeadTilt {
+    0% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.05) rotate(3deg); }
+    50% { transform: scale(1.05) rotate(-2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  @keyframes voraxFuriousShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+  }
+  @keyframes voraxMouthSpeak {
+    0% { transform: scaleY(0.6); }
+    100% { transform: scaleY(1); }
   }
   @keyframes voraxEyeGlow {
     0%, 100% { opacity: 0.7; filter: brightness(1); }
@@ -1977,6 +1660,7 @@ export default function SimulationOS() {
   const [particleColor, setParticleColor] = useState("#FF5E1A");
   const [tPopup, setTPopup] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
   const [showAddBoss, setShowAddBoss] = useState(false);
   const [showAddNPC, setShowAddNPC] = useState(false);
   const [levelUpInfo, setLevelUpInfo] = useState(null);
@@ -2323,6 +2007,15 @@ export default function SimulationOS() {
 
   const addTask = useCallback(t => { setState(p => ({ ...p, tasks: [...p.tasks, t] })); setShowAddTask(false); showToast("✓ QUEST ADDED", "#FF5E1A"); }, [showToast]);
 
+  const updateTask = useCallback((updatedTask) => {
+    setState(p => ({
+      ...p,
+      tasks: p.tasks.map(t => t.id === updatedTask.id ? updatedTask : t)
+    }));
+    setEditingTask(null);
+    showToast("✓ QUEST UPDATED", "var(--accent-fire)");
+  }, [showToast]);
+
   // ── Add Boss (milestones scheduled by date) ─────
   const addBoss = useCallback(b => {
     setState(p => {
@@ -2579,6 +2272,15 @@ Total XP earned: ${state.totalXpEarned}
 Current streak: ${state.streakDays} days
 Tasks completed today: ${tasksToday}
 Pending tasks: ${(state.tasks || []).filter(t => !(state.completedToday || []).includes(t.id)).length}
+Current quest list:
+${(state.tasks || []).map(t => {
+  const done = (state.completedToday || []).includes(t.id);
+  return `- [${done ? 'DONE' : 'PENDING'}] [${t.skill}] "${t.text}"`;
+}).join('\n') || '(no quests)'}
+Recent completed history (last 15):
+${(state.completedHistory || []).slice(-15).map(t =>
+  `- [${t.skill}] "${t.text}" (+${t.xpEarned || '?'} XP) on ${t.date || '?'}`
+).join('\n') || '(no history)'}
 Total tasks ever completed: ${state.totalTasksCompleted}
 Credits earned: ${state.totalCreditsEarned}¢
 Credits spent: ${creditsSpent}¢
@@ -2756,7 +2458,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
   const accentColor = state.settingsConfig?.accentColor || "#FF5E1A";
   const approvedRewards = onboardingData?.allowedRewards || [];
   const allShopRewards = [
-    ...approvedRewards.map((r, i) => ({ id: `ob_${i}`, name: r, desc: "Onboarding approved", category: onboardingData?.classifications?.[r] === "upgrade" ? "UPGRADE" : "ENTERTAINMENT", cost: getOnboardingRewardCost(r, onboardingData?.classifications?.[r] || "entertainment"), icon: onboardingData?.classifications?.[r] === "upgrade" ? "◈" : "▣", isOnboarding: true })),
+    ...approvedRewards.map((r, i) => ({ id: `ob_${i}`, name: r, desc: "Onboarding approved", category: onboardingData?.classifications?.[r] === "beneficial" ? "BENEFICIAL" : "DISTRACTING", cost: getOnboardingRewardCost(r, onboardingData?.classifications?.[r] || "distracting"), icon: onboardingData?.classifications?.[r] === "beneficial" ? "◈" : "▣", isOnboarding: true })),
     ...(state.customRewards || []),
   ];
   const rewardGroups = {};
@@ -2856,19 +2558,19 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
       );
     }
 
-    // SCREEN 5 — CLASSIFICATION (Sort into UPGRADES vs ENTERTAINMENT)
+    // SCREEN 5 — CLASSIFICATION (Sort into BENEFICIAL vs DISTRACTING)
     if (obStep === 4) {
       const unclassified = obItems.filter(item => !obClassifications[item]);
-      const upgrades = obItems.filter(item => obClassifications[item] === "upgrade");
-      const entertainment = obItems.filter(item => obClassifications[item] === "entertainment");
+      const beneficial = obItems.filter(item => obClassifications[item] === "beneficial");
+      const distracting = obItems.filter(item => obClassifications[item] === "distracting");
       const allDone = unclassified.length === 0;
       return (
         <div style={{ ...obFull, alignItems: "flex-start", paddingTop: 40 }}>
           <style>{globalStyles}</style>
           <div style={{ maxWidth: 600, width: "100%", textAlign: "center" }}>
             <div style={{ color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>SORT YOUR ACTIVITIES</div>
-            <div style={{ color: "#7a7290", fontSize: 13, lineHeight: 1.8, fontFamily: "'Inter', sans-serif", marginBottom: 12 }}>Tap a button on each item to place it into the right column. Be honest.</div>
-            <div style={{ background: "#FFAA0008", border: "1px solid #FFAA0033", padding: 12, marginBottom: 20, color: "#FFAA00", fontSize: 13, fontFamily: "'Inter', sans-serif", lineHeight: 1.7, borderRadius: 8 }}>Your allowed list is permanent. To add new entertainment in the future, you must go through this classification process again — so choose carefully.</div>
+            <div style={{ color: "#7a7290", fontSize: 13, lineHeight: 1.8, fontFamily: "'Inter', sans-serif", marginBottom: 12 }}>Classify each activity: does it move you toward your life mission, or pull you away from it?</div>
+            <div style={{ background: "#FFAA0008", border: "1px solid #FFAA0033", padding: 12, marginBottom: 20, color: "#FFAA00", fontSize: 13, fontFamily: "'Inter', sans-serif", lineHeight: 1.7, borderRadius: 8 }}>Your allowed list is permanent. To add new activities in the future, you must go through this classification process again — so choose carefully.</div>
             {/* Unclassified items */}
             {unclassified.length > 0 && (
               <div style={{ marginBottom: 24 }}>
@@ -2877,8 +2579,8 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                   <div key={item} style={{ background: "#0f0b1a", border: "1px solid #1e1635", padding: "12px", marginBottom: 8, animation: "fadeIn 0.3s ease", borderRadius: 8 }}>
                     <div style={{ color: "#ede9f5", fontFamily: "'Inter', sans-serif", fontSize: 14, marginBottom: 10, textAlign: "left" }}>{item}</div>
                     <div style={{ display: "flex", gap: 8 }}>
-                      <button onClick={() => setObClassifications(p => ({ ...p, [item]: "upgrade" }))} style={{ flex: 1, background: "#7CFF3F10", border: "2px solid #7CFF3F66", color: "#7CFF3F", fontFamily: "'Inter', sans-serif", fontSize: 13, padding: "12px 8px", cursor: "pointer", letterSpacing: 1, fontWeight: 700, borderRadius: 8 }}>UPGRADE</button>
-                      <button onClick={() => setObClassifications(p => ({ ...p, [item]: "entertainment" }))} style={{ flex: 1, background: "#FF3D0010", border: "2px solid #FF3D0066", color: "#FF3D00", fontFamily: "'Inter', sans-serif", fontSize: 13, padding: "12px 8px", cursor: "pointer", letterSpacing: 1, fontWeight: 700, borderRadius: 8 }}>ENTERTAINMENT</button>
+                      <button onClick={() => setObClassifications(p => ({ ...p, [item]: "beneficial" }))} style={{ flex: 1, background: "#7CFF3F10", border: "2px solid #7CFF3F66", color: "#7CFF3F", fontFamily: "'Inter', sans-serif", fontSize: 13, padding: "12px 8px", cursor: "pointer", letterSpacing: 1, fontWeight: 700, borderRadius: 8 }}>BENEFICIAL</button>
+                      <button onClick={() => setObClassifications(p => ({ ...p, [item]: "distracting" }))} style={{ flex: 1, background: "#FF3D0010", border: "2px solid #FF3D0066", color: "#FF3D00", fontFamily: "'Inter', sans-serif", fontSize: 13, padding: "12px 8px", cursor: "pointer", letterSpacing: 1, fontWeight: 700, borderRadius: 8 }}>DISTRACTING</button>
                     </div>
                   </div>
                 ))}
@@ -2887,26 +2589,26 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
             {/* Two columns */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
               <div>
-                <div style={{ color: "#7CFF3F", fontSize: 12, letterSpacing: 2, marginBottom: 4, fontFamily: "'Inter', sans-serif", fontWeight: 600, textTransform: "uppercase" }}>UPGRADES</div>
-                <div style={{ color: "#7CFF3F99", fontSize: 12, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>Makes you better at your goals.</div>
-                {upgrades.map(item => (
+                <div style={{ color: "#7CFF3F", fontSize: 12, letterSpacing: 2, marginBottom: 4, fontFamily: "'Inter', sans-serif", fontWeight: 600, textTransform: "uppercase" }}>BENEFICIAL</div>
+                <div style={{ color: "#7CFF3F99", fontSize: 12, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>Moves you toward your goals</div>
+                {beneficial.map(item => (
                   <div key={item} style={{ background: "#7CFF3F08", border: "1px solid #7CFF3F22", padding: "8px 10px", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, borderRadius: 8 }}>
                     <span style={{ color: "#7CFF3F", fontFamily: "'Inter', sans-serif", fontSize: 13, flex: 1, textAlign: "left" }}>{item}</span>
                     <button onClick={() => setObClassifications(p => { const n = { ...p }; delete n[item]; return n; })} style={{ background: "none", border: "none", color: "#7CFF3F88", cursor: "pointer", fontSize: 13}}>↩</button>
                   </div>
                 ))}
-                {upgrades.length === 0 && <div style={{ color: "#1e1635", fontSize: 12, padding: 10, fontFamily: "'Inter', sans-serif" }}>—</div>}
+                {beneficial.length === 0 && <div style={{ color: "#1e1635", fontSize: 12, padding: 10, fontFamily: "'Inter', sans-serif" }}>—</div>}
               </div>
               <div>
-                <div style={{ color: "#FF3D00", fontSize: 12, letterSpacing: 2, marginBottom: 4, fontFamily: "'Inter', sans-serif", fontWeight: 600, textTransform: "uppercase" }}>ENTERTAINMENT</div>
-                <div style={{ color: "#FF5E1A99", fontSize: 12, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>Does this serve your mission — or distract from it?</div>
-                {entertainment.map(item => (
+                <div style={{ color: "#FF3D00", fontSize: 12, letterSpacing: 2, marginBottom: 4, fontFamily: "'Inter', sans-serif", fontWeight: 600, textTransform: "uppercase" }}>DISTRACTING</div>
+                <div style={{ color: "#FF5E1A99", fontSize: 12, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>Pulls you away from your mission</div>
+                {distracting.map(item => (
                   <div key={item} style={{ background: "#FF3D0008", border: "1px solid #FF3D0022", padding: "8px 10px", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, borderRadius: 8 }}>
                     <span style={{ color: "#FF5E1A", fontFamily: "'Inter', sans-serif", fontSize: 13, flex: 1, textAlign: "left" }}>{item}</span>
                     <button onClick={() => setObClassifications(p => { const n = { ...p }; delete n[item]; return n; })} style={{ background: "none", border: "none", color: "#FF3D0088", cursor: "pointer", fontSize: 13}}>↩</button>
                   </div>
                 ))}
-                {entertainment.length === 0 && <div style={{ color: "#1e1635", fontSize: 12, padding: 10, fontFamily: "'Inter', sans-serif" }}>—</div>}
+                {distracting.length === 0 && <div style={{ color: "#1e1635", fontSize: 12, padding: 10, fontFamily: "'Inter', sans-serif" }}>—</div>}
               </div>
             </div>
             <button onClick={() => { if (allDone) { AudioEngine.play("click"); setObStep(5); setObJustifyIdx(0); setObCurrentJustify(""); } }} style={obBtn(allDone)}>CLASSIFIED. CONTINUE.</button>
@@ -2927,8 +2629,8 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
           <div style={{ maxWidth: 500, width: "100%", textAlign: "center" }}>
             <div style={{ color: "#7a7290", fontSize: 12, letterSpacing: 3, marginBottom: 16, fontFamily: "'JetBrains Mono', monospace" }}>{obJustifyIdx + 1} / {obItems.length}</div>
             <div style={{ color: "#ede9f5", fontSize: 18, fontWeight: 700, letterSpacing: 1, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>{currentItem}</div>
-            <div style={{ color: classification === "upgrade" ? "#7CFF3F" : "#FF3D00", fontSize: 12, letterSpacing: 2, marginBottom: 24, fontFamily: "'Inter', sans-serif", fontWeight: 600, textTransform: "uppercase" }}>CLASSIFIED AS: {classification === "upgrade" ? "UPGRADE" : "ENTERTAINMENT"}</div>
-            <div style={{ color: "#7a7290", fontSize: 13, marginBottom: 16, fontFamily: "'Inter', sans-serif" }}>Why did you classify this as {classification === "upgrade" ? "an upgrade" : "entertainment"}? Be specific.</div>
+            <div style={{ color: classification === "beneficial" ? "#7CFF3F" : "#FF3D00", fontSize: 12, letterSpacing: 2, marginBottom: 24, fontFamily: "'Inter', sans-serif", fontWeight: 600, textTransform: "uppercase" }}>CLASSIFIED AS: {classification === "beneficial" ? "BENEFICIAL" : "DISTRACTING"}</div>
+            <div style={{ color: "#7a7290", fontSize: 13, marginBottom: 16, fontFamily: "'Inter', sans-serif" }}>Why did you classify this as {classification === "beneficial" ? "beneficial to your goal" : "distracting from your goal"}? Be specific.</div>
             <textarea placeholder="My reason..." value={obCurrentJustify} onChange={e => setObCurrentJustify(e.target.value)} rows={3} style={{ width: "100%", background: "#0f0b1a", border: "1px solid #1e1635", color: "#ede9f5", padding: "12px 14px", fontFamily: "'Inter', sans-serif", fontSize: 14, resize: "vertical", lineHeight: 1.8, borderRadius: 8 }} />
             <button onClick={() => {
               if (!hasText) return;
@@ -2957,12 +2659,12 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
               const selected = obAllowed.has(item);
               const cls = obClassifications[item];
               return (
-                <button key={item} onClick={() => { setObAllowed(p => { const n = new Set(p); if (n.has(item)) n.delete(item); else n.add(item); return n; }); }} style={{ display: "block", width: "100%", background: selected ? (cls === "upgrade" ? "#7CFF3F12" : "#FF3D0012") : "#0f0b1a", border: `1px solid ${selected ? (cls === "upgrade" ? "#7CFF3F" : "#FF3D00") : "#1e1635"}`, padding: "12px 16px", marginBottom: 6, cursor: "pointer", textAlign: "left", borderRadius: 8 }}>
+                <button key={item} onClick={() => { setObAllowed(p => { const n = new Set(p); if (n.has(item)) n.delete(item); else n.add(item); return n; }); }} style={{ display: "block", width: "100%", background: selected ? (cls === "beneficial" ? "#7CFF3F12" : "#FF3D0012") : "#0f0b1a", border: `1px solid ${selected ? (cls === "beneficial" ? "#7CFF3F" : "#FF3D00") : "#1e1635"}`, padding: "12px 16px", marginBottom: 6, cursor: "pointer", textAlign: "left", borderRadius: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ width: 18, height: 18, border: `2px solid ${selected ? "#FF5E1A" : "#1e1635"}`, background: selected ? "#FF5E1A22" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#FF5E1A", flexShrink: 0, borderRadius: 4 }}>{selected ? "✓" : ""}</span>
                     <div>
                       <div style={{ color: selected ? "#ede9f5" : "#4a4460", fontFamily: "'Inter', sans-serif", fontSize: 12 }}>{item}</div>
-                      <div style={{ color: cls === "upgrade" ? "#7CFF3F66" : "#FF3D0066", fontFamily: "'Inter', sans-serif", fontSize: 12, letterSpacing: 2 }}>{cls === "upgrade" ? "UPGRADE" : "ENTERTAINMENT"}</div>
+                      <div style={{ color: cls === "beneficial" ? "#7CFF3F66" : "#FF3D0066", fontFamily: "'Inter', sans-serif", fontSize: 12, letterSpacing: 2 }}>{cls === "beneficial" ? "BENEFICIAL" : "DISTRACTING"}</div>
                     </div>
                   </div>
                 </button>
@@ -3030,6 +2732,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         <div style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: "#0a0a0a", border: `1px solid ${toast.color}`, color: toast.color, fontFamily: "'JetBrains Mono', monospace", fontSize: 13, padding: "10px 20px", zIndex: 99999, letterSpacing: 2, animation: "fadeIn 0.2s ease", whiteSpace: "nowrap", pointerEvents: "none" }}>{toast.msg}</div>
       )}
       {showAddTask && <AddTaskModal onAdd={addTask} onClose={() => setShowAddTask(false)} />}
+      {editingTask && <EditTaskModal task={editingTask} onSave={updateTask} onClose={() => setEditingTask(null)} />}
       {showAddBoss && <AddBossModal onAdd={addBoss} onClose={() => setShowAddBoss(false)} />}
       {showAddNPC && <AddNPCModal onAdd={addNPC} onClose={() => setShowAddNPC(false)} />}
       {showAddReward && <AddRewardModal onAdd={addCustomReward} onClose={() => setShowAddReward(false)} lifeMission={onboardingData?.mission || ""} avgDailyCredits={state.totalCreditsEarned > 0 && state.totalTasksCompleted > 0 ? Math.round(state.totalCreditsEarned / Math.max(1, (state.weeklyLog || []).length || 7)) : 50} anthropicKey={settings.anthropicKey} />}
@@ -3129,7 +2832,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                   onMouseEnter={e => { e.currentTarget.style.background = skillColor + "20"; e.currentTarget.style.boxShadow = `0 0 12px ${skillColor}33`; }}
                   onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.boxShadow = "none"; }}
                 >○</button>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => setEditingTask(task)}>
                   <div style={{ color: "var(--text-primary)", fontSize: 14, fontWeight: 500, fontFamily: "var(--font-body)", marginBottom: 4, lineHeight: 1.4 }}>
                     {isBossTask && <span style={{ color: "var(--accent-fire)", fontSize: 11, fontWeight: 700, marginRight: 6, background: "var(--accent-fire)15", border: "1px solid var(--accent-fire)33", padding: "2px 6px", borderRadius: 4, letterSpacing: 1, verticalAlign: "middle" }}>GOAL</span>}
                     {task.text}
@@ -3785,8 +3488,8 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
 
       {/* ── Quick Action FABs ── */}
       <div style={{ position: "fixed", bottom: 76, right: 16, display: "flex", flexDirection: "column", gap: 8, zIndex: 5000 }}>
-        <button onClick={() => setShowQuickLog(true)} style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 900, padding: "12px 18px", cursor: "pointer", letterSpacing: 2, boxShadow: `0 0 20px ${accentColor}22` }}>⚡ LOG</button>
-        <button onClick={() => setShowAddTask(true)} style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}`, color: accentColor, fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 900, padding: "12px 18px", cursor: "pointer", letterSpacing: 2, boxShadow: `0 0 20px ${accentColor}22` }}>+ TASK</button>
+        <button onClick={() => setShowQuickLog(true)} style={{ background: "rgba(255, 94, 26, 0.1)", border: "1px solid var(--accent-fire)", color: "var(--accent-fire)", fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 700, padding: "10px 16px", cursor: "pointer", letterSpacing: 1, borderRadius: 20, boxShadow: "0 0 15px rgba(255, 94, 26, 0.15)" }}>⚡ LOG</button>
+        <button onClick={() => setShowAddTask(true)} style={{ background: "linear-gradient(135deg, #FF5E1A, #FF3D00)", border: "none", color: "#fff", fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 700, padding: "10px 16px", cursor: "pointer", letterSpacing: 1, borderRadius: 20, boxShadow: "0 0 15px rgba(255, 94, 26, 0.25)" }}>+ TASK</button>
       </div>
 
     </div>
