@@ -982,7 +982,7 @@ function VoraxAvatar({ expression = 'idle', theme, speaking = false, size = 280 
       }}>
         {/* Main image */}
         <img
-          src="/vorax-avatar.png"
+          src="/vorax-avatar.jpg"
           alt="VORAX"
           style={{
             width: '100%',
