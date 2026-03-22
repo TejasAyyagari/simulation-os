@@ -923,13 +923,12 @@ function VoraxAvatar({ expression = 'idle', theme, speaking = false, size = 280 
   const [blinkVisible, setBlinkVisible] = useState(false);
   const blinkTimerRef = useRef(null);
 
-  // Random blink effect every 4-6 seconds
   useEffect(() => {
     const scheduleBlink = () => {
-      const delay = 4000 + Math.random() * 2000;
+      const delay = 3000 + Math.random() * 3000;
       blinkTimerRef.current = setTimeout(() => {
         setBlinkVisible(true);
-        setTimeout(() => setBlinkVisible(false), 150);
+        setTimeout(() => setBlinkVisible(false), 120);
         scheduleBlink();
       }, delay);
     };
@@ -939,100 +938,138 @@ function VoraxAvatar({ expression = 'idle', theme, speaking = false, size = 280 
 
   const handleTap = () => {
     setTapped(true);
-    setTimeout(() => setTapped(false), 400);
+    AudioEngine.play("click");
+    setTimeout(() => setTapped(false), 600);
   };
 
-  // Expression-based glow config
   const glowConfig = {
-    idle: { shadow: '0 0 30px rgba(255, 94, 26, 0.3), 0 0 60px rgba(255, 94, 26, 0.1)', filter: 'brightness(1) saturate(1)' },
-    pleased: { shadow: '0 0 40px rgba(255, 170, 0, 0.5), 0 0 80px rgba(255, 170, 0, 0.2)', filter: 'brightness(1.1) saturate(1.1)' },
-    disappointed: { shadow: '0 0 15px rgba(100, 50, 50, 0.3)', filter: 'brightness(0.7) saturate(0.5)' },
-    furious: { shadow: '0 0 50px rgba(255, 0, 0, 0.6), 0 0 100px rgba(255, 0, 0, 0.3)', filter: 'brightness(1.2) saturate(1.4)' },
-    proud: { shadow: '0 0 50px rgba(255, 200, 50, 0.6), 0 0 100px rgba(255, 170, 0, 0.3)', filter: 'brightness(1.25) saturate(1.2)' },
-    demanding: { shadow: '0 0 40px rgba(0, 180, 255, 0.4), 0 0 80px rgba(200, 220, 255, 0.2)', filter: 'brightness(1.05) saturate(1.1)' },
+    idle: { shadow: '0 0 40px rgba(255, 94, 26, 0.3), 0 0 80px rgba(255, 94, 26, 0.1)', filter: 'brightness(1) saturate(1.05)' },
+    pleased: { shadow: '0 0 50px rgba(255, 170, 0, 0.5), 0 0 100px rgba(255, 170, 0, 0.2)', filter: 'brightness(1.15) saturate(1.15)' },
+    disappointed: { shadow: '0 0 20px rgba(100, 50, 50, 0.3)', filter: 'brightness(0.65) saturate(0.4) grayscale(0.2)' },
+    furious: { shadow: '0 0 60px rgba(255, 0, 0, 0.7), 0 0 120px rgba(255, 0, 0, 0.3)', filter: 'brightness(1.3) saturate(1.5) hue-rotate(-5deg)' },
+    proud: { shadow: '0 0 60px rgba(255, 200, 50, 0.6), 0 0 120px rgba(255, 170, 0, 0.3)', filter: 'brightness(1.3) saturate(1.3)' },
+    demanding: { shadow: '0 0 50px rgba(0, 180, 255, 0.5), 0 0 100px rgba(200, 220, 255, 0.2)', filter: 'brightness(1.1) saturate(1.15)' },
   };
 
   const glow = glowConfig[expression] || glowConfig.idle;
   const isFurious = expression === 'furious';
+
+  // Choose animation based on state
+  let containerAnimation;
+  if (tapped) {
+    containerAnimation = 'voraxHeadTilt 0.6s ease';
+  } else if (speaking) {
+    containerAnimation = 'voraxSpeaking 2s ease-in-out infinite';
+  } else if (isFurious) {
+    containerAnimation = 'voraxFuriousShake 0.3s ease-in-out infinite';
+  } else {
+    containerAnimation = 'voraxIdleSway 6s ease-in-out infinite';
+  }
 
   return (
     <div
       onClick={handleTap}
       style={{
         width: size,
-        height: size,
+        height: size * 1.2,
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
-        animation: tapped
-          ? 'voraxHeadTilt 0.4s ease'
-          : isFurious
-            ? 'voraxBreathe 4s ease-in-out infinite, voraxFuriousShake 0.15s ease-in-out infinite'
-            : 'voraxBreathe 4s ease-in-out infinite',
+        overflow: 'visible',
       }}
     >
-      {/* Bobbing wrapper */}
+      {/* Animated body wrapper */}
       <div style={{
         width: '100%',
         height: '100%',
         position: 'relative',
-        animation: 'voraxBob 5s ease-in-out infinite',
+        animation: containerAnimation,
+        transition: 'animation 0.3s ease',
       }}>
-        {/* Main image */}
-        <img
-          src="/vorax-avatar.jpg"
-          alt="VORAX"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-            borderRadius: '50%',
-            filter: glow.filter,
-            boxShadow: glow.shadow,
-            transition: 'filter 0.5s ease, box-shadow 0.5s ease',
-          }}
-          draggable={false}
-        />
+        {/* Breathing wrapper */}
+        <div style={{
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+          animation: speaking ? 'none' : 'voraxBreathe 4s ease-in-out infinite',
+        }}>
+          {/* Main image */}
+          <img
+            src="/vorax-avatar.jpg"
+            alt="VORAX"
+            style={{
+              width: '115%',
+              height: '115%',
+              objectFit: 'contain',
+              position: 'absolute',
+              top: '-7.5%',
+              left: '-7.5%',
+              borderRadius: 16,
+              filter: glow.filter,
+              boxShadow: glow.shadow,
+              transition: 'filter 0.5s ease, box-shadow 0.5s ease',
+            }}
+            draggable={false}
+          />
 
-        {/* Eye blink overlay */}
-        {blinkVisible && (
-          <div style={{
-            position: 'absolute',
-            top: '22%',
-            left: '20%',
-            width: '60%',
-            height: '12%',
-            background: 'rgba(8, 5, 16, 0.85)',
-            borderRadius: '50%',
-            pointerEvents: 'none',
-            zIndex: 2,
-          }} />
-        )}
-
-        {/* Mouth speaking animation overlay */}
-        {speaking && (
-          <div style={{
-            position: 'absolute',
-            bottom: 0,
-            left: '15%',
-            width: '70%',
-            height: '20%',
-            overflow: 'hidden',
-            pointerEvents: 'none',
-            zIndex: 3,
-          }}>
+          {/* Eye blink overlay */}
+          {blinkVisible && (
             <div style={{
-              width: '100%',
-              height: '100%',
-              background: 'rgba(8, 5, 16, 0.15)',
-              borderRadius: '0 0 50% 50%',
-              animation: 'voraxMouthSpeak 0.25s ease-in-out infinite alternate',
-              transformOrigin: 'top center',
+              position: 'absolute',
+              top: '18%',
+              left: '25%',
+              width: '50%',
+              height: '8%',
+              background: 'rgba(30, 22, 53, 0.9)',
+              borderRadius: '40%',
+              pointerEvents: 'none',
+              zIndex: 2,
             }} />
-          </div>
-        )}
+          )}
+
+          {/* Mouth animation overlay — visible dark opening when speaking */}
+          {speaking && (
+            <>
+              {/* Primary mouth overlay */}
+              <div style={{
+                position: 'absolute',
+                bottom: '28%',
+                left: '30%',
+                width: '40%',
+                height: '12%',
+                overflow: 'hidden',
+                pointerEvents: 'none',
+                zIndex: 3,
+              }}>
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  background: 'rgba(0, 0, 0, 0.55)',
+                  borderRadius: '30% 30% 50% 50%',
+                  animation: 'voraxMouthSpeak 0.2s ease-in-out infinite alternate',
+                  transformOrigin: 'top center',
+                  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.5)',
+                }} />
+              </div>
+              {/* Secondary mouth shadow for depth */}
+              <div style={{
+                position: 'absolute',
+                bottom: '26%',
+                left: '32%',
+                width: '36%',
+                height: '8%',
+                background: 'rgba(255, 94, 26, 0.15)',
+                borderRadius: '50%',
+                animation: 'voraxMouthSpeak 0.25s ease-in-out infinite alternate-reverse',
+                pointerEvents: 'none',
+                zIndex: 2,
+                filter: 'blur(4px)',
+              }} />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1179,7 +1216,7 @@ function AddTaskModal({ onAdd, onClose }) {
 }
 
 // ── Likert Rating Modal (after task completion) ───────────────
-function RatingModal({ task, onRate }) {
+function RatingModal({ task, onRate, onClose }) {
   const labels = ["Trivial", "Very Easy", "Easy", "Moderate", "Challenging", "Hard", "Brutal"];
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(8, 5, 16, 0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9500, padding: 16 }}>
@@ -1203,6 +1240,9 @@ function RatingModal({ task, onRate }) {
             );
           })}
         </div>
+        {onClose && (
+          <button onClick={onClose} style={{ marginTop: 16, width: "100%", background: "transparent", border: "1px solid #2a1f45", color: "#7a7290", fontFamily: "'Inter', sans-serif", fontSize: 13, padding: "12px 24px", cursor: "pointer", letterSpacing: 2, fontWeight: 600, borderRadius: 8, transition: "all 0.15s" }}>CANCEL</button>
+        )}
       </div>
     </div>
   );
@@ -1521,26 +1561,50 @@ const globalStyles = `
   /* ── VORAX New Keyframes ───────────────────────────────────── */
   @keyframes voraxBreathe {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
+    50% { transform: scale(1.04); }
   }
   @keyframes voraxBob {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(0.5deg); }
+    50% { transform: translateY(-3px) rotate(0deg); }
+    75% { transform: translateY(-6px) rotate(-0.5deg); }
+  }
+  @keyframes voraxIdleSway {
+    0%, 100% { transform: rotate(0deg) translateX(0); }
+    33% { transform: rotate(1.5deg) translateX(3px); }
+    66% { transform: rotate(-1deg) translateX(-2px); }
+  }
+  @keyframes voraxSpeaking {
+    0% { transform: translateY(0) rotate(0deg) scale(1); }
+    10% { transform: translateY(-4px) rotate(1deg) scale(1.01); }
+    20% { transform: translateY(-2px) rotate(-0.5deg) scale(1); }
+    30% { transform: translateY(-6px) rotate(0.8deg) scale(1.02); }
+    40% { transform: translateY(-1px) rotate(-0.3deg) scale(1); }
+    50% { transform: translateY(-5px) rotate(1.2deg) scale(1.01); }
+    60% { transform: translateY(-3px) rotate(-0.7deg) scale(1); }
+    70% { transform: translateY(-7px) rotate(0.5deg) scale(1.02); }
+    80% { transform: translateY(-2px) rotate(-1deg) scale(1); }
+    90% { transform: translateY(-4px) rotate(0.3deg) scale(1.01); }
+    100% { transform: translateY(0) rotate(0deg) scale(1); }
   }
   @keyframes voraxHeadTilt {
     0% { transform: scale(1) rotate(0deg); }
-    25% { transform: scale(1.05) rotate(3deg); }
-    50% { transform: scale(1.05) rotate(-2deg); }
+    20% { transform: scale(1.08) rotate(4deg); }
+    40% { transform: scale(1.06) rotate(-3deg); }
+    60% { transform: scale(1.04) rotate(2deg); }
     100% { transform: scale(1) rotate(0deg); }
   }
   @keyframes voraxFuriousShake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    75% { transform: translateX(2px); }
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    20% { transform: translateX(-4px) rotate(-1deg); }
+    40% { transform: translateX(4px) rotate(1deg); }
+    60% { transform: translateX(-3px) rotate(-0.5deg); }
+    80% { transform: translateX(3px) rotate(0.5deg); }
   }
   @keyframes voraxMouthSpeak {
-    0% { transform: scaleY(0.6); }
-    100% { transform: scaleY(1); }
+    0% { transform: scaleY(0.3); opacity: 0.6; }
+    50% { transform: scaleY(1); opacity: 0.9; }
+    100% { transform: scaleY(0.5); opacity: 0.7; }
   }
   @keyframes voraxEyeGlow {
     0%, 100% { opacity: 0.7; filter: brightness(1); }
@@ -1703,6 +1767,8 @@ export default function SimulationOS() {
   const [expandedSetting, setExpandedSetting] = useState(null);
   const [undoTask, setUndoTask] = useState(null);
   const undoTimerRef = useRef(null);
+  const [undoCompletion, setUndoCompletion] = useState(null);
+  const undoCompletionTimerRef = useRef(null);
   const [aiChatInput, setAiChatInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState(null);
@@ -1939,6 +2005,7 @@ export default function SimulationOS() {
   // ── Rate Task (after Likert selection) ──────────
   const rateAndAward = useCallback((rating) => {
     const task = ratingTask; if (!task) return;
+    const preCompletionState = { ...state };
     AudioEngine.play("xp"); setShowParticles(true); setParticleColor(SKILL_DEFS[task.skill]?.color || "#FF5E1A");
     setTimeout(() => setShowParticles(false), 1500);
     setRatingTask(null);
@@ -1997,7 +2064,19 @@ export default function SimulationOS() {
     const finalXpForToast = Math.floor((LIKERT_XP[rating] || 20) * getXpMultiplier(state));
     showToast(`✓ COMPLETE  +${finalXpForToast} XP`, SKILL_DEFS[ratingTask?.skill]?.color || "#FF5E1A", 2000);
     setTPopup(true); setTimeout(() => setTPopup(false), 1800);
-  }, [ratingTask, showToast]);
+    setUndoCompletion({ text: task.text, snapshot: preCompletionState });
+    if (undoCompletionTimerRef.current) clearTimeout(undoCompletionTimerRef.current);
+    undoCompletionTimerRef.current = setTimeout(() => setUndoCompletion(null), 8000);
+  }, [ratingTask, showToast, state]);
+
+  // ── Undo Last Completion ────────────────────────
+  const undoLastCompletion = useCallback(() => {
+    if (!undoCompletion) return;
+    setState(undoCompletion.snapshot);
+    setUndoCompletion(null);
+    showToast("↩ COMPLETION UNDONE", "var(--accent-gold)");
+    AudioEngine.play("click");
+  }, [undoCompletion, showToast]);
 
   // ── Quick Log → also opens rating ───────────────
   const quickLog = useCallback(({ text, skill }) => {
@@ -2694,7 +2773,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
 
   // ════ RATING MODAL ════
   if (ratingTask) {
-    return (<><style>{globalStyles}</style><RatingModal task={ratingTask} onRate={rateAndAward} /></>);
+    return (<><style>{globalStyles}</style><RatingModal task={ratingTask} onRate={rateAndAward} onClose={() => setRatingTask(null)} /></>);
   }
 
   // ════ BOOT: INIT ════
@@ -3469,6 +3548,14 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
         <div style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "#0a0a0a", border: "1px solid #ffaa00", padding: "10px 20px", zIndex: 8000, display: "flex", gap: 12, alignItems: "center" }}>
           <span style={{ color: "#ffaa00", fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>Removed: {undoTask.text.slice(0, 25)}{undoTask.text.length > 25 ? "..." : ""}</span>
           <button onClick={() => { setState(p => ({ ...p, tasks: [...p.tasks, undoTask] })); setUndoTask(null); showToast("✓ QUEST RESTORED", "#FF5E1A"); }} style={{ background: "#ffaa0012", border: "1px solid #ffaa00", color: "#ffaa00", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, padding: "4px 12px", cursor: "pointer", fontWeight: 700 }}>UNDO</button>
+        </div>
+      )}
+
+      {/* ── Undo Completion Toast ── */}
+      {undoCompletion && (
+        <div style={{ position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)", background: "rgba(22, 17, 37, 0.95)", backdropFilter: "blur(8px)", border: "1px solid var(--accent-gold)", padding: "10px 16px", zIndex: 8000, display: "flex", alignItems: "center", gap: 12, borderRadius: 8 }}>
+          <span style={{ color: "var(--accent-gold)", fontFamily: "var(--font-mono)", fontSize: 12 }}>Completed: {undoCompletion.text.slice(0, 25)}{undoCompletion.text.length > 25 ? "..." : ""}</span>
+          <button onClick={undoLastCompletion} style={{ background: "var(--accent-gold)15", border: "1px solid var(--accent-gold)", color: "var(--accent-gold)", fontFamily: "var(--font-mono)", fontSize: 12, padding: "6px 14px", cursor: "pointer", fontWeight: 700, borderRadius: 6 }}>UNDO</button>
         </div>
       )}
 
