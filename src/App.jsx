@@ -1725,6 +1725,10 @@ export default function SimulationOS() {
   const [tPopup, setTPopup] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [draggedTaskId, setDraggedTaskId] = useState(null);
+  const [dragOverTaskId, setDragOverTaskId] = useState(null);
+  const dragStartY = useRef(0);
+  const dragNodeRef = useRef(null);
   const [showAddBoss, setShowAddBoss] = useState(false);
   const [showAddNPC, setShowAddNPC] = useState(false);
   const [levelUpInfo, setLevelUpInfo] = useState(null);
@@ -2474,6 +2478,63 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
     });
   }, []);
 
+  // ── Drag-and-drop reorder ────────────────────────────
+  const reorderTasks = useCallback((fromId, toId) => {
+    if (fromId === toId) return;
+    AudioEngine.play("click");
+    setState(p => {
+      const nt = [...p.tasks];
+      const fromIdx = nt.findIndex(t => t.id === fromId);
+      const toIdx = nt.findIndex(t => t.id === toId);
+      if (fromIdx < 0 || toIdx < 0) return p;
+      const [moved] = nt.splice(fromIdx, 1);
+      nt.splice(toIdx, 0, moved);
+      return { ...p, tasks: nt };
+    });
+  }, []);
+
+  const handleDragStart = useCallback((e, taskId) => {
+    e.stopPropagation();
+    setDraggedTaskId(taskId);
+    const touch = e.touches ? e.touches[0] : e;
+    dragStartY.current = touch.clientY;
+    dragNodeRef.current = e.currentTarget.closest("[data-task-card]");
+  }, []);
+
+  const handleDragMove = useCallback((e) => {
+    if (!draggedTaskId) return;
+    e.preventDefault();
+    const touch = e.touches ? e.touches[0] : e;
+    const elems = document.elementsFromPoint(touch.clientX, touch.clientY);
+    const card = elems.find(el => el.dataset && el.dataset.taskCard && el.dataset.taskCard !== draggedTaskId);
+    setDragOverTaskId(card ? card.dataset.taskCard : null);
+  }, [draggedTaskId]);
+
+  const handleDragEnd = useCallback(() => {
+    if (draggedTaskId && dragOverTaskId) {
+      reorderTasks(draggedTaskId, dragOverTaskId);
+    }
+    setDraggedTaskId(null);
+    setDragOverTaskId(null);
+    dragNodeRef.current = null;
+  }, [draggedTaskId, dragOverTaskId, reorderTasks]);
+
+  useEffect(() => {
+    if (!draggedTaskId) return;
+    const onMove = (e) => handleDragMove(e);
+    const onEnd = () => handleDragEnd();
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onEnd);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onEnd);
+    return () => {
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onEnd);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onEnd);
+    };
+  }, [draggedTaskId, handleDragMove, handleDragEnd]);
+
   const removeTask = useCallback(id => {
     if (!window.confirm("Remove this quest?")) return;
     AudioEngine.play("click");
@@ -2902,12 +2963,19 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
             {activeTasks.map((task) => {
               const isBossTask = !!task.bossId;
               const skillColor = SKILL_DEFS[task.skill]?.color || "var(--accent-fire)";
+              const isDragging = draggedTaskId === task.id;
+              const isDragOver = dragOverTaskId === task.id;
               return (
-              <div key={task.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderLeft: `3px solid ${skillColor}`, borderRadius: 8, padding: "14px 16px", marginBottom: 8, display: "flex", alignItems: "center", gap: 12, transition: "filter 0.15s", cursor: "default" }}
-                onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.1)"}
-                onMouseLeave={e => e.currentTarget.style.filter = "brightness(1)"}
+              <div key={task.id} data-task-card={task.id} style={{ background: isDragOver ? "var(--bg-elevated)" : "var(--bg-surface)", border: isDragOver ? "1px solid var(--accent-fire)" : "1px solid var(--border)", borderLeft: `3px solid ${skillColor}`, borderRadius: 8, padding: "14px 16px", marginBottom: 8, display: "flex", alignItems: "center", gap: 10, transition: "all 0.15s", cursor: "default", opacity: isDragging ? 0.4 : 1, transform: isDragOver ? "scale(1.02)" : "none" }}
+                onMouseEnter={e => { if (!draggedTaskId) e.currentTarget.style.filter = "brightness(1.1)"; }}
+                onMouseLeave={e => { if (!draggedTaskId) e.currentTarget.style.filter = "brightness(1)"; }}
               >
-                <button onClick={() => initiateComplete(task)} style={{ width: 44, height: 44, background: "transparent", border: `2px solid ${skillColor}55`, color: skillColor, cursor: "pointer", fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "50%", transition: "all 0.15s" }}
+                {/* Drag handle */}
+                <div className="task-drag" style={{ minWidth: 20, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "grab", color: "var(--text-muted)", fontSize: 16, opacity: 0.5, userSelect: "none", flexShrink: 0, letterSpacing: 2 }}
+                  onTouchStart={(e) => handleDragStart(e, task.id)}
+                  onMouseDown={(e) => handleDragStart(e, task.id)}
+                >⋮⋮</div>
+                <button onClick={() => initiateComplete(task)} style={{ width: 40, height: 40, background: "transparent", border: `2px solid ${skillColor}55`, color: skillColor, cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "50%", transition: "all 0.15s" }}
                   onMouseEnter={e => { e.currentTarget.style.background = skillColor + "20"; e.currentTarget.style.boxShadow = `0 0 12px ${skillColor}33`; }}
                   onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.boxShadow = "none"; }}
                 >○</button>
@@ -2921,7 +2989,7 @@ ${detectedDebuffs.length > 0 ? `\nDEBUFF AUTO-DETECTED FROM THIS MESSAGE: ${dete
                     {isBossTask && <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-body)" }}>{task.bossName}</span>}
                   </div>
                 </div>
-                {!isBossTask && <button onClick={() => removeTask(task.id)} style={{ minWidth: 44, minHeight: 44, background: "transparent", border: "1px solid var(--border)", color: "var(--text-muted)", cursor: "pointer", fontSize: 18, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}
+                {!isBossTask && <button onClick={() => removeTask(task.id)} style={{ minWidth: 40, minHeight: 40, background: "transparent", border: "1px solid var(--border)", color: "var(--text-muted)", cursor: "pointer", fontSize: 18, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = "#ff444466"; e.currentTarget.style.color = "#ff4444"; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-muted)"; }}
                 >×</button>}
